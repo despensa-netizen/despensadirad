@@ -1,0 +1,127 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cozinha — EstoqueSync</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    :root { --primary: #2f75b5; --bg: #f8fbff; --card: #ffffff; --shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); }
+    header { background: linear-gradient(135deg, #2f75b5, #4f81bd); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
+    .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+    .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+    input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; }
+    .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 600; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th { text-align: left; font-size: 12px; color: #888; padding: 10px; border-bottom: 2px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-utensils"></i> Cozinha</h1>
+    <button onclick="firebase.auth().signOut()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;">Sair</button>
+  </header>
+
+  <div class="container">
+    <div id="mainContent" class="hidden">
+      <div class="card">
+        <h3>Fazer Pedido Avulso</h3>
+        <select id="prodSelectAvulso"><option>Carregando produtos...</option></select>
+        <input type="number" id="qtdAvulso" placeholder="Quantidade">
+        <button class="btn" onclick="enviarPedidoAvulso()">Enviar Requisição</button>
+      </div>
+
+      <div class="card">
+        <h3>Meus Pedidos Recentes</h3>
+        <table>
+          <thead><tr><th>Hora</th><th>Item</th><th>Status</th></tr></thead>
+          <tbody id="histCorpo"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+      authDomain: "estoquesync-f0d10.firebaseapp.com",
+      projectId: "estoquesync-f0d10",
+      storageBucket: "estoquesync-f0d10.appspot.com",
+      messagingSenderId: "67257178512",
+      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // PROTEÇÃO DE ROTA
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      const doc = await db.collection('usuarios').doc(user.uid).get();
+      if (!doc.exists || (doc.data().role !== 'cozinha' && doc.data().role !== 'admin')) {
+        alert("Acesso negado.");
+        auth.signOut();
+        return;
+      }
+      document.getElementById('mainContent').classList.remove('hidden');
+      initCozinha();
+    });
+
+    function initCozinha() {
+      carregarProdutos();
+      carregarMeusPedidos();
+    }
+
+    async function carregarProdutos() {
+      const snap = await db.collection('estoque').orderBy('nome').get();
+      const sel = document.getElementById('prodSelectAvulso');
+      sel.innerHTML = '';
+      snap.forEach(doc => {
+        sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`;
+      });
+    }
+
+    async function enviarPedidoAvulso() {
+      const item = document.getElementById('prodSelectAvulso').value;
+      const quantidade = parseFloat(document.getElementById('qtdAvulso').value);
+      if (!quantidade) return;
+
+      await db.collection('requisicoes').add({
+        item, quantidade, status: 'pendente', dataPedido: new Date(), solicitante: auth.currentUser.email, origem: 'Avulso'
+      });
+      alert("Pedido enviado!");
+      document.getElementById('qtdAvulso').value = '';
+    }
+
+    function carregarMeusPedidos() {
+      db.collection('requisicoes')
+        .where('solicitante', '==', auth.currentUser.email)
+        .orderBy('dataPedido', 'desc').limit(10)
+        .onSnapshot(snap => {
+          const corpo = document.getElementById('histCorpo');
+          corpo.innerHTML = '';
+          snap.forEach(doc => {
+            const r = doc.data();
+            corpo.innerHTML += `<tr>
+              <td>${r.dataPedido.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+              <td>${r.item} (${r.quantidade})</td>
+              <td><span style="color:${r.status==='pendente'?'orange':'green'}">${r.status}</span></td>
+            </tr>`;
+          });
+        });
+    }
+  </script>
+</body>
+</html>

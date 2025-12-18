@@ -1,0 +1,196 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Dashboard — EstoqueSync</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root{
+            --primary:#2f75b5; --accent:#4f81bd; --bg:#f3f7fa; --card:#ffffff;
+            --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        body{ font-family: 'Inter', sans-serif; background-color: var(--bg); margin:0; color:#333; }
+        header { background: linear-gradient(135deg, #1e4e79, #2f75b5); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+        .container { max-width: 1300px; margin: 2rem auto; padding: 0 1rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1rem; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+        h2 { font-size: 1.2rem; margin-top: 0; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; font-size: 0.85rem; color: #666; padding: 12px; border-bottom: 2px solid #eee; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fas fa-shield-halved fa-2x"></i>
+            <h1 style="margin:0; font-size: 1.4rem;">Painel Administrativo</h1>
+        </div>
+        <button onclick="firebase.auth().signOut()" class="btn" style="background:rgba(255,255,255,0.2); color:white;">Sair</button>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #3b82f6;"><i class="fas fa-box"></i></div>
+                <div><small style="color:#666">Itens em Estoque</small><div id="countEstoque" style="font-size:1.5rem; font-weight:bold;">0</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #f59e0b;"><i class="fas fa-clock"></i></div>
+                <div><small style="color:#666">Pedidos Pendentes</small><div id="countPendentes" style="font-size:1.5rem; font-weight:bold;">0</div></div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="left-col">
+                <div class="card">
+                    <h2><i class="fas fa-user-plus"></i> Cadastrar Novo Funcionário</h2>
+                    <form id="formNovoUsuario">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <input type="email" id="newEmail" placeholder="E-mail do funcionário" required>
+                            <input type="text" id="newPass" placeholder="Senha Provisória" required>
+                        </div>
+                        <select id="newRole">
+                            <option value="cozinha">Cozinha</option>
+                            <option value="estoque">Estoque</option>
+                            <option value="nutricionista">Nutricionista</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Criar Acesso no Sistema</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-list"></i> Inventário Global</h2>
+                    <table id="tabelaEstoque">
+                        <thead><tr><th>Produto</th><th>Categoria</th><th>Qtd</th><th>Validade</th></tr></thead>
+                        <tbody id="stockBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card">
+                    <h2><i class="fas fa-users-cog"></i> Usuários Ativos</h2>
+                    <div id="usersList"></div>
+                </div>
+                <div class="card">
+                    <h2><i class="fas fa-chart-pie"></i> Consumo por Categoria</h2>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+            authDomain: "estoquesync-f0d10.firebaseapp.com",
+            projectId: "estoquesync-f0d10",
+            storageBucket: "estoquesync-f0d10.appspot.com",
+            messagingSenderId: "67257178512",
+            appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = 'index.html'; return; }
+            const doc = await db.collection('usuarios').doc(user.uid).get();
+            if (!doc.exists || doc.data().role !== 'admin') { window.location.href = 'index.html'; return; }
+            initAdmin();
+        });
+
+        function initAdmin() {
+            renderStock();
+            renderUsers();
+            renderChart();
+        }
+
+        // Criar Usuário no Banco (Atenção: ler Passo 2 abaixo)
+        document.getElementById('formNovoUsuario').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('newEmail').value.toLowerCase();
+            const role = document.getElementById('newRole').value;
+            
+            try {
+                // Salvamos o perfil pelo e-mail como ID para facilitar a busca no login
+                await db.collection('config_usuarios').doc(email).set({
+                    role: role,
+                    approved: true,
+                    mustChangePass: true
+                });
+                alert("Perfil configurado! Agora crie este usuário no console do Firebase com a senha provisória.");
+                e.target.reset();
+            } catch (err) {
+                alert("Erro: " + err.message);
+            }
+        };
+
+        function renderStock() {
+            db.collection('estoque').onSnapshot(snap => {
+                const tbody = document.getElementById('stockBody');
+                document.getElementById('countEstoque').innerText = snap.size;
+                tbody.innerHTML = '';
+                snap.forEach(doc => {
+                    const p = doc.data();
+                    tbody.innerHTML += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>${p.quantidade}</td><td>${p.validade || '-'}</td></tr>`;
+                });
+            });
+        }
+
+        function renderUsers() {
+            db.collection('usuarios').onSnapshot(snap => {
+                const list = document.getElementById('usersList');
+                list.innerHTML = '';
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    list.innerHTML += `<div class="user-row">
+                        <div>${u.email}<br><small class="badge badge-success">${u.role}</small></div>
+                        <button onclick="deletarUser('${doc.id}')" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                });
+            });
+        }
+
+        function renderChart() {
+            db.collection('estoque').onSnapshot(snap => {
+                const cats = {};
+                snap.forEach(doc => { cats[doc.data().categoria] = (cats[doc.data().categoria] || 0) + 1; });
+                const ctx = document.getElementById('categoryChart').getContext('2d');
+                if(window.myChart) window.myChart.destroy();
+                window.myChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(cats),
+                        datasets: [{ data: Object.values(cats), backgroundColor: ['#2f75b5', '#10b981', '#f59e0b', '#ef4444'] }]
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

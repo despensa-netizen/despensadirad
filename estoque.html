@@ -1,0 +1,231 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Estoque — EstoqueSync</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    :root {
+      --primary: #2f75b5; --accent: #4f81bd; --bg: #f8fbff; --card: #ffffff;
+      --danger: #e74c3c; --success: #2ecc71; --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --border-radius: 16px;
+    }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); }
+    header { background: linear-gradient(135deg, #2f75b5 0%, #4f81bd 100%); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md); }
+    .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+    .card { background: var(--card); border-radius: var(--border-radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-md); }
+    .grid-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+    input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+    .btn { cursor: pointer; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+    .btn-primary { background: var(--primary); width: 100%; }
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-qr { background: #34495e; width: 100%; margin-bottom: 15px; }
+    .alert-danger { background: #fee2e2; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 24px; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #888; font-size: 13px; }
+    td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+    .stock-low { background-color: #fff5f5; color: #c53030; font-weight: bold; }
+    .req-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+    #reader { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 15px; background: #000; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-boxes"></i> EstoqueSync</h1>
+    <button id="logoutBtn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);padding:8px 16px;border-radius:12px;cursor:pointer;">Sair</button>
+  </header>
+
+  <div class="container">
+    <div id="accessDenied" class="alert-danger hidden">
+      Acesso restrito: Apenas perfil "Estoque" pode acessar esta página.
+    </div>
+
+    <div id="mainContent" class="hidden">
+      <div class="grid-forms">
+        <div class="card">
+          <h3><i class="fas fa-plus-circle"></i> Entrada / Cadastro</h3>
+          <form id="formEntrada">
+            <input type="text" id="prodNome" placeholder="Nome do Produto" required>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="prodQtd" placeholder="Qtd" step="0.01" required>
+                <input type="date" id="prodValidade" required title="Data de Validade">
+            </div>
+            <select id="prodCat">
+                <option value="Secos">Secos</option>
+                <option value="Proteínas">Proteínas</option>
+                <option value="Hortifruti">Hortifruti</option>
+                <option value="Laticínios">Laticínios</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Registrar no Sistema</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-utensils"></i> Pedidos da Cozinha</h3>
+          <div id="listaRequisicoes">
+            <p style="color:#999; text-align:center;">Carregando pedidos...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Estoque Atual</h3>
+        <table>
+          <thead>
+            <tr><th>Produto</th><th>Categoria</th><th>Validade</th><th>Qtd</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="tabelaEstoque"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+      authDomain: "estoquesync-f0d10.firebaseapp.com",
+      projectId: "estoquesync-f0d10",
+      storageBucket: "estoquesync-f0d10.appspot.com",
+      messagingSenderId: "67257178512",
+      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Verificação de Acesso
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      const doc = await db.collection('usuarios').doc(user.uid).get();
+      if (!doc.exists || !doc.data().approved || doc.data().role !== 'estoque') {
+        document.getElementById('accessDenied').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('mainContent').classList.remove('hidden');
+      initEstoque();
+    });
+
+    function initEstoque() {
+      renderEstoque();
+      renderPedidosCozinha();
+      document.getElementById('logoutBtn').onclick = () => auth.signOut();
+    }
+
+    // Cadastro de Produto
+    document.getElementById('formEntrada').onsubmit = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('prodNome').value;
+      const quantidade = parseFloat(document.getElementById('prodQtd').value);
+      const validade = document.getElementById('prodValidade').value;
+      const categoria = document.getElementById('prodCat').value;
+
+      try {
+        await db.collection('estoque').add({
+          nome, quantidade, validade, categoria, dataEntrada: new Date()
+        });
+        alert("Produto cadastrado!");
+        e.target.reset();
+      } catch (error) {
+        alert("Erro ao cadastrar: " + error.message);
+      }
+    };
+
+    // Listar Inventário
+    function renderEstoque() {
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        const tbody = document.getElementById('tabelaEstoque');
+        tbody.innerHTML = '';
+        snap.forEach(doc => {
+          const p = doc.data();
+          tbody.innerHTML += `
+            <tr class="${p.quantidade < 5 ? 'stock-low' : ''}">
+              <td>${p.nome}</td>
+              <td>${p.categoria}</td>
+              <td>${p.validade || '-'}</td>
+              <td><strong>${p.quantidade}</strong></td>
+              <td>
+                <button onclick="deletarProduto('${doc.id}')" style="background:none; border:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>`;
+        });
+      });
+    }
+
+    // Listar e Processar Pedidos da Cozinha
+    function renderPedidosCozinha() {
+      db.collection('requisicoes').where('status', '==', 'pendente').orderBy('dataPedido', 'asc').onSnapshot(snap => {
+        const div = document.getElementById('listaRequisicoes');
+        if (snap.empty) {
+          div.innerHTML = '<p style="color:#999; text-align:center;">Sem pendências.</p>';
+          return;
+        }
+        div.innerHTML = '';
+        snap.forEach(doc => {
+          const r = doc.data();
+          div.innerHTML += `
+            <div class="req-item">
+              <div>
+                <strong>${r.item}</strong> (${r.quantidade})<br>
+                <small>${r.origem || 'Avulso'} - ${r.solicitante.split('@')[0]}</small>
+              </div>
+              <div style="display:flex; gap:5px;">
+                <button class="btn btn-success" onclick="finalizarPedido('${doc.id}', '${r.item}', ${r.quantidade})" title="Entregar"><i class="fas fa-check"></i></button>
+                <button class="btn btn-danger" onclick="cancelarPedido('${doc.id}')" title="Recusar"><i class="fas fa-times"></i></button>
+              </div>
+            </div>`;
+        });
+      });
+    }
+
+    async function finalizarPedido(idReq, nomeItem, qtdPedida) {
+      // 1. Localizar o item no estoque (pelo nome)
+      const estoqueRef = db.collection('estoque').where('nome', '==', nomeItem).limit(1);
+      const snap = await estoqueRef.get();
+
+      if (snap.empty) {
+        alert("Erro: Este item não foi encontrado no estoque para dar baixa.");
+        return;
+      }
+
+      const docEstoque = snap.docs[0];
+      const qtdAtual = docEstoque.data().quantidade;
+
+      if (qtdAtual < qtdPedida) {
+        if (!confirm("Estoque insuficiente. Deseja entregar assim mesmo e deixar o saldo negativo?")) return;
+      }
+
+      const batch = db.batch();
+      // Atualiza o saldo no estoque
+      batch.update(docEstoque.ref, { quantidade: qtdAtual - qtdPedida });
+      // Atualiza o status do pedido
+      batch.update(db.collection('requisicoes').doc(idReq), { status: 'entregue', dataEntrega: new Date() });
+
+      await batch.commit();
+      alert("Pedido entregue e estoque atualizado!");
+    }
+
+    async function cancelarPedido(id) {
+      if (confirm("Deseja cancelar este pedido?")) {
+        await db.collection('requisicoes').doc(id).update({ status: 'cancelado' });
+      }
+    }
+
+    async function deletarProduto(id) {
+      if (confirm("Excluir item do inventário?")) await db.collection('estoque').doc(id).delete();
+    }
+  </script>
+</body>
+</html>

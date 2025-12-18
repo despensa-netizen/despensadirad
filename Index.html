@@ -1,0 +1,97 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EstoqueSync - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;}
+    .card{background:white;padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center;}
+    h2{color:#2f75b5;margin-bottom:25px;}
+    input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid #ddd;box-sizing:border-box;}
+    .btn{width:100%;padding:12px;border:none;border-radius:8px;background:#2f75b5;color:white;font-weight:600;cursor:pointer;margin-top:10px;}
+    #status{margin-top:15px;font-size:14px;color:#e74c3c;font-weight:500;}
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <i class="fas fa-boxes fa-3x" style="color:#2f75b5;margin-bottom:15px;"></i>
+    <h2>EstoqueSync</h2>
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="password" placeholder="Senha">
+    <button class="btn" id="btnLogin">Entrar</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+      authDomain: "estoquesync-f0d10.firebaseapp.com",
+      projectId: "estoquesync-f0d10",
+      storageBucket: "estoquesync-f0d10.appspot.com",
+      messagingSenderId: "67257178512",
+      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+   document.getElementById('btnLogin').onclick = async () => {
+      const email = document.getElementById('email').value.trim();
+      const pass = document.getElementById('password').value;
+      const status = document.getElementById('status');
+      
+      status.style.color = "#2f75b5";
+      status.textContent = "Autenticando...";
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+        const user = userCredential.user;
+        
+        status.textContent = "Validando permissões...";
+        
+        // Tenta ler o documento. Se der erro aqui, é a "Regra de Segurança" do Firebase.
+        const doc = await db.collection('usuarios').doc(user.uid).get().catch(err => {
+            throw new Error("O Firebase bloqueou a leitura do seu perfil. Verifique as 'Regras' (Rules) no console.");
+        });
+
+        if (!doc.exists) {
+          status.style.color = "red";
+          status.textContent = "Perfil não encontrado no Firestore (UID incorreto).";
+          return;
+        }
+
+        const role = doc.data().role;
+        
+        // Redirecionamento
+        const paginas = {
+            'admin': 'admin.html',
+            'estoque': 'estoque.html',
+            'cozinha': 'cozinha.html',
+            'nutricionista': 'nutri.html'
+        };
+
+        if (paginas[role]) {
+            window.location.href = paginas[role];
+        } else {
+            status.textContent = "Cargo '" + role + "' não tem página atribuída.";
+        }
+
+      } catch (err) {
+        status.style.color = "red";
+        status.textContent = err.message;
+        console.error("Erro detalhado:", err);
+      }
+    };
+  </script>
+</body>
+</html>
