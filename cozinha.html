@@ -1,55 +1,56 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cozinha — EstoqueSync</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
   <style>
-    :root { --primary: #2f75b5; --bg: #f8fbff; --card: #ffffff; --shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); }
-    header { background: linear-gradient(135deg, #2f75b5, #4f81bd); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
-    .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
-    .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
-    input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; }
-    .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 600; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { text-align: left; font-size: 12px; color: #888; padding: 10px; border-bottom: 2px solid #eee; }
-    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-    .hidden { display: none; }
+    :root { --primary: #2f75b5; --bg: #f4f7f9; --card: #ffffff; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    h2 { font-size: 1.1rem; color: var(--primary); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    select, input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+    button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; }
+    .stock-list { max-height: 300px; overflow-y: auto; font-size: 0.9rem; }
+    .stock-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f1f1; }
+    .badge-low { color: #ef4444; font-weight: bold; }
+    .cardapio-item { background: #e0f2fe; padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
   </style>
 </head>
 <body>
+
   <header>
-    <h1><i class="fas fa-utensils"></i> Cozinha</h1>
-    <button onclick="firebase.auth().signOut()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;">Sair</button>
+    <h1><i class="fas fa-utensils"></i> Painel da Cozinha</h1>
+    <button onclick="firebase.auth().signOut()" style="width: auto; background: #666;">Sair</button>
   </header>
 
-  <div class="container">
-    <div id="mainContent" class="hidden">
-      <div class="card">
-        <h3>Fazer Pedido Avulso</h3>
-        <select id="prodSelectAvulso"><option>Carregando produtos...</option></select>
-        <input type="number" id="qtdAvulso" placeholder="Quantidade">
-        <button class="btn" onclick="enviarPedidoAvulso()">Enviar Requisição</button>
-      </div>
+  <div class="grid">
+    <div class="card">
+      <h2><i class="fas fa-search"></i> Itens Disponíveis no Estoque</h2>
+      <div class="stock-list" id="stockList">Carregando estoque...</div>
+    </div>
 
-      <div class="card">
-        <h3>Meus Pedidos Recentes</h3>
-        <table>
-          <thead><tr><th>Hora</th><th>Item</th><th>Status</th></tr></thead>
-          <tbody id="histCorpo"></tbody>
-        </table>
-      </div>
+    <div class="card">
+      <h2><i class="fas fa-calendar-day"></i> Planejamento da Nutrição</h2>
+      <div id="cardapioDia">Carregando cardápio...</div>
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+      <h2><i class="fas fa-paper-plane"></i> Nova Requisição ao Estoque</h2>
+      <form id="formReq">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
+          <select id="itemSelect" required><option value="">Selecione o produto...</option></select>
+          <input type="number" id="qtdReq" placeholder="Qtd" required>
+          <button type="submit">Enviar Pedido</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -64,64 +65,59 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // PROTEÇÃO DE ROTA
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = 'index.html'; return; }
-      const doc = await db.collection('usuarios').doc(user.uid).get();
-      if (!doc.exists || (doc.data().role !== 'cozinha' && doc.data().role !== 'admin')) {
-        alert("Acesso negado.");
-        auth.signOut();
-        return;
-      }
-      document.getElementById('mainContent').classList.remove('hidden');
-      initCozinha();
+    // 1. Carregar Estoque em tempo real e preencher Select
+    db.collection('estoque').onSnapshot(snap => {
+      const list = document.getElementById('stockList');
+      const select = document.getElementById('itemSelect');
+      list.innerHTML = '';
+      select.innerHTML = '<option value="">Selecione o produto...</option>';
+
+      snap.forEach(doc => {
+        const d = doc.data();
+        // Lista visual
+        const lowStock = d.quantidade < 5 ? '<span class="badge-low"> (Baixo)</span>' : '';
+        list.innerHTML += `<div class="stock-item"><span>${d.nome}</span><span>${d.quantidade} ${d.unidade || 'un'}${lowStock}</span></div>`;
+        
+        // Opções do formulário
+        const opt = document.createElement('option');
+        opt.value = d.nome;
+        opt.textContent = `${d.nome} (Disponível: ${d.quantidade})`;
+        select.appendChild(opt);
+      });
     });
 
-    function initCozinha() {
-      carregarProdutos();
-      carregarMeusPedidos();
-    }
-
-    async function carregarProdutos() {
-      const snap = await db.collection('estoque').orderBy('nome').get();
-      const sel = document.getElementById('prodSelectAvulso');
-      sel.innerHTML = '';
+    // 2. Carregar Cardápio (Integração Nutri)
+    db.collection('cardapio').where('ativo', '==', true).onSnapshot(snap => {
+      const div = document.getElementById('cardapioDia');
+      div.innerHTML = snap.empty ? 'Nenhum cardápio planejado para hoje.' : '';
       snap.forEach(doc => {
-        sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`;
+        const c = doc.data();
+        div.innerHTML += `<div class="cardapio-item"><strong>${c.refeicao}:</strong> ${c.descricao}<br><small>Ingredientes: ${c.ingredientes}</small></div>`;
       });
-    }
+    });
 
-    async function enviarPedidoAvulso() {
-      const item = document.getElementById('prodSelectAvulso').value;
-      const quantidade = parseFloat(document.getElementById('qtdAvulso').value);
-      if (!quantidade) return;
+    // 3. Enviar Requisição
+    document.getElementById('formReq').onsubmit = async (e) => {
+      e.preventDefault();
+      const user = firebase.auth().currentUser;
+      const pedido = {
+        item: document.getElementById('itemSelect').value,
+        quantidade: Number(document.getElementById('qtdReq').value),
+        status: 'pendente',
+        usuario: user.email,
+        data: firebase.firestore.FieldValue.serverTimestamp(),
+        origem: 'cozinha'
+      };
 
-      await db.collection('requisicoes').add({
-        item, quantidade, status: 'pendente', dataPedido: new Date(), solicitante: auth.currentUser.email, origem: 'Avulso'
-      });
-      alert("Pedido enviado!");
-      document.getElementById('qtdAvulso').value = '';
-    }
-
-    function carregarMeusPedidos() {
-      db.collection('requisicoes')
-        .where('solicitante', '==', auth.currentUser.email)
-        .orderBy('dataPedido', 'desc').limit(10)
-        .onSnapshot(snap => {
-          const corpo = document.getElementById('histCorpo');
-          corpo.innerHTML = '';
-          snap.forEach(doc => {
-            const r = doc.data();
-            corpo.innerHTML += `<tr>
-              <td>${r.dataPedido.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
-              <td>${r.item} (${r.quantidade})</td>
-              <td><span style="color:${r.status==='pendente'?'orange':'green'}">${r.status}</span></td>
-            </tr>`;
-          });
-        });
-    }
+      try {
+        await db.collection('requisicoes').add(pedido);
+        alert("Requisição enviada com sucesso!");
+        e.target.reset();
+      } catch (err) {
+        alert("Erro ao enviar: " + err.message);
+      }
+    };
   </script>
 </body>
 </html>
