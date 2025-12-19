@@ -3,13 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin Dashboard — EstoqueSync</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Painel Admin — EstoqueSync</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -17,112 +13,75 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
-        :root{
-            --primary:#2f75b5; --accent:#4f81bd; --bg:#f3f7fa; --card:#ffffff;
-            --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        body{ font-family: 'Inter', sans-serif; background-color: var(--bg); margin:0; color:#333; }
-        header { background: linear-gradient(135deg, #1e4e79, #2f75b5); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+        :root { --primary: #1e4e79; --accent: #2f75b5; --bg: #f3f7fa; --card: #ffffff; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; }
+        header { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
-        
-        /* Dashboard Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1rem; }
-        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
-        
-        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-        @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
-
-        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
-        h2 { font-size: 1.2rem; margin-top: 0; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        
-        input, select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th { text-align: left; font-size: 0.85rem; color: #666; padding: 12px; border-bottom: 2px solid #eee; background: #f9f9f9; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        
-        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-excel { background: var(--success); color: white; margin-bottom: 10px; }
-        
-        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-        .badge-role { background: #e0f2fe; color: #0369a1; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 1rem; }
+        .main-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; }
+        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+        h2 { font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ddd; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: white; width: 100%; }
+        .btn-excel { background: #10b981; color: white; margin-bottom: 15px; }
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
     <header>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <i class="fas fa-user-shield fa-2x"></i>
-            <h1 style="margin:0; font-size: 1.4rem;">Painel Administrativo Master</h1>
-        </div>
+        <h1 style="font-size:1.2rem; margin:0;"><i class="fas fa-user-shield"></i> Painel Administrativo</h1>
         <button onclick="firebase.auth().signOut()" class="btn" style="background:rgba(255,255,255,0.2); color:white;">Sair</button>
     </header>
 
     <div class="container">
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="background: #3b82f6;"><i class="fas fa-box"></i></div>
-                <div><small style="color:#666">Itens no Estoque</small><div id="countEstoque" style="font-size:1.5rem; font-weight:bold;">0</div></div>
+                <i class="fas fa-boxes fa-2x" style="color:#2f75b5"></i>
+                <div><small>Itens em Estoque</small><div id="countEstoque" style="font-weight:bold; font-size:1.2rem;">0</div></div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background: #f59e0b;"><i class="fas fa-clock"></i></div>
-                <div><small style="color:#666">Pedidos Pendentes</small><div id="countPendentes" style="font-size:1.5rem; font-weight:bold;">0</div></div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #10b981;"><i class="fas fa-users"></i></div>
-                <div><small style="color:#666">Usuários Ativos</small><div id="countUsers" style="font-size:1.5rem; font-weight:bold;">0</div></div>
+                <i class="fas fa-clipboard-list fa-2x" style="color:#f59e0b"></i>
+                <div><small>Pedidos Pendentes</small><div id="countPendentes" style="font-weight:bold; font-size:1.2rem;">0</div></div>
             </div>
         </div>
 
         <div class="main-grid">
-            <div class="left-col">
+            <div class="left">
                 <div class="card">
-                    <h2><i class="fas fa-list"></i> Inventário Global</h2>
+                    <h2><i class="fas fa-inventory"></i> Inventário Global</h2>
                     <button class="btn btn-excel" onclick="exportarExcel()"><i class="fas fa-file-excel"></i> Exportar para Excel</button>
-                    <div style="overflow-x:auto;">
-                        <table id="tabelaEstoque">
-                            <thead>
-                                <tr>
-                                    <th>Produto</th>
-                                    <th>Categoria</th>
-                                    <th>Quantidade</th>
-                                    <th>Unidade</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stockBody"></tbody>
-                        </table>
-                    </div>
+                    <table id="tabelaEstoque">
+                        <thead><tr><th>Produto</th><th>Categoria</th><th>Qtd</th><th>Unidade</th></tr></thead>
+                        <tbody id="corpoEstoque"></tbody>
+                    </table>
                 </div>
-
                 <div class="card">
-                    <h2><i class="fas fa-chart-pie"></i> Distribuição por Categoria</h2>
-                    <canvas id="categoryChart" height="100"></canvas>
+                    <h2><i class="fas fa-chart-bar"></i> Visão por Categoria</h2>
+                    <canvas id="meuGrafico" height="150"></canvas>
                 </div>
             </div>
 
-            <div class="right-col">
+            <div class="right">
                 <div class="card">
-                    <h2><i class="fas fa-user-plus"></i> Autorizar Novo Funcionário</h2>
-                    <form id="formNovoUsuario">
-                        <label>E-mail:</label>
-                        <input type="email" id="newEmail" placeholder="joao@exemplo.com" required>
-                        <label>Cargo:</label>
-                        <select id="newRole">
+                    <h2><i class="fas fa-user-plus"></i> Autorizar Funcionário</h2>
+                    <form id="formAddUser">
+                        <input type="email" id="novoEmail" placeholder="E-mail do funcionário" required>
+                        <select id="novoRole">
                             <option value="cozinha">Cozinha</option>
                             <option value="estoque">Estoque</option>
                             <option value="nutricionista">Nutricionista</option>
                             <option value="admin">Administrador</option>
                         </select>
-                        <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-check"></i> Salvar Autorização</button>
+                        <button type="submit" class="btn btn-primary">Salvar Autorização</button>
                     </form>
                 </div>
-
                 <div class="card">
-                    <h2><i class="fas fa-users-cog"></i> Gerenciar Equipe</h2>
-                    <div id="usersList"></div>
+                    <h2><i class="fas fa-users"></i> Equipe Ativa</h2>
+                    <div id="listaUsuarios"></div>
                 </div>
             </div>
         </div>
@@ -139,105 +98,66 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
 
-        // Proteger Rota
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) { window.location.href = 'index.html'; return; }
-            const doc = await db.collection('usuarios').doc(user.uid).get();
-            if (!doc.exists || doc.data().role !== 'admin') {
-                window.location.href = 'index.html';
-                return;
-            }
-            initAdmin();
+        firebase.auth().onAuthStateChanged(user => {
+            if(!user) window.location.href = 'index.html';
+            else carregarTudo();
         });
 
-        function initAdmin() {
-            renderStock();
-            renderUsers();
-            countPending();
-        }
-
-        // CADASTRO AUTOMATIZADO (Vincula com o Index.html)
-        document.getElementById('formNovoUsuario').onsubmit = async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('newEmail').value.toLowerCase().trim();
-            const role = document.getElementById('newRole').value;
-            
-            try {
-                // Salva pelo E-MAIL como chave para que o novo usuário seja "capturado" no login
-                await db.collection('usuarios').doc(email).set({
-                    email: email,
-                    role: role,
-                    approved: true
-                });
-                alert("Funcionário autorizado! Ele já pode logar.");
-                e.target.reset();
-            } catch (err) {
-                alert("Erro: " + err.message);
-            }
-        };
-
-        function renderStock() {
+        function carregarTudo() {
+            // Monitorar Estoque e Gráfico
             db.collection('estoque').onSnapshot(snap => {
-                const tbody = document.getElementById('stockBody');
+                const tbody = document.getElementById('corpoEstoque');
+                const cats = {}; tbody.innerHTML = '';
                 document.getElementById('countEstoque').innerText = snap.size;
-                tbody.innerHTML = '';
-                const cats = {};
-
                 snap.forEach(doc => {
-                    const p = doc.data();
-                    tbody.innerHTML += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>${p.quantidade}</td><td>${p.unidade || 'un'}</td></tr>`;
-                    cats[p.categoria] = (cats[p.categoria] || 0) + 1;
+                    const d = doc.data();
+                    tbody.innerHTML += `<tr><td>${d.nome}</td><td>${d.categoria}</td><td>${d.quantidade}</td><td>${d.unidade || 'un'}</td></tr>`;
+                    cats[d.categoria] = (cats[d.categoria] || 0) + 1;
                 });
-                renderChart(cats);
+                renderizarGrafico(cats);
             });
-        }
 
-        function countPending() {
+            // Monitorar Pedidos
             db.collection('requisicoes').where('status','==','pendente').onSnapshot(snap => {
                 document.getElementById('countPendentes').innerText = snap.size;
             });
-        }
 
-        function renderUsers() {
+            // Monitorar Usuários
             db.collection('usuarios').onSnapshot(snap => {
-                const list = document.getElementById('usersList');
-                document.getElementById('countUsers').innerText = snap.size;
-                list.innerHTML = '';
+                const lista = document.getElementById('listaUsuarios');
+                lista.innerHTML = '';
                 snap.forEach(doc => {
                     const u = doc.data();
-                    list.innerHTML += `<div class="user-row">
-                        <div><strong>${u.email}</strong><br><span class="badge badge-role">${u.role}</span></div>
-                        <button onclick="deletarUser('${doc.id}')" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash-alt"></i></button>
-                    </div>`;
+                    lista.innerHTML += `<div class="user-item"><span>${u.email} (${u.role})</span><button onclick="removerUser('${doc.id}')" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></div>`;
                 });
             });
         }
 
-        async function deletarUser(id) {
-            if(confirm("Remover este acesso?")) {
-                await db.collection('usuarios').doc(id).delete();
-            }
-        }
+        document.getElementById('formAddUser').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('novoEmail').value.toLowerCase().trim();
+            const role = document.getElementById('novoRole').value;
+            await db.collection('usuarios').doc(email).set({ email, role, approved: true });
+            alert("Autorizado!"); e.target.reset();
+        };
 
-        function renderChart(cats) {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            if(window.myChart) window.myChart.destroy();
-            window.myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(cats),
-                    datasets: [{ data: Object.values(cats), backgroundColor: ['#2f75b5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: true }
+        async function removerUser(id) { if(confirm("Remover?")) await db.collection('usuarios').doc(id).delete(); }
+
+        function renderizarGrafico(dados) {
+            const ctx = document.getElementById('meuGrafico').getContext('2d');
+            if(window.chartObj) window.chartObj.destroy();
+            window.chartObj = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: Object.keys(dados), datasets: [{ label: 'Itens por Categoria', data: Object.values(dados), backgroundColor: '#2f75b5' }] },
+                options: { scales: { y: { beginAtZero: true } } }
             });
         }
 
         function exportarExcel() {
             const table = document.getElementById("tabelaEstoque");
-            const wb = XLSX.utils.table_to_book(table, {sheet:"Estoque"});
-            XLSX.writeFile(wb, "Relatorio_Estoque.xlsx");
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Estoque"});
+            XLSX.writeFile(wb, "Inventario_Estoque.xlsx");
         }
     </script>
 </body>
