@@ -1,72 +1,138 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <title>Nutricionista — EstoqueSync</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nutrição — EstoqueSync</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; background: #f8fbff; margin: 0; }
-    header { background: #2f75b5; color: white; padding: 15px; display: flex; justify-content: space-between; }
-    .container { max-width: 800px; margin: 20px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .hidden { display: none; }
-    .btn { background: #2f75b5; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-    input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+    :root { --primary: #059669; --secondary: #10b981; --bg: #f0fdf4; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .container { max-width: 1000px; margin: auto; }
+    .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    h2 { color: var(--primary); margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+    label { display: block; margin-top: 15px; font-weight: 600; font-size: 0.9rem; color: #444; }
+    input, textarea, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #d1d5db; box-sizing: border-box; }
+    button { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: 0.3s; width: 100%; }
+    button:hover { background: #047857; }
+    .cardapio-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+    .item-cardapio { background: #fff; padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
+    .btn-delete { position: absolute; top: 10px; right: 10px; color: #ef4444; cursor: pointer; border: none; background: none; width: auto; }
   </style>
 </head>
 <body>
-  <header>
-    <h2><i class="fas fa-apple-whole"></i> Painel Nutricional</h2>
-    <button onclick="auth.signOut()" class="btn" style="background:rgba(0,0,0,0.2)">Sair</button>
-  </header>
 
-  <div class="container hidden" id="mainContent">
-    <h3>Planejamento de Cardápio</h3>
-    <p>Selecione o dia e a receita planejada:</p>
-    <select id="menuDay">
-      <option value="Segunda">Segunda-feira</option>
-      <option value="Terça">Terça-feira</option>
-      <option value="Quarta">Quarta-feira</option>
-      <option value="Quinta">Quinta-feira</option>
-      <option value="Sexta">Sexta-feira</option>
-    </select>
-    <input type="text" id="recipeName" placeholder="Nome da Receita">
-    <button class="btn" onclick="salvarCardapio()">Salvar no Mural</button>
+<div class="container">
+  <div class="header">
+    <h1><i class="fas fa-apple-whole" style="color: var(--primary);"></i> Planejamento Nutricional</h1>
+    <button onclick="firebase.auth().signOut()" style="width: auto; background: #6b7280; margin: 0;">Sair</button>
   </div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
-      authDomain: "estoquesync-f0d10.firebaseapp.com",
-      projectId: "estoquesync-f0d10",
-      storageBucket: "estoquesync-f0d10.appspot.com",
-      messagingSenderId: "67257178512",
-      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+  <div class="card">
+    <h2><i class="fas fa-calendar-plus"></i> Novo Cardápio / Refeição</h2>
+    <form id="formCardapio">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+          <label>Tipo de Refeição</label>
+          <select id="refeicao" required>
+            <option value="Café da Manhã">Café da Manhã</option>
+            <option value="Almoço">Almoço</option>
+            <option value="Lanche">Lanche</option>
+            <option value="Jantar">Jantar</option>
+          </select>
+        </div>
+        <div>
+          <label>Data Prevista</label>
+          <input type="date" id="dataPrevista" required>
+        </div>
+      </div>
+
+      <label>Descrição do Prato</label>
+      <input type="text" id="descricao" placeholder="Ex: Arroz, Feijão, Frango Grelhado e Salada" required>
+
+      <label>Ingredientes Necessários (Para requisição da cozinha)</label>
+      <textarea id="ingredientes" rows="3" placeholder="Ex: 5kg Arroz, 2kg Feijão, 10kg Frango..." required></textarea>
+
+      <button type="submit"><i class="fas fa-save"></i> Publicar Cardápio e Liberar Requisição</button>
+    </form>
+  </div>
+
+  <h2><i class="fas fa-list-check"></i> Cardápios Ativos</h2>
+  <div id="listaCardapio" class="cardapio-list">
+    </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+    authDomain: "estoquesync-f0d10.firebaseapp.com",
+    projectId: "estoquesync-f0d10",
+    storageBucket: "estoquesync-f0d10.appspot.com",
+    messagingSenderId: "67257178512",
+    appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Salvar Cardápio
+  document.getElementById('formCardapio').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+    btn.innerText = "Salvando...";
+
+    const novoCardapio = {
+      refeicao: document.getElementById('refeicao').value,
+      data: document.getElementById('dataPrevista').value,
+      descricao: document.getElementById('descricao').value,
+      ingredientes: document.getElementById('ingredientes').value,
+      ativo: true,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = 'index.html'; return; }
-      const doc = await db.collection('usuarios').doc(user.uid).get();
-      if (!doc.exists || (doc.data().role !== 'nutricionista' && doc.data().role !== 'admin')) {
-        alert("Acesso restrito à Nutricionista.");
-        auth.signOut();
-        return;
-      }
-      document.getElementById('mainContent').classList.remove('hidden');
-    });
-
-    async function salvarCardapio() {
-        const dia = document.getElementById('menuDay').value;
-        const nome = document.getElementById('recipeName').value;
-        if(!nome) return;
-        await db.collection('cardapio').doc(dia).set({ dia, nome, data: new Date() });
-        alert("Cardápio de " + dia + " atualizado!");
+    try {
+      await db.collection('cardapio').add(novoCardapio);
+      alert("Cardápio publicado! A cozinha já pode visualizar.");
+      e.target.reset();
+    } catch (err) {
+      alert("Erro ao salvar: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "Publicar Cardápio e Liberar Requisição";
     }
-  </script>
+  };
+
+  // Carregar Cardápios
+  db.collection('cardapio').orderBy('data', 'asc').onSnapshot(snap => {
+    const container = document.getElementById('listaCardapio');
+    container.innerHTML = '';
+    
+    snap.forEach(doc => {
+      const c = doc.data();
+      container.innerHTML += `
+        <div class="item-cardapio">
+          <button class="btn-delete" onclick="removerCardapio('${doc.id}')"><i class="fas fa-trash"></i></button>
+          <span style="font-size: 0.8rem; color: var(--primary); font-weight: bold;">${c.data}</span>
+          <h3 style="margin: 5px 0;">${c.refeicao}</h3>
+          <p style="font-size: 0.9rem; margin-bottom: 10px;">${c.descricao}</p>
+          <div style="background: #f9fafb; padding: 8px; border-radius: 5px; font-size: 0.85rem;">
+            <strong>Lista de Insumos:</strong><br>${c.ingredientes}
+          </div>
+        </div>
+      `;
+    });
+  });
+
+  async function removerCardapio(id) {
+    if(confirm("Deseja excluir este planejamento?")) {
+      await db.collection('cardapio').doc(id).delete();
+    }
+  }
+</script>
 </body>
 </html>
