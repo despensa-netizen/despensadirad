@@ -6,11 +6,9 @@
   <title>EstoqueSync - Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <style>
     body{font-family:'Inter',sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;}
     .card{background:white;padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center;}
@@ -21,7 +19,6 @@
   </style>
 </head>
 <body>
-
   <div class="card">
     <i class="fas fa-boxes fa-3x" style="color:#2f75b5;margin-bottom:15px;"></i>
     <h2>EstoqueSync</h2>
@@ -30,7 +27,6 @@
     <button class="btn" id="btnLogin">Entrar</button>
     <div id="status"></div>
   </div>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
@@ -40,7 +36,6 @@
       messagingSenderId: "67257178512",
       appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
     };
-    
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -49,66 +44,36 @@
       const email = document.getElementById('email').value.trim().toLowerCase();
       const pass = document.getElementById('password').value;
       const status = document.getElementById('status');
-      
-      status.style.color = "#2f75b5";
-      status.textContent = "Autenticando...";
+      status.style.color = "#2f75b5"; status.textContent = "Autenticando...";
 
       try {
         const userCredential = await auth.signInWithEmailAndPassword(email, pass);
         const user = userCredential.user;
-        status.textContent = "Verificando autorização...";
         
-        await verificarEAutoConfigurar(user);
-      } catch (err) {
-        status.style.color = "red";
-        status.textContent = "Acesso Negado: Verifique e-mail e senha.";
-      }
-    };
-
-    async function verificarEAutoConfigurar(user) {
-      const status = document.getElementById('status');
-      const userRef = db.collection('usuarios').doc(user.uid);
-      
-      try {
-        let doc = await userRef.get();
-
-        // SE NÃO EXISTE PELO UID, VAMOS BUSCAR PELO E-MAIL NO BANCO
+        // Lógica de busca robusta: por UID ou por E-mail
+        let doc = await db.collection('usuarios').doc(user.uid).get();
         if (!doc.exists) {
-          const snapshot = await db.collection('usuarios').where('email', '==', user.email).get();
-          
-          if (!snapshot.empty) {
-            // Achou o pré-cadastro! Vamos converter para UID agora.
-            const dados = snapshot.docs[0].data();
-            const idAntigo = snapshot.docs[0].id;
-            
-            await userRef.set({
-              email: user.email,
-              role: dados.role,
-              approved: true
-            });
-
-            // Apaga o registro antigo (que estava com o nome errado ou e-mail como ID)
-            if (idAntigo !== user.uid) {
-              await db.collection('usuarios').doc(idAntigo).delete();
-            }
-            
-            doc = await userRef.get(); // Atualiza a variável doc
+          const snap = await db.collection('usuarios').where('email', '==', user.email).get();
+          if (!snap.empty) {
+            const dados = snap.docs[0].data();
+            await db.collection('usuarios').doc(user.uid).set({ ...dados, approved: true });
+            if (snap.docs[0].id !== user.uid) await db.collection('usuarios').doc(snap.docs[0].id).delete();
+            doc = await db.collection('usuarios').doc(user.uid).get();
           }
         }
 
-        if (doc.exists && doc.data().approved) {
+        if (doc.exists) {
           const role = doc.data().role;
-          const paginas = { 'admin': 'admin.html', 'estoque': 'estoque.html', 'cozinha': 'cozinha.html', 'nutricionista': 'nutri.html' };
-          window.location.href = paginas[role] || 'index.html';
+          const rotas = { admin: 'admin.html', estoque: 'estoque.html', cozinha: 'cozinha.html', nutricionista: 'nutri.html' };
+          window.location.href = rotas[role] || 'index.html';
         } else {
-          status.style.color = "red";
-          status.textContent = "Usuário não autorizado pelo Admin.";
+          status.style.color = "red"; status.textContent = "Acesso não autorizado.";
           auth.signOut();
         }
-      } catch (e) {
-        status.textContent = "Erro de conexão com o banco.";
+      } catch (err) {
+        status.style.color = "red"; status.textContent = "Erro no login: " + err.message;
       }
-    }
+    };
   </script>
 </body>
 </html>
