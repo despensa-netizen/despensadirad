@@ -18,7 +18,6 @@
     input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid #ddd;box-sizing:border-box;}
     .btn{width:100%;padding:12px;border:none;border-radius:8px;background:#2f75b5;color:white;font-weight:600;cursor:pointer;margin-top:10px;}
     #status{margin-top:15px;font-size:14px;color:#e74c3c;font-weight:500;}
-    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -26,13 +25,9 @@
   <div class="card">
     <i class="fas fa-boxes fa-3x" style="color:#2f75b5;margin-bottom:15px;"></i>
     <h2>EstoqueSync</h2>
-    
-    <div id="loginSection">
-      <input type="email" id="email" placeholder="E-mail">
-      <input type="password" id="password" placeholder="Senha">
-      <button class="btn" id="btnLogin">Entrar</button>
-    </div>
-
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="password" placeholder="Senha">
+    <button class="btn" id="btnLogin">Entrar</button>
     <div id="status"></div>
   </div>
 
@@ -50,8 +45,6 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const MEU_EMAIL_ADMIN = "almeidaalef68@gmail.com";
-
     document.getElementById('btnLogin').onclick = async () => {
       const email = document.getElementById('email').value.trim().toLowerCase();
       const pass = document.getElementById('password').value;
@@ -63,75 +56,57 @@
       try {
         const userCredential = await auth.signInWithEmailAndPassword(email, pass);
         const user = userCredential.user;
+        status.textContent = "Verificando autorização...";
         
-        status.textContent = "Verificando perfil...";
-        await verificarPerfil(user);
-
+        await verificarEAutoConfigurar(user);
       } catch (err) {
         status.style.color = "red";
-        status.textContent = "Erro: " + err.message;
+        status.textContent = "Acesso Negado: Verifique e-mail e senha.";
       }
     };
 
-    async function verificarPerfil(user) {
+    async function verificarEAutoConfigurar(user) {
       const status = document.getElementById('status');
+      const userRef = db.collection('usuarios').doc(user.uid);
+      
       try {
-        // 1. Tenta buscar pelo UID (ID oficial do Firebase)
-        let doc = await db.collection('usuarios').doc(user.uid).get();
-        
-        // 2. Se não achar pelo UID, tenta buscar pelo E-MAIL (Cadastro feito pelo Admin)
+        let doc = await userRef.get();
+
+        // SE NÃO EXISTE PELO UID, VAMOS BUSCAR PELO E-MAIL NO BANCO
         if (!doc.exists) {
-          const emailDoc = await db.collection('usuarios').doc(user.email.toLowerCase()).get();
+          const snapshot = await db.collection('usuarios').where('email', '==', user.email).get();
           
-          if (emailDoc.exists) {
-            status.textContent = "Configurando seu primeiro acesso...";
-            const dados = emailDoc.data();
+          if (!snapshot.empty) {
+            // Achou o pré-cadastro! Vamos converter para UID agora.
+            const dados = snapshot.docs[0].data();
+            const idAntigo = snapshot.docs[0].id;
             
-            // Cria o documento definitivo com o UID e apaga o temporário (e-mail)
-            await db.collection('usuarios').doc(user.uid).set(dados);
-            await db.collection('usuarios').doc(user.email.toLowerCase()).delete();
-            
-            // Recarrega o documento agora com o UID correto
-            doc = await db.collection('usuarios').doc(user.uid).get();
-          } else if (user.email.toLowerCase() === MEU_EMAIL_ADMIN.toLowerCase()) {
-            // Garantia para o seu e-mail de admin caso o banco seja limpo
-            await db.collection('usuarios').doc(user.uid).set({
+            await userRef.set({
               email: user.email,
-              role: 'admin',
+              role: dados.role,
               approved: true
             });
-            doc = await db.collection('usuarios').doc(user.uid).get();
+
+            // Apaga o registro antigo (que estava com o nome errado ou e-mail como ID)
+            if (idAntigo !== user.uid) {
+              await db.collection('usuarios').doc(idAntigo).delete();
+            }
+            
+            doc = await userRef.get(); // Atualiza a variável doc
           }
         }
 
-        if (!doc.exists) {
-          status.style.color = "red";
-          status.textContent = "Usuário não autorizado pelo administrador.";
-          auth.signOut();
-          return;
-        }
-
-        const data = doc.data();
-        
-        // Redirecionamento baseado no cargo
-        const paginas = {
-          'admin': 'admin.html',
-          'estoque': 'estoque.html',
-          'cozinha': 'cozinha.html',
-          'nutricionista': 'nutri.html'
-        };
-
-        if (paginas[data.role]) {
-          window.location.href = paginas[data.role];
+        if (doc.exists && doc.data().approved) {
+          const role = doc.data().role;
+          const paginas = { 'admin': 'admin.html', 'estoque': 'estoque.html', 'cozinha': 'cozinha.html', 'nutricionista': 'nutri.html' };
+          window.location.href = paginas[role] || 'index.html';
         } else {
           status.style.color = "red";
-          status.textContent = "Cargo não reconhecido: " + data.role;
+          status.textContent = "Usuário não autorizado pelo Admin.";
+          auth.signOut();
         }
-
-      } catch (err) {
-        status.style.color = "red";
-        status.textContent = "Erro de banco de dados: " + err.message;
-        console.error(err);
+      } catch (e) {
+        status.textContent = "Erro de conexão com o banco.";
       }
     }
   </script>
