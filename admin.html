@@ -3,9 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Dashboard Master — EstoqueSync</title>
+    <title>Admin Dashboard — EstoqueSync</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -14,80 +16,118 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --primary: #1e4e79; --secondary: #2f75b5; --bg: #f4f7f9; --white: #ffffff; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; min-height: 100vh; }
-        
-        /* Sidebar Estilizada */
-        nav { width: 260px; background: var(--primary); color: white; padding: 20px; display: flex; flex-direction: column; }
-        .nav-link { padding: 15px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; transition: 0.3s; color: rgba(255,255,255,0.8); }
-        .nav-link:hover, .nav-link.active { background: var(--secondary); color: white; }
-
-        /* Conteúdo */
-        main { flex: 1; padding: 30px; overflow-y: auto; }
-        .grid-dash { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
-        .stat-card h3 { margin: 0; color: #64748b; font-size: 0.9rem; }
-        .stat-card p { margin: 10px 0 0; font-size: 1.8rem; font-weight: 700; color: var(--primary); }
-
-        .card { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #f1f5f9; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
-        .bg-red { background: #fee2e2; color: #dc2626; }
+        :root{
+            --primary:#2f75b5; --accent:#4f81bd; --bg:#f3f7fa; --card:#ffffff;
+            --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        body{ font-family: 'Inter', sans-serif; background-color: var(--bg); margin:0; color:#333; }
+        header { background: linear-gradient(135deg, #1e4e79, #2f75b5); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+        .container { max-width: 1300px; margin: 2rem auto; padding: 0 1rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1rem; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+        h2 { font-size: 1.1rem; margin-top: 0; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eee; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; font-size: 0.75rem; color: #888; padding: 12px; border-bottom: 2px solid #eee; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .badge-cozinha { background: #e0f2fe; color: #0369a1; }
+        .badge-estoque { background: #fef3c7; color: #92400e; }
+        .badge-nutri { background: #dcfce7; color: #166534; }
+        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 5px; justify-content: center; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-danger-sm { background: none; color: var(--danger); padding: 5px; font-size: 1rem; }
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .user-info { display: flex; flex-direction: column; }
+        .stock-low { color: var(--danger); font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <nav>
-        <h2><i class="fas fa-chart-line"></i> EstoqueSync</h2>
-        <div class="nav-link active" onclick="showTab('dash')"><i class="fas fa-th-large"></i> Dashboard</div>
-        <div class="nav-link" onclick="showTab('estoque')"><i class="fas fa-boxes"></i> Estoque Global</div>
-        <div class="nav-link" onclick="showTab('cozinha')"><i class="fas fa-utensils"></i> Pedidos Cozinha</div>
-        <div class="nav-link" onclick="showTab('nutri')"><i class="fas fa-apple-whole"></i> Nutrição</div>
-        <div style="margin-top: auto;">
-            <div class="nav-link" onclick="firebase.auth().signOut()"><i class="fas fa-sign-out-alt"></i> Sair</div>
+    <header>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fas fa-user-shield fa-2x"></i>
+            <h1 style="margin:0; font-size: 1.4rem;">Painel de Controle Master</h1>
         </div>
-    </nav>
+        <button onclick="firebase.auth().signOut()" class="btn" style="background:rgba(255,255,255,0.2); color:white; border: 1px solid rgba(255,255,255,0.3);">
+            <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+    </header>
 
-    <main>
-        <div id="dash" class="tab-content active">
-            <div class="grid-dash">
-                <div class="stat-card"><h3>Itens em Estoque</h3><p id="countEstoque">0</p></div>
-                <div class="stat-card"><h3>Pedidos Pendentes</h3><p id="countPedidos">0</p></div>
-                <div class="stat-card"><h3>Itens Críticos</h3><p id="countCritico" style="color: #ef4444;">0</p></div>
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #3b82f6;"><i class="fas fa-box"></i></div>
+                <div><small style="color:#666">Itens Totais</small><div id="countEstoque" style="font-size:1.5rem; font-weight:bold;">0</div></div>
             </div>
-            <div class="card">
-                <canvas id="chartEstoque" height="100"></canvas>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #f59e0b;"><i class="fas fa-concierge-bell"></i></div>
+                <div><small style="color:#666">Pedidos em Aberto</small><div id="countPendentes" style="font-size:1.5rem; font-weight:bold;">0</div></div>
             </div>
-        </div>
-
-        <div id="estoque" class="tab-content">
-            <div class="card">
-                <h2>Gerenciamento de Produtos</h2>
-                <table>
-                    <thead><tr><th>Item</th><th>Qtd</th><th>Categoria</th><th>Status</th></tr></thead>
-                    <tbody id="listaProdutos"></tbody>
-                </table>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #10b981;"><i class="fas fa-users"></i></div>
+                <div><small style="color:#666">Equipe Ativa</small><div id="countUsers" style="font-size:1.5rem; font-weight:bold;">0</div></div>
             </div>
         </div>
 
-        <div id="cozinha" class="tab-content">
-            <div class="card">
-                <h2>Requisições da Cozinha</h2>
-                <div id="listaPedidos">Carregando pedidos...</div>
-            </div>
-        </div>
+        <div class="main-grid">
+            <div class="left-col">
+                <div class="card">
+                    <h2><i class="fas fa-user-plus"></i> Registrar Novo Acesso</h2>
+                    <form id="formNovoUsuario">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                            <input type="email" id="newEmail" placeholder="E-mail profissional" required>
+                            <select id="newRole">
+                                <option value="cozinha">Cozinha (Requisitante)</option>
+                                <option value="estoque">Estoque (Operador)</option>
+                                <option value="nutricionista">Nutricionista (Planejador)</option>
+                                <option value="admin">Administrador (Gestor)</option>
+                            </select>
+                        </div>
+                        <p style="font-size: 11px; color: #888; margin-bottom: 10px;">
+                            *Ao criar o acesso, o usuário deve ser criado manualmente no Authentication com a mesma conta.
+                        </p>
+                        <button type="submit" class="btn btn-primary">Autorizar Acesso</button>
+                    </form>
+                </div>
 
-        <div id="nutri" class="tab-content">
-            <div class="card">
-                <h2>Receitas e Cardápios</h2>
-                <div id="listaReceitas"></div>
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                        <h2><i class="fas fa-inventory"></i> Gestão de Inventário Global</h2>
+                        <button onclick="exportarExcel()" class="btn" style="background:#166534; color:white; font-size: 0.8rem;">
+                            <i class="fas fa-file-excel"></i> Exportar
+                        </button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Produto</th><th>Categoria</th><th>Qtd</th><th>Validade</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody id="stockBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card">
+                    <h2><i class="fas fa-id-card"></i> Usuários Autorizados</h2>
+                    <div id="usersList"></div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-chart-pie"></i> Ocupação do Estoque</h2>
+                    <canvas id="categoryChart" style="max-height: 250px;"></canvas>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-bell"></i> Requisições Críticas</h2>
+                    <div id="listaAlertas" style="font-size: 0.85rem;"></div>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         const firebaseConfig = {
@@ -101,65 +141,150 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        function showTab(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        // Monitorar PRODUTOS e Atualizar DASHBOARD
-        db.collection('produtos').onSnapshot(snap => {
-            const tbody = document.getElementById('listaProdutos');
-            const labels = [];
-            const values = [];
-            let criticos = 0;
-            tbody.innerHTML = '';
-
-            snap.forEach(doc => {
-                const p = doc.data();
-                labels.push(p.nome);
-                values.push(p.quantidade);
-                
-                let statusHtml = 'OK';
-                if(p.quantidade < 5) {
-                    statusHtml = '<span class="badge bg-red">Crítico</span>';
-                    criticos++;
-                }
-
-                tbody.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td>${p.categoria || 'Geral'}</td><td>${statusHtml}</td></tr>`;
-            });
-
-            document.getElementById('countEstoque').innerText = snap.size;
-            document.getElementById('countCritico').innerText = criticos;
-            updateChart(labels, values);
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = 'index.html'; return; }
+            const doc = await db.collection('usuarios').doc(user.uid).get();
+            if (!doc.exists || doc.data().role !== 'admin') { 
+                alert("Acesso negado: Perfil não administrativo.");
+                window.location.href = 'index.html'; 
+                return; 
+            }
+            initAdmin();
         });
 
-        // Gráfico de Barras
-        let myChart;
-        function updateChart(labels, values) {
-            const ctx = document.getElementById('chartEstoque').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{ label: 'Quantidade em Estoque', data: values, backgroundColor: '#2f75b5' }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        function initAdmin() {
+            renderStock();
+            renderUsers();
+            renderStats();
+            renderChart();
+        }
+
+        // 1. GESTÃO DE USUÁRIOS
+        document.getElementById('formNovoUsuario').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('newEmail').value.toLowerCase().trim();
+            const role = document.getElementById('newRole').value;
+            
+            try {
+                // Criar perfil pré-aprovado
+                await db.collection('usuarios_autorizados').doc(email).set({
+                    role: role,
+                    approved: true,
+                    dataCriacao: new Date()
+                });
+                alert("Perfil " + role + " autorizado com sucesso para " + email);
+                e.target.reset();
+            } catch (err) { alert("Erro ao autorizar: " + err.message); }
+        };
+
+        function renderUsers() {
+            db.collection('usuarios').onSnapshot(snap => {
+                const list = document.getElementById('usersList');
+                document.getElementById('countUsers').innerText = snap.size;
+                list.innerHTML = '';
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    list.innerHTML += `
+                        <div class="user-row">
+                            <div class="user-info">
+                                <strong>${u.email.split('@')[0]}</strong>
+                                <span class="badge badge-${u.role}">${u.role}</span>
+                            </div>
+                            <button onclick="deletarUser('${doc.id}')" class="btn btn-danger-sm"><i class="fas fa-trash-alt"></i></button>
+                        </div>`;
+                });
             });
         }
 
-        // CARREGAR RECEITAS
-        db.collection('receitas').onSnapshot(snap => {
-            const res = document.getElementById('listaReceitas');
-            res.innerHTML = '';
-            snap.forEach(doc => {
-                res.innerHTML += `<div class="card" style="box-shadow:none; border:1px solid #eee;">
-                    <strong>${doc.data().nome}</strong><br><small>${doc.data().ingredientes}</small>
-                </div>`;
+        // 2. GESTÃO DE ESTOQUE
+        function renderStock() {
+            db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+                const tbody = document.getElementById('stockBody');
+                document.getElementById('countEstoque').innerText = snap.size;
+                tbody.innerHTML = '';
+                snap.forEach(doc => {
+                    const p = doc.data();
+                    const isLow = p.quantidade < 5;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.nome}</td>
+                            <td><span style="color:#666; font-size:0.8rem;">${p.categoria}</span></td>
+                            <td class="${isLow ? 'stock-low' : ''}">${p.quantidade}</td>
+                            <td>${p.validade || '-'}</td>
+                            <td>
+                                <div style="display:flex; gap:10px;">
+                                    <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade})" class="btn-danger-sm" style="color:#3b82f6"><i class="fas fa-edit"></i></button>
+                                    <button onclick="deletarItemEstoque('${doc.id}')" class="btn-danger-sm"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                });
             });
-        });
+        }
+
+        // 3. ESTATÍSTICAS E ALERTAS
+        function renderStats() {
+            db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
+                document.getElementById('countPendentes').innerText = snap.size;
+                const alertas = document.getElementById('listaAlertas');
+                alertas.innerHTML = '';
+                if(snap.empty) alertas.innerHTML = '<p style="color:green">Nenhuma requisição crítica.</p>';
+                snap.forEach(doc => {
+                    const r = doc.data();
+                    alertas.innerHTML += `<div style="padding:5px 0; border-bottom:1px solid #f0f0f0;">⚠️ <b>${r.item}</b> (${r.quantidade}) solicitado por ${r.solicitante.split('@')[0]}</div>`;
+                });
+            });
+        }
+
+        // 4. GRÁFICOS
+        function renderChart() {
+            db.collection('estoque').onSnapshot(snap => {
+                const cats = {};
+                snap.forEach(doc => { 
+                    const cat = doc.data().categoria || 'Outros';
+                    cats[cat] = (cats[cat] || 0) + 1; 
+                });
+                const ctx = document.getElementById('categoryChart').getContext('2d');
+                if(window.myChart) window.myChart.destroy();
+                window.myChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(cats),
+                        datasets: [{ 
+                            data: Object.values(cats), 
+                            backgroundColor: ['#2f75b5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                });
+            });
+        }
+
+        // FUNÇÕES DE OPERAÇÃO DIRETA
+        async function ajustarEstoque(id, qtdAtual) {
+            const novaQtd = prompt("Ajustar quantidade para:", qtdAtual);
+            if (novaQtd !== null) {
+                await db.collection('estoque').doc(id).update({ quantidade: parseFloat(novaQtd) });
+            }
+        }
+
+        async function deletarItemEstoque(id) {
+            if(confirm("Deseja remover permanentemente este item do inventário?")) {
+                await db.collection('estoque').doc(id).delete();
+            }
+        }
+
+        async function deletarUser(id) {
+            if(confirm("Remover acesso deste usuário do banco de dados?")) {
+                await db.collection('usuarios').doc(id).delete();
+            }
+        }
+
+        function exportarExcel() {
+            alert("Gerando relatório consolidado...");
+            // Lógica para biblioteca XLSX (opcional se quiser implementar download real)
+        }
     </script>
 </body>
 </html>
