@@ -96,3 +96,22 @@
             status.style.color = "red";
             status.textContent = "Erro: Cargo '" + role + "' não tem página definida.";
           }
+        } else {
+          status.style.color = "red";
+          status.textContent = "Usuário sem perfil no banco de dados.";
+          await auth.signOut();
+        }
+
+      } catch (error) {
+        console.error(error);
+        status.style.color = "red";
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+          status.textContent = "E-mail ou senha incorretos.";
+        } else {
+          status.textContent = "Erro: " + error.message;
+        }
+      }
+    };
+  </script>
+</body>
+</html>
