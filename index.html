@@ -80,21 +80,71 @@
         }
 
       } catch (err) {
-        // AQUI É O CATCH QUE VOCÊ DEVE SUBSTITUIR PARA DIAGNÓSTICO
-        console.error("ERRO DETALHADO DO FIREBASE:", err);
-        status.style.color = "red";
+        document.getElementById('btnLogin').onclick = async () => {
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const pass = document.getElementById('password').value;
+  const status = document.getElementById('status');
+  status.style.color = "#2f75b5"; 
+  status.textContent = "Autenticando...";
 
-        if (err.code === 'auth/user-not-found') {
-            status.textContent = "E-mail não cadastrado no Authentication.";
-        } else if (err.code === 'auth/wrong-password') {
-            status.textContent = "Senha incorreta.";
-        } else if (err.code === 'auth/invalid-api-key') {
-            status.textContent = "API Key inválida. Verifique os dados do Firebase.";
-        } else if (err.code === 'auth/network-request-failed') {
-            status.textContent = "Erro de rede. Verifique se o GitHub está autorizado no Firebase.";
-        } else {
-            status.textContent = "Erro: " + err.message;
-        }
+  try {
+    // 1. Tenta autenticar no Firebase Auth
+    const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+    const user = userCredential.user;
+    
+    // 2. Busca o perfil do usuário no Firestore
+    let doc = await db.collection('usuarios').doc(user.uid).get();
+    
+    // 3. Se não achar pelo UID, tenta buscar pelo campo 'email' (migração)
+    if (!doc.exists) {
+      const snap = await db.collection('usuarios').where('email', '==', user.email).get();
+      if (!snap.empty) {
+        const dados = snap.docs[0].data();
+        // Vincula o documento ao UID do Auth para logins futuros
+        await db.collection('usuarios').doc(user.uid).set({ ...dados, approved: true });
+        doc = await db.collection('usuarios').doc(user.uid).get();
       }
-    };
+    }
+
+    // 4. Se o perfil existir, redireciona conforme o cargo (role)
+    if (doc.exists) {
+      const role = doc.data().role;
+      const rotas = { 
+        admin: 'admin.html', 
+        estoque: 'estoque.html', 
+        cozinha: 'cozinha.html', 
+        nutricionista: 'nutri.html' 
+      };
+      
+      if (rotas[role]) {
+        window.location.href = rotas[role];
+      } else {
+        status.style.color = "orange";
+        status.textContent = "Cargo não reconhecido: " + role;
+      }
+    } else {
+      status.style.color = "red"; 
+      status.textContent = "Usuário logado, mas perfil não encontrado no banco (Firestore).";
+      auth.signOut();
+    }
+
+  } catch (err) {
+    // ESTE É O BLOCO CATCH PARA DIAGNÓSTICO:
+    console.error("Erro detalhado:", err);
+    status.style.color = "red";
+
+    if (err.code === 'auth/user-not-found') {
+        status.textContent = "E-mail não cadastrado no Authentication.";
+    } else if (err.code === 'auth/wrong-password') {
+        status.textContent = "Senha incorreta.";
+    } else if (err.code === 'auth/invalid-email') {
+        status.textContent = "Formato de e-mail inválido.";
+    } else if (err.code === 'auth/network-request-failed') {
+        status.textContent = "Erro de rede ou domínio não autorizado no Firebase.";
+    } else {
+        status.textContent = "Erro: " + err.message;
+    }
+  }
+};
 </script>
+
