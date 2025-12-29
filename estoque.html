@@ -41,23 +41,27 @@
     th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #888; font-size: 13px; text-transform: uppercase; }
     td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
     
-    /* Scanner Reduzido */
     #reader { width: 280px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 2px solid var(--primary); }
     
-    /* Área de Etiqueta */
-    .label-preview { 
-        text-align: center; padding: 15px; border: 2px dashed var(--primary); 
-        border-radius: 12px; background: #fff; margin-top: 15px; 
+    /* Modal de Etiqueta */
+    #modalEtiqueta {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
     }
-    .stock-low { background-color: #fff5f5; }
-    .bg-entrada { background: #e6fffa; color: #065f46; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
-    .bg-saida { background: #fff5f5; color: #9b2c2c; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+    .label-preview { 
+        text-align: center; padding: 25px; background: #fff; 
+        border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
     
+    .stock-low { background-color: #fff5f5; }
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; margin: 0 5px; transition: 0.2s; }
+    .btn-icon:hover { transform: scale(1.2); }
+
     @media print {
         body * { visibility: hidden; }
         .label-preview, .label-preview * { visibility: visible; }
-        .label-preview { position: absolute; left: 0; top: 0; border: none; }
-        .btn { display: none; }
+        .label-preview { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border: none; box-shadow: none; }
+        .btn, .btn-close { display: none; }
     }
   </style>
 </head>
@@ -86,16 +90,8 @@
                 <input type="date" id="prodValidade" required>
                 <input type="number" id="prodMinimo" placeholder="Mínimo" value="5">
             </div>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar e Gerar QR</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar Produto</button>
           </form>
-
-          <div id="areaEtiqueta" class="label-preview hidden">
-              <canvas id="qrCanvas"></canvas>
-              <p id="labelNome" style="font-weight:bold; margin: 5px 0;"></p>
-              <button onclick="window.print()" class="btn btn-dark" style="font-size: 12px; padding: 8px;">
-                  <i class="fas fa-print"></i> Imprimir Etiqueta
-              </button>
-          </div>
         </div>
 
         <div class="card" style="border: 2px solid var(--primary); text-align: center;">
@@ -139,6 +135,17 @@
     </div>
   </div>
 
+  <div id="modalEtiqueta" class="hidden">
+      <div class="label-preview">
+          <canvas id="qrCanvas"></canvas>
+          <p id="labelNome" style="font-weight:bold; margin: 10px 0; font-size: 18px;"></p>
+          <div style="display: flex; gap: 10px;">
+            <button onclick="window.print()" class="btn btn-dark">Imprimir</button>
+            <button onclick="fecharModal()" class="btn btn-close" style="background: #999;">Fechar</button>
+          </div>
+      </div>
+  </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
@@ -152,7 +159,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    auth.onAuthStateChanged(async (user) => {
+    auth.onAuthStateChanged((user) => {
       if (!user) { window.location.href = 'index.html'; return; }
       document.getElementById('mainContent').classList.remove('hidden');
       initApp();
@@ -164,7 +171,7 @@
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // --- CADASTRO E GERAÇÃO QR ---
+    // --- CADASTRO ---
     document.getElementById('formEntrada').onsubmit = async (e) => {
       e.preventDefault();
       const nome = document.getElementById('prodNome').value;
@@ -174,32 +181,27 @@
           await db.collection('estoque').add({
             nome: nome, quantidade: qtd, unidade: document.getElementById('prodUnidade').value,
             validade: document.getElementById('prodValidade').value, 
-            estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value),
-            dataEntrada: new Date()
+            estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value)
           });
-          
-          await db.collection('historico').add({
-              data: new Date(), tipo: 'Entrada', produto: nome, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
-          });
-
-          // GERA QR CODE AUTOMÁTICO
-          gerarEtiqueta(nome);
-          alert("Produto Salvo! Etiqueta gerada abaixo.");
+          alert("Produto cadastrado!");
           e.target.reset();
       } catch (err) { alert("Erro ao salvar."); }
     };
 
-    function gerarEtiqueta(nome) {
+    // --- QR CODE: GERAÇÃO (VIA ÍCONE) ---
+    function mostrarEtiqueta(nome) {
         new QRious({
             element: document.getElementById('qrCanvas'),
             value: nome,
-            size: 150
+            size: 200
         });
         document.getElementById('labelNome').innerText = nome;
-        document.getElementById('areaEtiqueta').classList.remove('hidden');
+        document.getElementById('modalEtiqueta').classList.remove('hidden');
     }
 
-    // --- SCANNER REDUZIDO ---
+    function fecharModal() { document.getElementById('modalEtiqueta').classList.add('hidden'); }
+
+    // --- SCANNER BAIXA ---
     let scanner;
     async function iniciarScanner() {
         document.getElementById('reader').classList.remove('hidden');
@@ -219,10 +221,15 @@
         document.getElementById('reader').classList.add('hidden');
         document.getElementById('qrForm').classList.add('hidden');
         document.getElementById('btnIniciarScan').classList.remove('hidden');
+        document.getElementById('qrQtdBaixa').value = '';
+        document.getElementById('qrMotivo').value = '';
     }
 
     async function confirmarBaixaQR() {
-        const qtd = parseFloat(document.getElementById('qrQtdBaixa').value);
+        const qtdInput = document.getElementById('qrQtdBaixa');
+        const motivoInput = document.getElementById('qrMotivo');
+        const qtd = parseFloat(qtdInput.value);
+        
         if(!qtd) return alert("Qtd inválida");
 
         const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
@@ -230,12 +237,13 @@
 
         const doc = snap.docs[0];
         await db.collection('estoque').doc(doc.id).update({ quantidade: doc.data().quantidade - qtd });
-        await db.collection('historico').add({
-            data: new Date(), tipo: 'Saída QR', produto: window.tempProd, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
-        });
         
-        alert("Baixa realizada!");
-        cancelarScanner();
+        alert("Baixa realizada com sucesso!");
+        
+        // RESET DE CAMPOS E SCANNER
+        qtdInput.value = '';
+        motivoInput.value = '';
+        cancelarScanner(); 
     }
 
     // --- INVENTÁRIO ---
@@ -251,7 +259,10 @@
               <td>${p.nome}</td>
               <td>${p.quantidade}</td>
               <td>${p.unidade}</td>
-              <td><button onclick="deletar('${doc.id}')" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+              <td>
+                <button onclick="mostrarEtiqueta('${p.nome}')" class="btn-icon" style="color:var(--primary);" title="Gerar QR"><i class="fas fa-qrcode"></i></button>
+                <button onclick="deletar('${doc.id}')" class="btn-icon" style="color:var(--danger);" title="Excluir"><i class="fas fa-trash"></i></button>
+              </td>
             </tr>`;
         });
       });
