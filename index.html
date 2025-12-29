@@ -28,6 +28,7 @@
     <div id="status"></div>
   </div>
   <script>
+    <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -50,30 +51,50 @@
         const userCredential = await auth.signInWithEmailAndPassword(email, pass);
         const user = userCredential.user;
         
-        // Lógica de busca robusta: por UID ou por E-mail
+        // Tenta buscar o perfil do usuário
         let doc = await db.collection('usuarios').doc(user.uid).get();
+        
         if (!doc.exists) {
           const snap = await db.collection('usuarios').where('email', '==', user.email).get();
           if (!snap.empty) {
             const dados = snap.docs[0].data();
             await db.collection('usuarios').doc(user.uid).set({ ...dados, approved: true });
-            if (snap.docs[0].id !== user.uid) await db.collection('usuarios').doc(snap.docs[0].id).delete();
             doc = await db.collection('usuarios').doc(user.uid).get();
           }
         }
 
         if (doc.exists) {
           const role = doc.data().role;
-          const rotas = { admin: 'admin.html', estoque: 'estoque.html', cozinha: 'cozinha.html', nutricionista: 'nutri.html' };
+          const rotas = { 
+            admin: 'admin.html', 
+            estoque: 'estoque.html', 
+            cozinha: 'cozinha.html', 
+            nutricionista: 'nutri.html' 
+          };
           window.location.href = rotas[role] || 'index.html';
         } else {
-          status.style.color = "red"; status.textContent = "Acesso não autorizado.";
+          // SE CHEGOU AQUI, O E-MAIL EXISTE NO AUTH, MAS NÃO EXISTE NA COLEÇÃO 'USUARIOS'
+          status.style.color = "red"; 
+          status.textContent = "Erro: Perfil não encontrado no Firestore. Verifique a coleção 'usuarios'.";
           auth.signOut();
         }
+
       } catch (err) {
-        status.style.color = "red"; status.textContent = "Erro no login: " + err.message;
+        // AQUI É O CATCH QUE VOCÊ DEVE SUBSTITUIR PARA DIAGNÓSTICO
+        console.error("ERRO DETALHADO DO FIREBASE:", err);
+        status.style.color = "red";
+
+        if (err.code === 'auth/user-not-found') {
+            status.textContent = "E-mail não cadastrado no Authentication.";
+        } else if (err.code === 'auth/wrong-password') {
+            status.textContent = "Senha incorreta.";
+        } else if (err.code === 'auth/invalid-api-key') {
+            status.textContent = "API Key inválida. Verifique os dados do Firebase.";
+        } else if (err.code === 'auth/network-request-failed') {
+            status.textContent = "Erro de rede. Verifique se o GitHub está autorizado no Firebase.";
+        } else {
+            status.textContent = "Erro: " + err.message;
+        }
       }
     };
-  </script>
-</body>
-</html>
+</script>
