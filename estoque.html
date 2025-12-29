@@ -20,7 +20,7 @@
   <style>
     :root {
       --primary: #2f75b5; --accent: #4f81bd; --bg: #f8fbff; --card: #ffffff;
-      --danger: #e74c3c; --success: #2ecc71; --warning: #f39c12; --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --danger: #e74c3c; --success: #2ecc71; --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
       --border-radius: 16px;
     }
     body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #333; }
@@ -30,33 +30,35 @@
     .grid-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
     
     input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
-    input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(47,117,181,0.2); }
-    
     .btn { cursor: pointer; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; width: 100%; }
     .btn-primary { background: var(--primary); }
     .btn-success { background: var(--success); }
     .btn-danger { background: var(--danger); }
     .btn-dark { background: #333; }
     
-    .alert-danger { background: #fee2e2; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 24px; text-align: center; }
     .hidden { display: none; }
-    
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #888; font-size: 13px; text-transform: uppercase; }
     td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
     
-    .stock-low { background-color: #fff5f5; }
-    .badge-low { background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
-
-    .req-item { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-    .action-btns { display: flex; gap: 8px; }
+    /* Scanner Reduzido */
+    #reader { width: 280px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 2px solid var(--primary); }
     
-    /* Histórico */
+    /* Área de Etiqueta */
+    .label-preview { 
+        text-align: center; padding: 15px; border: 2px dashed var(--primary); 
+        border-radius: 12px; background: #fff; margin-top: 15px; 
+    }
+    .stock-low { background-color: #fff5f5; }
     .bg-entrada { background: #e6fffa; color: #065f46; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
     .bg-saida { background: #fff5f5; color: #9b2c2c; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
-
-    #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; }
-    .label-preview { text-align: center; padding: 10px; border: 1px solid #eee; border-radius: 8px; margin-top: 10px; }
+    
+    @media print {
+        body * { visibility: hidden; }
+        .label-preview, .label-preview * { visibility: visible; }
+        .label-preview { position: absolute; left: 0; top: 0; border: none; }
+        .btn { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -67,10 +69,6 @@
   </header>
 
   <div class="container">
-    <div id="accessDenied" class="alert-danger hidden">
-      <i class="fas fa-exclamation-triangle"></i> Acesso restrito: Apenas perfil "Estoque" pode acessar esta página.
-    </div>
-
     <div id="mainContent" class="hidden">
       
       <div class="grid-forms">
@@ -79,96 +77,62 @@
           <form id="formEntrada">
             <input type="text" id="prodNome" placeholder="Nome do Produto" required>
             <div style="display:flex; gap:10px;">
-                <input type="number" id="prodQtd" placeholder="Qtd. Inicial" step="0.01" required>
+                <input type="number" id="prodQtd" placeholder="Qtd" step="0.01" required>
                 <select id="prodUnidade">
-                    <option value="un">Un (un)</option>
-                    <option value="kg">Quilo (kg)</option>
-                    <option value="lt">Litro (lt)</option>
+                    <option value="un">un</option><option value="kg">kg</option><option value="lt">lt</option>
                 </select>
             </div>
             <div style="display:flex; gap:10px;">
-                <div style="flex:1">
-                    <label style="font-size:11px; color:#666; font-weight:600;">VALIDADE</label>
-                    <input type="date" id="prodValidade" required>
-                </div>
-                <div style="flex:1">
-                    <label style="font-size:11px; color:#666; font-weight:600;">MÍNIMO</label>
-                    <input type="number" id="prodMinimo" value="5">
-                </div>
+                <input type="date" id="prodValidade" required>
+                <input type="number" id="prodMinimo" placeholder="Mínimo" value="5">
             </div>
-            <select id="prodCat">
-                <option value="Secos">Secos</option>
-                <option value="Proteínas">Proteínas</option>
-                <option value="Hortifruti">Hortifruti</option>
-                <option value="Laticínios">Laticínios</option>
-            </select>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar Entrada</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar e Gerar QR</button>
           </form>
+
+          <div id="areaEtiqueta" class="label-preview hidden">
+              <canvas id="qrCanvas"></canvas>
+              <p id="labelNome" style="font-weight:bold; margin: 5px 0;"></p>
+              <button onclick="window.print()" class="btn btn-dark" style="font-size: 12px; padding: 8px;">
+                  <i class="fas fa-print"></i> Imprimir Etiqueta
+              </button>
+          </div>
         </div>
 
-        <div class="card" style="border: 2px solid var(--primary);">
-            <h3><i class="fas fa-qrcode"></i> Baixa Rápida (Scanner)</h3>
+        <div class="card" style="border: 2px solid var(--primary); text-align: center;">
+            <h3><i class="fas fa-qrcode"></i> Baixa Rápida</h3>
             <div id="reader" class="hidden"></div>
             
             <div id="qrForm" class="hidden">
-                <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
-                    <strong id="qrProdNome" style="color: var(--primary); font-size: 18px;"></strong>
+                <div style="background: #f0f4ff; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong id="qrProdNome" style="color: var(--primary);"></strong>
                 </div>
-                <input type="number" id="qrQtdBaixa" placeholder="Qtd. para retirar" step="0.01">
-                <input type="text" id="qrMotivo" placeholder="Motivo (Quebra, Urgência...)">
+                <input type="number" id="qrQtdBaixa" placeholder="Qtd. Saída" step="0.01">
+                <input type="text" id="qrMotivo" placeholder="Motivo">
                 <button onclick="confirmarBaixaQR()" class="btn btn-danger">Confirmar Saída</button>
                 <button onclick="cancelarScanner()" class="btn" style="background:#999; margin-top:5px;">Cancelar</button>
             </div>
 
             <button id="btnIniciarScan" onclick="iniciarScanner()" class="btn btn-dark">
-                <i class="fas fa-camera"></i> Escanear Produto para Baixa
+                <i class="fas fa-camera"></i> Abrir Scanner
             </button>
         </div>
 
         <div class="card">
-          <h3><i class="fas fa-bell"></i> Requisições Pendentes</h3>
-          <div id="listaRequisicoes" style="max-height: 300px; overflow-y: auto;">
-            <p style="color:#999; text-align:center;">Carregando pedidos...</p>
-          </div>
+          <h3><i class="fas fa-bell"></i> Requisições</h3>
+          <div id="listaRequisicoes" style="max-height: 250px; overflow-y: auto;"></div>
         </div>
       </div>
 
       <div class="card">
-        <h3><i class="fas fa-print"></i> Gerador de Etiquetas QR</h3>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="inputEtiqueta" placeholder="Digite o nome do produto para a etiqueta">
-            <button onclick="gerarEtiqueta()" class="btn btn-primary" style="width: auto;">Gerar</button>
-        </div>
-        <div id="areaEtiqueta" class="label-preview hidden">
-            <canvas id="qrCanvas"></canvas>
-            <p id="labelNome" style="font-weight:bold; margin-top:5px;"></p>
-            <button onclick="window.print()" class="btn btn-dark" style="width: auto; margin: 10px auto;">Imprimir</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
             <h3><i class="fas fa-list"></i> Inventário</h3>
-            <input type="text" id="inputBusca" placeholder="Pesquisar produto..." style="max-width:300px;" onkeyup="filtrarTabela()">
+            <input type="text" id="inputBusca" placeholder="Buscar..." style="max-width:200px;" onkeyup="filtrarTabela()">
         </div>
         <table>
           <thead>
-            <tr>
-                <th>Produto</th>
-                <th>Validade</th>
-                <th>Saldo</th>
-                <th>Un.</th>
-                <th>Ações</th>
-            </tr>
+            <tr><th>Produto</th><th>Saldo</th><th>Un.</th><th>Ações</th></tr>
           </thead>
           <tbody id="tabelaEstoque"></tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <h3><i class="fas fa-history"></i> Logs Recentes</h3>
-        <table>
-          <tbody id="tabelaLogs"></tbody>
         </table>
       </div>
 
@@ -176,7 +140,6 @@
   </div>
 
   <script>
-    // --- CONFIGURAÇÃO ---
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -189,14 +152,8 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // --- PROTEÇÃO DE ROTA ---
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
-      const doc = await db.collection('usuarios').doc(user.uid).get();
-      if (!doc.exists || doc.data().role !== 'estoque') {
-        document.getElementById('accessDenied').classList.remove('hidden');
-        return;
-      }
       document.getElementById('mainContent').classList.remove('hidden');
       initApp();
     });
@@ -204,42 +161,57 @@
     function initApp() {
       renderEstoque();
       renderPedidos();
-      renderLogs();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // --- FUNÇÕES DE LOG ---
-    async function registrarLog(tipo, produto, qtd) {
-        await db.collection('historico').add({
-            data: new Date(),
-            tipo: tipo,
-            produto: produto,
-            quantidade: qtd,
-            usuario: auth.currentUser.email.split('@')[0]
+    // --- CADASTRO E GERAÇÃO QR ---
+    document.getElementById('formEntrada').onsubmit = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('prodNome').value;
+      const qtd = parseFloat(document.getElementById('prodQtd').value);
+      
+      try {
+          await db.collection('estoque').add({
+            nome: nome, quantidade: qtd, unidade: document.getElementById('prodUnidade').value,
+            validade: document.getElementById('prodValidade').value, 
+            estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value),
+            dataEntrada: new Date()
+          });
+          
+          await db.collection('historico').add({
+              data: new Date(), tipo: 'Entrada', produto: nome, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
+          });
+
+          // GERA QR CODE AUTOMÁTICO
+          gerarEtiqueta(nome);
+          alert("Produto Salvo! Etiqueta gerada abaixo.");
+          e.target.reset();
+      } catch (err) { alert("Erro ao salvar."); }
+    };
+
+    function gerarEtiqueta(nome) {
+        new QRious({
+            element: document.getElementById('qrCanvas'),
+            value: nome,
+            size: 150
         });
+        document.getElementById('labelNome').innerText = nome;
+        document.getElementById('areaEtiqueta').classList.remove('hidden');
     }
 
-    // --- QR CODE: SCANNER ---
+    // --- SCANNER REDUZIDO ---
     let scanner;
     async function iniciarScanner() {
         document.getElementById('reader').classList.remove('hidden');
         document.getElementById('btnIniciarScan').classList.add('hidden');
         scanner = new Html5Qrcode("reader");
-        const config = { fps: 10, qrbox: 250 };
-        
-        try {
-            await scanner.start({ facingMode: "environment" }, config, (text) => {
-                prepararBaixa(text);
-            });
-        } catch (e) { alert("Câmera indisponível."); cancelarScanner(); }
-    }
-
-    function prepararBaixa(nome) {
-        if(scanner) scanner.stop();
-        document.getElementById('reader').classList.add('hidden');
-        document.getElementById('qrForm').classList.remove('hidden');
-        document.getElementById('qrProdNome').innerText = nome;
-        window.tempProd = nome;
+        await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (text) => {
+            if(scanner) scanner.stop();
+            document.getElementById('reader').classList.add('hidden');
+            document.getElementById('qrForm').classList.remove('hidden');
+            document.getElementById('qrProdNome').innerText = text;
+            window.tempProd = text;
+        });
     }
 
     function cancelarScanner() {
@@ -251,34 +223,19 @@
 
     async function confirmarBaixaQR() {
         const qtd = parseFloat(document.getElementById('qrQtdBaixa').value);
-        const motivo = document.getElementById('qrMotivo').value || "Saída Avulsa";
-        if(!qtd) return alert("Insira a quantidade.");
+        if(!qtd) return alert("Qtd inválida");
 
         const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
-        if(snap.empty) return alert("Produto não cadastrado.");
+        if(snap.empty) return alert("Não encontrado");
 
         const doc = snap.docs[0];
-        const novoSaldo = doc.data().quantidade - qtd;
-
-        await db.collection('estoque').doc(doc.id).update({ quantidade: novoSaldo });
-        await registrarLog(`Saída Avulsa (${motivo})`, window.tempProd, qtd);
-        
-        alert("Baixa concluída!");
-        location.reload();
-    }
-
-    // --- QR CODE: GERADOR ---
-    function gerarEtiqueta() {
-        const nome = document.getElementById('inputEtiqueta').value;
-        if(!nome) return;
-        
-        const qr = new QRious({
-            element: document.getElementById('qrCanvas'),
-            value: nome,
-            size: 200
+        await db.collection('estoque').doc(doc.id).update({ quantidade: doc.data().quantidade - qtd });
+        await db.collection('historico').add({
+            data: new Date(), tipo: 'Saída QR', produto: window.tempProd, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
         });
-        document.getElementById('labelNome').innerText = nome;
-        document.getElementById('areaEtiqueta').classList.remove('hidden');
+        
+        alert("Baixa realizada!");
+        cancelarScanner();
     }
 
     // --- INVENTÁRIO ---
@@ -291,9 +248,8 @@
           const isLow = p.quantidade <= (p.estoqueMinimo || 5);
           tbody.innerHTML += `
             <tr class="${isLow ? 'stock-low' : ''}">
-              <td><strong>${p.nome}</strong></td>
-              <td>${p.validade}</td>
-              <td>${p.quantidade} ${isLow ? '<span class="badge-low">BAIXO</span>' : ''}</td>
+              <td>${p.nome}</td>
+              <td>${p.quantidade}</td>
               <td>${p.unidade}</td>
               <td><button onclick="deletar('${doc.id}')" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
             </tr>`;
@@ -301,71 +257,34 @@
       });
     }
 
-    // --- PEDIDOS ---
+    async function deletar(id) { if(confirm("Excluir?")) await db.collection('estoque').doc(id).delete(); }
+
     function renderPedidos() {
       db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
         const div = document.getElementById('listaRequisicoes');
         div.innerHTML = snap.empty ? '<p style="text-align:center; color:#999;">Sem pedidos</p>' : '';
         snap.forEach(doc => {
           const r = doc.data();
-          div.innerHTML += `
-            <div class="req-item">
-              <div><strong>${r.item}</strong> (${r.quantidade})</div>
-              <button class="btn btn-success" style="width:auto;" onclick="finalizarReq('${doc.id}', '${r.item}', ${r.quantidade})"><i class="fas fa-check"></i></button>
-            </div>`;
+          div.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+              <span>${r.item} (${r.quantidade})</span>
+              <button onclick="finalizarReq('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success" style="width:auto; padding:5px 10px;">OK</button>
+          </div>`;
         });
       });
     }
 
     async function finalizarReq(id, item, qtd) {
         const snap = await db.collection('estoque').where('nome', '==', item).get();
-        if(snap.empty) return alert("Produto não encontrado.");
-        
-        const docEst = snap.docs[0];
-        await db.collection('estoque').doc(docEst.id).update({ quantidade: docEst.data().quantidade - qtd });
+        if(snap.empty) return;
+        await db.collection('estoque').doc(snap.docs[0].id).update({ quantidade: snap.docs[0].data().quantidade - qtd });
         await db.collection('requisicoes').doc(id).update({ status: 'entregue' });
-        await registrarLog('Saída (Pedido)', item, qtd);
-    }
-
-    // --- ENTRADA ---
-    document.getElementById('formEntrada').onsubmit = async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('prodNome').value;
-      const qtd = parseFloat(document.getElementById('prodQtd').value);
-      
-      await db.collection('estoque').add({
-        nome: nome, quantidade: qtd, unidade: document.getElementById('prodUnidade').value,
-        validade: document.getElementById('prodValidade').value, estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value)
-      });
-      await registrarLog('Entrada', nome, qtd);
-      e.target.reset();
-    };
-
-    function renderLogs() {
-        db.collection('historico').orderBy('data', 'desc').limit(10).onSnapshot(snap => {
-            const tbody = document.getElementById('tabelaLogs');
-            tbody.innerHTML = '';
-            snap.forEach(doc => {
-                const l = doc.data();
-                const isEntrada = l.tipo.includes('Entrada');
-                tbody.innerHTML += `<tr>
-                    <td><span class="${isEntrada ? 'bg-entrada' : 'bg-saida'}">${l.tipo}</span></td>
-                    <td>${l.produto}</td>
-                    <td>${l.quantidade}</td>
-                </tr>`;
-            });
-        });
     }
 
     function filtrarTabela() {
-      const busca = document.getElementById('inputBusca').value.toLowerCase();
-      const linhas = document.getElementById('tabelaEstoque').getElementsByTagName('tr');
-      for (let row of linhas) {
-        row.style.display = row.innerText.toLowerCase().includes(busca) ? '' : 'none';
-      }
+      const b = document.getElementById('inputBusca').value.toLowerCase();
+      const rows = document.getElementById('tabelaEstoque').getElementsByTagName('tr');
+      for (let r of rows) { r.style.display = r.innerText.toLowerCase().includes(b) ? '' : 'none'; }
     }
-
-    async function deletar(id) { if(confirm("Excluir?")) await db.collection('estoque').doc(id).delete(); }
   </script>
 </body>
 </html>
