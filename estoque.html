@@ -36,31 +36,30 @@
     .btn-danger { background: var(--danger); }
     .btn-dark { background: #333; }
     
-    .hidden { display: none; }
+    .hidden { display: none !important; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #888; font-size: 13px; text-transform: uppercase; }
     td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
     
-    #reader { width: 280px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 2px solid var(--primary); }
+    #reader { width: 280px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 2px solid var(--primary); background: #000; }
     
     /* Modal de Etiqueta */
     #modalEtiqueta {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
+        background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;
     }
     .label-preview { 
-        text-align: center; padding: 25px; background: #fff; 
-        border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        text-align: center; padding: 30px; background: #fff; 
+        border-radius: 16px; min-width: 250px;
     }
     
-    .stock-low { background-color: #fff5f5; }
-    .btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; margin: 0 5px; transition: 0.2s; }
-    .btn-icon:hover { transform: scale(1.2); }
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; margin: 0 5px; color: #666; }
+    .btn-icon:hover { color: var(--primary); }
 
     @media print {
         body * { visibility: hidden; }
-        .label-preview, .label-preview * { visibility: visible; }
-        .label-preview { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); border: none; box-shadow: none; }
+        #modalEtiqueta, #modalEtiqueta * { visibility: visible; }
+        #modalEtiqueta { position: absolute; left: 0; top: 0; background: white; }
         .btn, .btn-close { display: none; }
     }
   </style>
@@ -69,7 +68,7 @@
 
   <header>
     <h1><i class="fas fa-boxes"></i> EstoqueSync</h1>
-    <button id="logoutBtn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);padding:8px 16px;border-radius:12px;cursor:pointer;">Sair</button>
+    <button id="logoutBtn" class="btn" style="width:auto; background:rgba(255,255,255,0.2);">Sair</button>
   </header>
 
   <div class="container">
@@ -90,7 +89,7 @@
                 <input type="date" id="prodValidade" required>
                 <input type="number" id="prodMinimo" placeholder="Mínimo" value="5">
             </div>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Registrar Produto</button>
+            <button type="submit" class="btn btn-primary">Salvar Produto</button>
           </form>
         </div>
 
@@ -103,7 +102,7 @@
                     <strong id="qrProdNome" style="color: var(--primary);"></strong>
                 </div>
                 <input type="number" id="qrQtdBaixa" placeholder="Qtd. Saída" step="0.01">
-                <input type="text" id="qrMotivo" placeholder="Motivo">
+                <input type="text" id="qrMotivo" placeholder="Motivo (Opcional)">
                 <button onclick="confirmarBaixaQR()" class="btn btn-danger">Confirmar Saída</button>
                 <button onclick="cancelarScanner()" class="btn" style="background:#999; margin-top:5px;">Cancelar</button>
             </div>
@@ -131,17 +130,16 @@
           <tbody id="tabelaEstoque"></tbody>
         </table>
       </div>
-
     </div>
   </div>
 
   <div id="modalEtiqueta" class="hidden">
       <div class="label-preview">
           <canvas id="qrCanvas"></canvas>
-          <p id="labelNome" style="font-weight:bold; margin: 10px 0; font-size: 18px;"></p>
-          <div style="display: flex; gap: 10px;">
-            <button onclick="window.print()" class="btn btn-dark">Imprimir</button>
-            <button onclick="fecharModal()" class="btn btn-close" style="background: #999;">Fechar</button>
+          <p id="labelNome" style="font-weight:bold; margin: 15px 0; font-size: 18px; color: #000;"></p>
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="window.print()" class="btn btn-dark" style="width: auto;">Imprimir</button>
+            <button onclick="fecharModal()" class="btn" style="background: #999; width: auto;">Fechar</button>
           </div>
       </div>
   </div>
@@ -159,10 +157,17 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    auth.onAuthStateChanged((user) => {
+    // AJUSTE: Busca na coleção "usuarios_autorizados" conforme sua imagem
+    auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
-      document.getElementById('mainContent').classList.remove('hidden');
-      initApp();
+      const doc = await db.collection('usuarios_autorizados').doc(user.email).get();
+      if (doc.exists && doc.data().role === 'estoque') {
+        document.getElementById('mainContent').classList.remove('hidden');
+        initApp();
+      } else {
+        alert("Acesso negado para este cargo.");
+        auth.signOut();
+      }
     });
 
     function initApp() {
@@ -171,44 +176,41 @@
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // --- CADASTRO ---
     document.getElementById('formEntrada').onsubmit = async (e) => {
       e.preventDefault();
       const nome = document.getElementById('prodNome').value;
-      const qtd = parseFloat(document.getElementById('prodQtd').value);
-      
-      try {
-          await db.collection('estoque').add({
-            nome: nome, quantidade: qtd, unidade: document.getElementById('prodUnidade').value,
-            validade: document.getElementById('prodValidade').value, 
-            estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value)
-          });
-          alert("Produto cadastrado!");
-          e.target.reset();
-      } catch (err) { alert("Erro ao salvar."); }
+      await db.collection('estoque').add({
+        nome: nome,
+        quantidade: parseFloat(document.getElementById('prodQtd').value),
+        unidade: document.getElementById('prodUnidade').value,
+        validade: document.getElementById('prodValidade').value,
+        estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value)
+      });
+      alert("Produto salvo!");
+      e.target.reset();
     };
 
-    // --- QR CODE: GERAÇÃO (VIA ÍCONE) ---
     function mostrarEtiqueta(nome) {
-        new QRious({
-            element: document.getElementById('qrCanvas'),
-            value: nome,
-            size: 200
-        });
-        document.getElementById('labelNome').innerText = nome;
         document.getElementById('modalEtiqueta').classList.remove('hidden');
+        setTimeout(() => {
+            new QRious({
+                element: document.getElementById('qrCanvas'),
+                value: nome,
+                size: 200
+            });
+            document.getElementById('labelNome').innerText = nome;
+        }, 100);
     }
 
     function fecharModal() { document.getElementById('modalEtiqueta').classList.add('hidden'); }
 
-    // --- SCANNER BAIXA ---
     let scanner;
     async function iniciarScanner() {
         document.getElementById('reader').classList.remove('hidden');
         document.getElementById('btnIniciarScan').classList.add('hidden');
         scanner = new Html5Qrcode("reader");
         await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (text) => {
-            if(scanner) scanner.stop();
+            scanner.stop();
             document.getElementById('reader').classList.add('hidden');
             document.getElementById('qrForm').classList.remove('hidden');
             document.getElementById('qrProdNome').innerText = text;
@@ -217,53 +219,40 @@
     }
 
     function cancelarScanner() {
-        if(scanner) scanner.stop();
+        if(scanner) scanner.stop().catch(() => {});
         document.getElementById('reader').classList.add('hidden');
         document.getElementById('qrForm').classList.add('hidden');
         document.getElementById('btnIniciarScan').classList.remove('hidden');
         document.getElementById('qrQtdBaixa').value = '';
-        document.getElementById('qrMotivo').value = '';
     }
 
     async function confirmarBaixaQR() {
-        const qtdInput = document.getElementById('qrQtdBaixa');
-        const motivoInput = document.getElementById('qrMotivo');
-        const qtd = parseFloat(qtdInput.value);
-        
-        if(!qtd) return alert("Qtd inválida");
-
+        const qtd = parseFloat(document.getElementById('qrQtdBaixa').value);
+        if(!qtd) return alert("Insira a quantidade");
         const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
-        if(snap.empty) return alert("Não encontrado");
-
+        if(snap.empty) return alert("Produto não encontrado");
+        
         const doc = snap.docs[0];
         await db.collection('estoque').doc(doc.id).update({ quantidade: doc.data().quantidade - qtd });
-        
-        alert("Baixa realizada com sucesso!");
-        
-        // RESET DE CAMPOS E SCANNER
-        qtdInput.value = '';
-        motivoInput.value = '';
-        cancelarScanner(); 
+        alert("Baixa confirmada!");
+        cancelarScanner();
     }
 
-    // --- INVENTÁRIO ---
     function renderEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
         const tbody = document.getElementById('tabelaEstoque');
         tbody.innerHTML = '';
         snap.forEach(doc => {
           const p = doc.data();
-          const isLow = p.quantidade <= (p.estoqueMinimo || 5);
-          tbody.innerHTML += `
-            <tr class="${isLow ? 'stock-low' : ''}">
+          tbody.innerHTML += `<tr>
               <td>${p.nome}</td>
               <td>${p.quantidade}</td>
               <td>${p.unidade}</td>
               <td>
-                <button onclick="mostrarEtiqueta('${p.nome}')" class="btn-icon" style="color:var(--primary);" title="Gerar QR"><i class="fas fa-qrcode"></i></button>
-                <button onclick="deletar('${doc.id}')" class="btn-icon" style="color:var(--danger);" title="Excluir"><i class="fas fa-trash"></i></button>
+                <button onclick="mostrarEtiqueta('${p.nome}')" class="btn-icon"><i class="fas fa-qrcode"></i></button>
+                <button onclick="deletar('${doc.id}')" class="btn-icon" style="color:red;"><i class="fas fa-trash"></i></button>
               </td>
-            </tr>`;
+          </tr>`;
         });
       });
     }
@@ -286,8 +275,9 @@
 
     async function finalizarReq(id, item, qtd) {
         const snap = await db.collection('estoque').where('nome', '==', item).get();
-        if(snap.empty) return;
-        await db.collection('estoque').doc(snap.docs[0].id).update({ quantidade: snap.docs[0].data().quantidade - qtd });
+        if(!snap.empty) {
+            await db.collection('estoque').doc(snap.docs[0].id).update({ quantidade: snap.docs[0].data().quantidade - qtd });
+        }
         await db.collection('requisicoes').doc(id).update({ status: 'entregue' });
     }
 
