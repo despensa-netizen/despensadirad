@@ -13,6 +13,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <style>
     :root {
@@ -24,44 +27,40 @@
     header { background: linear-gradient(135deg, #2f75b5 0%, #4f81bd 100%); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md); }
     .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
     .card { background: var(--card); border-radius: var(--border-radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-md); }
-    .grid-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+    .grid-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
     
     input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
     input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(47,117,181,0.2); }
     
-    .btn { cursor: pointer; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
-    .btn-primary { background: var(--primary); width: 100%; }
+    .btn { cursor: pointer; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; width: 100%; }
+    .btn-primary { background: var(--primary); }
     .btn-success { background: var(--success); }
     .btn-danger { background: var(--danger); }
+    .btn-dark { background: #333; }
     
     .alert-danger { background: #fee2e2; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 24px; text-align: center; }
     .hidden { display: none; }
     
-    .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; flex-wrap: wrap; }
-    .search-box { position: relative; flex: 1; min-width: 250px; }
-    .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
-    .search-box input { padding-left: 35px; margin: 0; }
-    
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #888; font-size: 13px; text-transform: uppercase; }
     td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
     
     .stock-low { background-color: #fff5f5; }
-    .badge-low { background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 6px; font-size: 11px; margin-left: 5px; font-weight: bold; }
+    .badge-low { background: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
 
     .req-item { border-bottom: 1px solid #eee; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-    .action-btns { display: flex; gap: 10px; }
-    .btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; transition: 0.2s; }
+    .action-btns { display: flex; gap: 8px; }
     
-    /* Cores de Movimentação */
-    .mov-entrada { color: var(--success); font-weight: bold; }
-    .mov-saida { color: var(--danger); font-weight: bold; }
-    .mov-badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-    .bg-entrada { background: #e6fffa; color: #065f46; }
-    .bg-saida { background: #fff5f5; color: #9b2c2c; }
+    /* Histórico */
+    .bg-entrada { background: #e6fffa; color: #065f46; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+    .bg-saida { background: #fff5f5; color: #9b2c2c; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+
+    #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; }
+    .label-preview { text-align: center; padding: 10px; border: 1px solid #eee; border-radius: 8px; margin-top: 10px; }
   </style>
 </head>
 <body>
+
   <header>
     <h1><i class="fas fa-boxes"></i> EstoqueSync</h1>
     <button id="logoutBtn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);padding:8px 16px;border-radius:12px;cursor:pointer;">Sair</button>
@@ -73,32 +72,30 @@
     </div>
 
     <div id="mainContent" class="hidden">
+      
       <div class="grid-forms">
         <div class="card">
           <h3><i class="fas fa-plus-circle"></i> Entrada / Cadastro</h3>
           <form id="formEntrada">
-            <input type="text" id="prodNome" placeholder="Nome do Produto (ex: Arroz Agulhinha)" required>
-            
+            <input type="text" id="prodNome" placeholder="Nome do Produto" required>
             <div style="display:flex; gap:10px;">
                 <input type="number" id="prodQtd" placeholder="Qtd. Inicial" step="0.01" required>
                 <select id="prodUnidade">
-                    <option value="un">Unidade (un)</option>
+                    <option value="un">Un (un)</option>
                     <option value="kg">Quilo (kg)</option>
                     <option value="lt">Litro (lt)</option>
                 </select>
             </div>
-
             <div style="display:flex; gap:10px;">
                 <div style="flex:1">
                     <label style="font-size:11px; color:#666; font-weight:600;">VALIDADE</label>
                     <input type="date" id="prodValidade" required>
                 </div>
                 <div style="flex:1">
-                    <label style="font-size:11px; color:#666; font-weight:600;">AVISO ESTOQUE BAIXO</label>
-                    <input type="number" id="prodMinimo" placeholder="Qtd. Mínima" value="5">
+                    <label style="font-size:11px; color:#666; font-weight:600;">MÍNIMO</label>
+                    <input type="number" id="prodMinimo" value="5">
                 </div>
             </div>
-
             <select id="prodCat">
                 <option value="Secos">Secos</option>
                 <option value="Proteínas">Proteínas</option>
@@ -109,8 +106,27 @@
           </form>
         </div>
 
+        <div class="card" style="border: 2px solid var(--primary);">
+            <h3><i class="fas fa-qrcode"></i> Baixa Rápida (Scanner)</h3>
+            <div id="reader" class="hidden"></div>
+            
+            <div id="qrForm" class="hidden">
+                <div style="background: #f0f4ff; padding: 15px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+                    <strong id="qrProdNome" style="color: var(--primary); font-size: 18px;"></strong>
+                </div>
+                <input type="number" id="qrQtdBaixa" placeholder="Qtd. para retirar" step="0.01">
+                <input type="text" id="qrMotivo" placeholder="Motivo (Quebra, Urgência...)">
+                <button onclick="confirmarBaixaQR()" class="btn btn-danger">Confirmar Saída</button>
+                <button onclick="cancelarScanner()" class="btn" style="background:#999; margin-top:5px;">Cancelar</button>
+            </div>
+
+            <button id="btnIniciarScan" onclick="iniciarScanner()" class="btn btn-dark">
+                <i class="fas fa-camera"></i> Escanear Produto para Baixa
+            </button>
+        </div>
+
         <div class="card">
-          <h3><i class="fas fa-bell"></i> Requisições da Cozinha</h3>
+          <h3><i class="fas fa-bell"></i> Requisições Pendentes</h3>
           <div id="listaRequisicoes" style="max-height: 300px; overflow-y: auto;">
             <p style="color:#999; text-align:center;">Carregando pedidos...</p>
           </div>
@@ -118,20 +134,29 @@
       </div>
 
       <div class="card">
-        <div class="table-controls">
-            <h3><i class="fas fa-list"></i> Inventário em Tempo Real</h3>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="inputBusca" placeholder="Pesquisar por nome..." onkeyup="filtrarTabela('tabelaEstoque', this.value)">
-            </div>
+        <h3><i class="fas fa-print"></i> Gerador de Etiquetas QR</h3>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="inputEtiqueta" placeholder="Digite o nome do produto para a etiqueta">
+            <button onclick="gerarEtiqueta()" class="btn btn-primary" style="width: auto;">Gerar</button>
+        </div>
+        <div id="areaEtiqueta" class="label-preview hidden">
+            <canvas id="qrCanvas"></canvas>
+            <p id="labelNome" style="font-weight:bold; margin-top:5px;"></p>
+            <button onclick="window.print()" class="btn btn-dark" style="width: auto; margin: 10px auto;">Imprimir</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <h3><i class="fas fa-list"></i> Inventário</h3>
+            <input type="text" id="inputBusca" placeholder="Pesquisar produto..." style="max-width:300px;" onkeyup="filtrarTabela()">
         </div>
         <table>
           <thead>
             <tr>
                 <th>Produto</th>
-                <th>Categoria</th>
                 <th>Validade</th>
-                <th>Qtd</th>
+                <th>Saldo</th>
                 <th>Un.</th>
                 <th>Ações</th>
             </tr>
@@ -140,28 +165,18 @@
         </table>
       </div>
 
-      <div class="card" style="border-top: 4px solid var(--accent);">
-        <div class="table-controls">
-            <h3><i class="fas fa-history"></i> Histórico de Movimentação (Logs)</h3>
-        </div>
+      <div class="card">
+        <h3><i class="fas fa-history"></i> Logs Recentes</h3>
         <table>
-          <thead>
-            <tr>
-                <th>Data/Hora</th>
-                <th>Tipo</th>
-                <th>Produto</th>
-                <th>Qtd</th>
-                <th>Responsável</th>
-            </tr>
-          </thead>
           <tbody id="tabelaLogs"></tbody>
         </table>
       </div>
+
     </div>
   </div>
 
   <script>
-    // Configuração Firebase
+    // --- CONFIGURAÇÃO ---
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -174,10 +189,11 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
+    // --- PROTEÇÃO DE ROTA ---
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
       const doc = await db.collection('usuarios').doc(user.uid).get();
-      if (!doc.exists || !doc.data().approved || doc.data().role !== 'estoque') {
+      if (!doc.exists || doc.data().role !== 'estoque') {
         document.getElementById('accessDenied').classList.remove('hidden');
         return;
       }
@@ -187,159 +203,169 @@
 
     function initApp() {
       renderEstoque();
-      renderPedidosCozinha();
+      renderPedidos();
       renderLogs();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // Função de Log para Histórico
-    async function registrarLog(tipo, produto, quantidade) {
-        const user = auth.currentUser;
+    // --- FUNÇÕES DE LOG ---
+    async function registrarLog(tipo, produto, qtd) {
         await db.collection('historico').add({
             data: new Date(),
-            tipo: tipo, // 'Entrada' ou 'Saída'
+            tipo: tipo,
             produto: produto,
-            quantidade: quantidade,
-            usuario: user.email.split('@')[0]
+            quantidade: qtd,
+            usuario: auth.currentUser.email.split('@')[0]
         });
     }
 
-    // Cadastro e Log de Entrada
-    document.getElementById('formEntrada').onsubmit = async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('prodNome').value;
-      const qtd = parseFloat(document.getElementById('prodQtd').value);
-      
-      const dados = {
-        nome: nome,
-        quantidade: qtd,
-        validade: document.getElementById('prodValidade').value,
-        categoria: document.getElementById('prodCat').value,
-        unidade: document.getElementById('prodUnidade').value,
-        estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value) || 0,
-        ultimaAtualizacao: new Date()
-      };
+    // --- QR CODE: SCANNER ---
+    let scanner;
+    async function iniciarScanner() {
+        document.getElementById('reader').classList.remove('hidden');
+        document.getElementById('btnIniciarScan').classList.add('hidden');
+        scanner = new Html5Qrcode("reader");
+        const config = { fps: 10, qrbox: 250 };
+        
+        try {
+            await scanner.start({ facingMode: "environment" }, config, (text) => {
+                prepararBaixa(text);
+            });
+        } catch (e) { alert("Câmera indisponível."); cancelarScanner(); }
+    }
 
-      try {
-        await db.collection('estoque').add(dados);
-        await registrarLog('Entrada', nome, qtd);
-        alert("Produto registrado e log gerado!");
-        e.target.reset();
-      } catch (error) { alert("Erro: " + error.message); }
-    };
+    function prepararBaixa(nome) {
+        if(scanner) scanner.stop();
+        document.getElementById('reader').classList.add('hidden');
+        document.getElementById('qrForm').classList.remove('hidden');
+        document.getElementById('qrProdNome').innerText = nome;
+        window.tempProd = nome;
+    }
 
+    function cancelarScanner() {
+        if(scanner) scanner.stop();
+        document.getElementById('reader').classList.add('hidden');
+        document.getElementById('qrForm').classList.add('hidden');
+        document.getElementById('btnIniciarScan').classList.remove('hidden');
+    }
+
+    async function confirmarBaixaQR() {
+        const qtd = parseFloat(document.getElementById('qrQtdBaixa').value);
+        const motivo = document.getElementById('qrMotivo').value || "Saída Avulsa";
+        if(!qtd) return alert("Insira a quantidade.");
+
+        const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
+        if(snap.empty) return alert("Produto não cadastrado.");
+
+        const doc = snap.docs[0];
+        const novoSaldo = doc.data().quantidade - qtd;
+
+        await db.collection('estoque').doc(doc.id).update({ quantidade: novoSaldo });
+        await registrarLog(`Saída Avulsa (${motivo})`, window.tempProd, qtd);
+        
+        alert("Baixa concluída!");
+        location.reload();
+    }
+
+    // --- QR CODE: GERADOR ---
+    function gerarEtiqueta() {
+        const nome = document.getElementById('inputEtiqueta').value;
+        if(!nome) return;
+        
+        const qr = new QRious({
+            element: document.getElementById('qrCanvas'),
+            value: nome,
+            size: 200
+        });
+        document.getElementById('labelNome').innerText = nome;
+        document.getElementById('areaEtiqueta').classList.remove('hidden');
+    }
+
+    // --- INVENTÁRIO ---
     function renderEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
         const tbody = document.getElementById('tabelaEstoque');
         tbody.innerHTML = '';
         snap.forEach(doc => {
           const p = doc.data();
-          const isLow = p.quantidade <= (p.estoqueMinimo || 0);
+          const isLow = p.quantidade <= (p.estoqueMinimo || 5);
           tbody.innerHTML += `
             <tr class="${isLow ? 'stock-low' : ''}">
               <td><strong>${p.nome}</strong></td>
-              <td>${p.categoria}</td>
-              <td>${formatarData(p.validade)}</td>
-              <td>${p.quantidade} ${isLow ? '<span class="badge-low">!</span>' : ''}</td>
-              <td>${p.unidade || 'un'}</td>
-              <td>
-                <button class="btn-icon" onclick="ajustarQtd('${doc.id}', '${p.nome}', ${p.quantidade})" style="color:var(--primary)"><i class="fas fa-edit"></i></button>
-                <button class="btn-icon" onclick="deletarProduto('${doc.id}')" style="color:var(--danger)"><i class="fas fa-trash"></i></button>
-              </td>
+              <td>${p.validade}</td>
+              <td>${p.quantidade} ${isLow ? '<span class="badge-low">BAIXO</span>' : ''}</td>
+              <td>${p.unidade}</td>
+              <td><button onclick="deletar('${doc.id}')" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
             </tr>`;
         });
       });
     }
 
-    async function ajustarQtd(id, nome, atual) {
-        const nova = prompt(`Novo saldo para ${nome}:`, atual);
-        if(nova !== null && nova !== "") {
-            const diff = parseFloat(nova) - atual;
-            await db.collection('estoque').doc(id).update({ quantidade: parseFloat(nova) });
-            await registrarLog(diff > 0 ? 'Ajuste (+)' : 'Ajuste (-)', nome, Math.abs(diff));
-        }
-    }
-
-    function renderLogs() {
-        db.collection('historico').orderBy('data', 'desc').limit(15).onSnapshot(snap => {
-            const tbody = document.getElementById('tabelaLogs');
-            tbody.innerHTML = '';
-            snap.forEach(doc => {
-                const log = doc.data();
-                const dataFormat = log.data.toDate().toLocaleString('pt-BR');
-                const classe = log.tipo.includes('Entrada') || log.tipo.includes('+') ? 'bg-entrada' : 'bg-saida';
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="font-size:12px; color:#666;">${dataFormat}</td>
-                        <td><span class="mov-badge ${classe}">${log.tipo}</span></td>
-                        <td>${log.produto}</td>
-                        <td>${log.quantidade}</td>
-                        <td><small>${log.usuario}</small></td>
-                    </tr>`;
-            });
-        });
-    }
-
-    // Filtro de Busca
-    function filtrarTabela(idTabela, valor) {
-      const filter = valor.toUpperCase();
-      const rows = document.getElementById(idTabela).getElementsByTagName('tr');
-      for (let i = 0; i < rows.length; i++) {
-        const td = rows[i].getElementsByTagName('td')[0];
-        if (td) {
-          rows[i].style.display = td.innerText.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-        }
-      }
-    }
-
-    // Lógica de Pedidos
-    function renderPedidosCozinha() {
-      db.collection('requisicoes').where('status', '==', 'pendente').orderBy('dataPedido', 'asc').onSnapshot(snap => {
+    // --- PEDIDOS ---
+    function renderPedidos() {
+      db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
         const div = document.getElementById('listaRequisicoes');
-        if (snap.empty) { div.innerHTML = '<p style="color:#999; text-align:center;">Sem pedidos.</p>'; return; }
-        div.innerHTML = '';
+        div.innerHTML = snap.empty ? '<p style="text-align:center; color:#999;">Sem pedidos</p>' : '';
         snap.forEach(doc => {
           const r = doc.data();
           div.innerHTML += `
             <div class="req-item">
-              <div><strong>${r.item}</strong> (${r.quantidade})<br><small>${r.solicitante.split('@')[0]}</small></div>
-              <div class="action-btns">
-                <button class="btn btn-success" onclick="finalizarPedido('${doc.id}', '${r.item}', ${r.quantidade})"><i class="fas fa-check"></i></button>
-                <button class="btn btn-danger" onclick="cancelarPedido('${doc.id}')"><i class="fas fa-times"></i></button>
-              </div>
+              <div><strong>${r.item}</strong> (${r.quantidade})</div>
+              <button class="btn btn-success" style="width:auto;" onclick="finalizarReq('${doc.id}', '${r.item}', ${r.quantidade})"><i class="fas fa-check"></i></button>
             </div>`;
         });
       });
     }
 
-    async function finalizarPedido(idReq, item, qtd) {
-        const snap = await db.collection('estoque').where('nome', '==', item).limit(1).get();
-        if (snap.empty) { alert("Produto não encontrado no estoque."); return; }
+    async function finalizarReq(id, item, qtd) {
+        const snap = await db.collection('estoque').where('nome', '==', item).get();
+        if(snap.empty) return alert("Produto não encontrado.");
         
         const docEst = snap.docs[0];
-        const batch = db.batch();
-        batch.update(docEst.ref, { quantidade: docEst.data().quantidade - qtd });
-        batch.update(db.collection('requisicoes').doc(idReq), { status: 'entregue', dataEntrega: new Date() });
-        
-        await batch.commit();
+        await db.collection('estoque').doc(docEst.id).update({ quantidade: docEst.data().quantidade - qtd });
+        await db.collection('requisicoes').doc(id).update({ status: 'entregue' });
         await registrarLog('Saída (Pedido)', item, qtd);
-        alert("Entrega confirmada!");
     }
 
-    async function cancelarPedido(id) {
-        if(confirm("Cancelar pedido?")) await db.collection('requisicoes').doc(id).update({ status: 'cancelado' });
+    // --- ENTRADA ---
+    document.getElementById('formEntrada').onsubmit = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('prodNome').value;
+      const qtd = parseFloat(document.getElementById('prodQtd').value);
+      
+      await db.collection('estoque').add({
+        nome: nome, quantidade: qtd, unidade: document.getElementById('prodUnidade').value,
+        validade: document.getElementById('prodValidade').value, estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value)
+      });
+      await registrarLog('Entrada', nome, qtd);
+      e.target.reset();
+    };
+
+    function renderLogs() {
+        db.collection('historico').orderBy('data', 'desc').limit(10).onSnapshot(snap => {
+            const tbody = document.getElementById('tabelaLogs');
+            tbody.innerHTML = '';
+            snap.forEach(doc => {
+                const l = doc.data();
+                const isEntrada = l.tipo.includes('Entrada');
+                tbody.innerHTML += `<tr>
+                    <td><span class="${isEntrada ? 'bg-entrada' : 'bg-saida'}">${l.tipo}</span></td>
+                    <td>${l.produto}</td>
+                    <td>${l.quantidade}</td>
+                </tr>`;
+            });
+        });
     }
 
-    async function deletarProduto(id) {
-        if(confirm("Excluir permanentemente?")) await db.collection('estoque').doc(id).delete();
+    function filtrarTabela() {
+      const busca = document.getElementById('inputBusca').value.toLowerCase();
+      const linhas = document.getElementById('tabelaEstoque').getElementsByTagName('tr');
+      for (let row of linhas) {
+        row.style.display = row.innerText.toLowerCase().includes(busca) ? '' : 'none';
+      }
     }
 
-    function formatarData(d) {
-        if(!d) return '-';
-        const [y, m, day] = d.split('-');
-        return `${day}/${m}/${y}`;
-    }
+    async function deletar(id) { if(confirm("Excluir?")) await db.collection('estoque').doc(id).delete(); }
   </script>
 </body>
 </html>
