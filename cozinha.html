@@ -1,12 +1,10 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cozinha — EstoqueSync</title>
+  <title>EstoqueSync Cozinha — Gestão de Produção</title>
   
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -15,80 +13,164 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <style>
-    :root { 
-      --primary: #2f75b5; 
-      --bg: #f8fbff; 
-      --card: #ffffff; 
-      --shadow: 0 4px 12px rgba(0,0,0,0.08);
-      --success: #2ecc71;
-      --warning: #f39c12;
+    :root {
+      --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; --card: #ffffff;
+      --text: #1e293b; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --military: #334155;
     }
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); }
-    header { background: linear-gradient(135deg, #2f75b5, #4f81bd); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
-    .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
-    .card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
-    h3 { margin-top: 0; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-    input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
-    .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
-    .btn:hover { opacity: 0.9; }
-    .btn-success { background: var(--success); }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { text-align: left; font-size: 12px; color: #888; padding: 10px; border-bottom: 2px solid #eee; }
-    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-    .hidden { display: none; }
+
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    nav { background: var(--primary); color: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
     
-    /* Estilo do Cardápio do Dia */
-    #areaCardapio {
-      background: #eef6ff;
-      padding: 20px;
-      border-radius: 12px;
-      border-left: 6px solid var(--primary);
-      margin-bottom: 20px;
-    }
-    .badge-ing {
-      display: inline-block;
-      background: rgba(47, 117, 181, 0.1);
-      color: var(--primary);
-      padding: 4px 10px;
-      border-radius: 15px;
-      font-size: 12px;
-      margin: 2px;
-      font-weight: 500;
-    }
+    .container { max-width: 1500px; margin: 1.5rem auto; padding: 0 1rem; }
+    
+    /* Tabs Estilizadas */
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); }
+    .tab-btn { padding: 12px 20px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; font-size: 0.85rem; text-transform: uppercase; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .grid-layout { display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem; }
+    @media (max-width: 1200px) { .grid-layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .card h3 { margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; color: var(--military); font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--bg); padding-bottom: 10px; }
+
+    /* Cardápio de Destaque */
+    .cardapio-hero { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 25px; border-radius: 12px; border-left: 10px solid var(--success); position: relative; overflow: hidden; }
+    .cardapio-hero::after { content: '\f2e7'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: -20px; bottom: -20px; font-size: 8rem; opacity: 0.1; }
+    .cardapio-hero h4 { margin: 0; color: var(--success); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+    .cardapio-hero .prato { font-size: 1.8rem; font-weight: 800; margin: 15px 0; }
+    
+    /* Tabelas e Inputs */
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+
+    input, select, textarea { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; }
+    
+    .btn { padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-dark { background: var(--military); color: white; }
+    .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+    .status { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+    .status-pendente { background: #fef3c7; color: #92400e; }
+    .status-liberado { background: #dcfce7; color: #166534; }
+
+    .estoque-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 0.85rem; }
+    .estoque-item .qtd { font-weight: 700; color: var(--accent); }
+
+    .hidden { display: none !important; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-content { background: white; padding: 25px; border-radius: 15px; max-width: 550px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
   </style>
 </head>
 <body>
-  <header>
-    <h1><i class="fas fa-utensils"></i> Cozinha</h1>
-    <button onclick="firebase.auth().signOut()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 15px; border-radius:8px; cursor:pointer;">Sair</button>
-  </header>
+
+  <nav>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <i class="fas fa-kitchen-set fa-lg"></i>
+      <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">COZINHA</span></h2>
+    </div>
+    <div style="display:flex; align-items:center; gap:20px;">
+      <span id="userMail" style="font-size: 0.75rem; opacity: 0.8;"></span>
+      <button id="logoutBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:5px 15px; border-radius:6px; cursor:pointer;">SAIR</button>
+    </div>
+  </nav>
 
   <div class="container">
-    <div id="mainContent" class="hidden">
-      
-      <div id="areaCardapio" class="hidden">
-        <h3 id="cardapioTitulo" style="margin-bottom: 5px;">Carregando cardápio...</h3>
-        <p style="font-size: 14px; color: #555; margin-bottom: 15px;">Ingredientes planejados para hoje:</p>
-        <div id="listaIngredientesCardapio" style="margin-bottom: 20px;"></div>
-        <button class="btn btn-success" id="btnSolicitarTudo">
-          <i class="fas fa-shipping-fast"></i> Solicitar Matéria-Prima ao Estoque
-        </button>
-      </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-producao')"><i class="fas fa-fire"></i> Produção e Cardápio</button>
+      <button class="tab-btn" onclick="switchTab('tab-requisicao')"><i class="fas fa-hand-holding-hand"></i> Requisição Avulsa</button>
+      <button class="tab-btn" onclick="switchTab('tab-estoque')"><i class="fas fa-warehouse"></i> Ver Estoque</button>
+    </div>
 
-      <div class="card">
-        <h3><i class="fas fa-plus-circle"></i> Fazer Pedido Avulso</h3>
-        <select id="prodSelectAvulso"><option>Carregando produtos...</option></select>
-        <input type="number" id="qtdAvulso" placeholder="Quantidade">
-        <button class="btn" onclick="enviarPedidoAvulso()">Enviar Requisição</button>
-      </div>
+    <div id="tab-producao" class="tab-content">
+      <div class="grid-layout">
+        <aside>
+          <div class="card" style="border-top: 4px solid var(--success);">
+            <h3><i class="fas fa-utensils"></i> Cardápio de Hoje</h3>
+            <div id="displayCardapio">
+              <p style="color:#64748b; font-size: 0.8rem;">Buscando cardápio do dia...</p>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3><i class="fas fa-book-open"></i> Receitas da Nutrição</h3>
+            <div id="listaReceitas" style="max-height: 400px; overflow-y: auto;">
+              </div>
+          </div>
+        </aside>
 
-      <div class="card">
-        <h3><i class="fas fa-history"></i> Meus Pedidos Recentes</h3>
-        <table>
-          <thead><tr><th>Hora</th><th>Item</th><th>Status</th></tr></thead>
-          <tbody id="histCorpo"></tbody>
-        </table>
+        <section>
+          <div class="card">
+            <h3><i class="fas fa-clipboard-list"></i> Pedidos Vinculados ao Cardápio</h3>
+            <table id="tabelaPedidosCardapio">
+              <thead>
+                <tr><th>Material</th><th>Qtd Pedida</th><th>Data Uso</th><th>Status</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
       </div>
+    </div>
+
+    <div id="tab-requisicao" class="tab-content hidden">
+      <div class="grid-layout">
+        <aside>
+          <div class="card" style="border-top: 4px solid var(--accent);">
+            <h3><i class="fas fa-plus-circle"></i> Novo Pedido Urgente</h3>
+            <p style="font-size: 0.75rem; color:#64748b; margin-bottom: 15px;">Use para itens fora do cardápio planejado.</p>
+            <form id="formReqAvulsa">
+              <label>Data da Necessidade</label>
+              <input type="date" id="avulsaData" required>
+              <label>Item do Estoque</label>
+              <select id="avulsaItem" required><option value="">Carregando itens...</option></select>
+              <label>Quantidade</label>
+              <input type="number" id="avulsaQtd" step="0.01" required placeholder="0.00">
+              <button type="submit" class="btn btn-accent" style="width:100%"><i class="fas fa-paper-plane"></i> Enviar para Despensa</button>
+            </form>
+          </div>
+        </aside>
+        <section>
+          <div class="card">
+            <h3><i class="fas fa-history"></i> Histórico de Pedidos da Cozinha</h3>
+            <table id="tabelaHistoricoCozinha">
+              <thead>
+                <tr><th>Data Uso</th><th>Item</th><th>Qtd</th><th>Tipo</th><th>Status</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="tab-estoque" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-boxes-stacked"></i> Saldo Atual na Despensa</h3>
+        <input type="text" id="filtroEstoque" onkeyup="filtrarEstoque()" placeholder="Pesquisar produto no estoque..." style="margin-bottom: 20px;">
+        <div id="gridEstoque" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalRec" class="modal hidden">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:start;">
+        <h2 id="mNome" style="margin:0; color:var(--primary);"></h2>
+        <button onclick="fecharModal()" style="background:none; border:none; font-size: 1.5rem; cursor:pointer;">&times;</button>
+      </div>
+      <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+      <h4 style="text-transform:uppercase; font-size: 0.7rem; color: var(--accent);">Ingredientes Base</h4>
+      <div id="mIngredientes" style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px;"></div>
+      <h4 style="text-transform:uppercase; font-size: 0.7rem; color: var(--accent);">Modo de Preparo</h4>
+      <p id="mPreparo" style="font-size: 0.9rem; background: #f8fafc; padding: 15px; border-radius: 8px; white-space: pre-line;"></p>
+      <button onclick="fecharModal()" class="btn btn-dark" style="width:100%; margin-top:20px;">ENTENDIDO</button>
     </div>
   </div>
 
@@ -105,101 +187,142 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // PROTEÇÃO DE ROTA ORIGINAL
-    auth.onAuthStateChanged(async (user) => {
+    auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
-      const doc = await db.collection('usuarios').doc(user.uid).get();
-      if (!doc.exists || (doc.data().role !== 'cozinha' && doc.data().role !== 'admin')) {
-        alert("Acesso negado.");
-        auth.signOut();
-        return;
-      }
-      document.getElementById('mainContent').classList.remove('hidden');
+      document.getElementById('userMail').innerText = user.email;
       initCozinha();
     });
 
+    function switchTab(id) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
+    }
+
     function initCozinha() {
-      carregarProdutos();
-      carregarMeusPedidos();
-      carregarCardapioDoDia(); // Nova função de integração
+      monitorarCardapio();
+      monitorarEstoque();
+      monitorarRequisicoes();
+      monitorarReceitas();
+      document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // INTEGRAÇÃO COM CARDÁPIO PLANEJADO
-    async function carregarCardapioDoDia() {
-      const diasemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-      const hoje = diasemana[new Date().getDay()];
-      
-      // Busca o cardápio definido pela nutri para o dia de hoje
-      const doc = await db.collection('cardapio_planejado').doc(hoje).get();
-      
-      if (doc.exists) {
-        const dados = doc.data();
-        document.getElementById('areaCardapio').classList.remove('hidden');
-        document.getElementById('cardapioTitulo').innerHTML = `<i class="fas fa-utensils"></i> Hoje: ${dados.prato}`;
-        
-        const lista = document.getElementById('listaIngredientesCardapio');
-        lista.innerHTML = dados.itens.map(i => `<span class="badge-ing">${i.nome} (${i.qtd})</span>`).join(' ');
-        
-        // Configura o botão para enviar o lote
-        document.getElementById('btnSolicitarTudo').onclick = () => solicitarTudoEstoque(dados.itens, dados.prato);
-      }
-    }
-
-    async function solicitarTudoEstoque(itens, nomePrato) {
-      const batch = db.batch();
-      itens.forEach(ing => {
-        const novaRef = db.collection('requisicoes').doc();
-        batch.set(novaRef, {
-          item: ing.nome,
-          quantidade: ing.qtd,
-          status: 'pendente',
-          dataPedido: new Date(),
-          solicitante: auth.currentUser.email,
-          origem: `Cardápio: ${nomePrato}`
+    // 1. Monitorar Cardápio de Hoje
+    function monitorarCardapio() {
+      const hoje = new Date().toISOString().split('T')[0];
+      db.collection('cardapios').where('data', '==', hoje).onSnapshot(snap => {
+        const div = document.getElementById('displayCardapio');
+        if (snap.empty) {
+          div.innerHTML = `<div class="cardapio-hero" style="background:#64748b; border-color:#475569"><h4>Aviso</h4><div class="prato">Nenhum cardápio para hoje</div></div>`;
+          return;
+        }
+        snap.forEach(doc => {
+          const c = doc.data();
+          div.innerHTML = `
+            <div class="cardapio-hero">
+              <h4>${c.diaSemana}</h4>
+              <div class="prato">${c.pratoPrincipal}</div>
+              <div style="font-size:0.85rem; opacity:0.9"><strong>Guarnição:</strong> ${c.acompanhamentos}</div>
+            </div>
+          `;
         });
       });
-      await batch.commit();
-      alert("Sucesso: Todos os ingredientes do cardápio foram solicitados ao estoque!");
     }
 
-    // FUNCIONALIDADES ORIGINAIS MANTIDAS
-    async function carregarProdutos() {
-      const snap = await db.collection('estoque').orderBy('nome').get();
-      const sel = document.getElementById('prodSelectAvulso');
-      sel.innerHTML = '<option value="">Selecione um item para pedido avulso...</option>';
-      snap.forEach(doc => {
-        sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`;
+    // 2. Monitorar Estoque (Visualização e Select)
+    function monitorarEstoque() {
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        const grid = document.getElementById('gridEstoque');
+        const sel = document.getElementById('avulsaItem');
+        grid.innerHTML = '';
+        sel.innerHTML = '<option value="">Selecione o item...</option>';
+        
+        snap.forEach(doc => {
+          const item = doc.data();
+          // Preenche Grid
+          grid.innerHTML += `
+            <div class="card" style="margin-bottom:0; padding:12px;">
+              <div class="estoque-item" style="border:none">
+                <span>${item.nome}</span>
+                <span class="qtd">${item.quantidade} ${item.unidade || 'un'}</span>
+              </div>
+            </div>
+          `;
+          // Preenche Select
+          sel.innerHTML += `<option value="${item.nome}">${item.nome} (Saldo: ${item.quantidade})</option>`;
+        });
       });
     }
 
-    async function enviarPedidoAvulso() {
-      const item = document.getElementById('prodSelectAvulso').value;
-      const quantidade = parseFloat(document.getElementById('qtdAvulso').value);
-      if (!item || !quantidade) { alert("Preencha o item e a quantidade."); return; }
+    // 3. Monitorar Requisições (Cardápio + Avulsas)
+    function monitorarRequisicoes() {
+      db.collection('requisicoes').orderBy('dataUso', 'desc').onSnapshot(snap => {
+        const tbHist = document.querySelector('#tabelaHistoricoCozinha tbody');
+        const tbCard = document.querySelector('#tabelaPedidosCardapio tbody');
+        tbHist.innerHTML = ''; tbCard.innerHTML = '';
 
+        snap.forEach(doc => {
+          const r = doc.data();
+          const statusCls = r.status === 'pendente' ? 'status-pendente' : 'status-liberado';
+          const row = `<tr>
+            <td>${r.dataUso}</td>
+            <td><strong>${r.item}</strong></td>
+            <td>${r.quantidade}</td>
+            <td>${r.tipo || 'Avulsa'}</td>
+            <td><span class="status ${statusCls}">${r.status.toUpperCase()}</span></td>
+          </tr>`;
+          
+          tbHist.innerHTML += row;
+          if(r.status === 'pendente') tbCard.innerHTML += row;
+        });
+      });
+    }
+
+    // 4. Monitorar Receitas
+    function monitorarReceitas() {
+      db.collection('receitas').onSnapshot(snap => {
+        const div = document.getElementById('listaReceitas');
+        div.innerHTML = '';
+        snap.forEach(doc => {
+          const r = doc.data();
+          const btn = document.createElement('div');
+          btn.className = 'card';
+          btn.style = "padding:10px; cursor:pointer; margin-bottom:8px; background:#f8fafc";
+          btn.innerHTML = `<i class="fas fa-file-signature" style="color:var(--accent)"></i> <span style="font-weight:600; font-size:0.85rem">${r.nome}</span>`;
+          btn.onclick = () => {
+            document.getElementById('mNome').innerText = r.nome;
+            document.getElementById('mPreparo').innerText = r.preparo;
+            document.getElementById('mIngredientes').innerHTML = r.ingredientes.map(i => `• ${i.nome}: <strong>${i.qtd}</strong>`).join('<br>');
+            document.getElementById('modalRec').classList.remove('hidden');
+          };
+          div.appendChild(btn);
+        });
+      });
+    }
+
+    // 5. Requisição Avulsa
+    document.getElementById('formReqAvulsa').onsubmit = async (e) => {
+      e.preventDefault();
       await db.collection('requisicoes').add({
-        item, quantidade, status: 'pendente', dataPedido: new Date(), solicitante: auth.currentUser.email, origem: 'Avulso'
+        dataUso: document.getElementById('avulsaData').value,
+        item: document.getElementById('avulsaItem').value,
+        quantidade: parseFloat(document.getElementById('avulsaQtd').value),
+        status: 'pendente',
+        tipo: 'AVULSA',
+        dataSolicitacao: new Date(),
+        solicitante: auth.currentUser.email
       });
-      alert("Pedido avulso enviado!");
-      document.getElementById('qtdAvulso').value = '';
-    }
+      alert("Requisição avulsa enviada!"); e.target.reset();
+    };
 
-    function carregarMeusPedidos() {
-      db.collection('requisicoes')
-        .where('solicitante', '==', auth.currentUser.email)
-        .orderBy('dataPedido', 'desc').limit(10)
-        .onSnapshot(snap => {
-          const corpo = document.getElementById('histCorpo');
-          corpo.innerHTML = '';
-          snap.forEach(doc => {
-            const r = doc.data();
-            corpo.innerHTML += `<tr>
-              <td>${r.dataPedido.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
-              <td><strong>${r.item}</strong> (${r.quantidade})<br><small style="color:#888">${r.origem || 'Avulso'}</small></td>
-              <td><span style="font-weight:bold; color:${r.status==='pendente'?'orange':'green'}">${r.status.toUpperCase()}</span></td>
-            </tr>`;
-          });
-        });
+    function fecharModal() { document.getElementById('modalRec').classList.add('hidden'); }
+
+    function filtrarEstoque() {
+      const val = document.getElementById('filtroEstoque').value.toLowerCase();
+      document.querySelectorAll('#gridEstoque .card').forEach(c => {
+        c.style.display = c.innerText.toLowerCase().includes(val) ? '' : 'none';
+      });
     }
   </script>
 </body>
