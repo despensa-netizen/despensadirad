@@ -24,7 +24,6 @@
     
     .container { max-width: 1450px; margin: 1.5rem auto; padding: 0 1rem; }
     
-    /* Tabs */
     .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); overflow-x: auto; }
     .tab-btn { padding: 0.8rem 1.2rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
@@ -48,7 +47,7 @@
     th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid var(--border); }
     td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
-    .ing-row { display: grid; grid-template-columns: 1fr 100px; gap: 8px; margin-bottom: 8px; }
+    .ing-row { display: grid; grid-template-columns: 1fr 100px 40px; gap: 8px; margin-bottom: 8px; }
     .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
     .badge-pendente { background: #fef3c7; color: #92400e; }
     .badge-entregue { background: #dcfce7; color: #166534; }
@@ -61,7 +60,7 @@
   <nav>
     <div style="display:flex; align-items:center; gap:10px;">
       <i class="fas fa-file-medical-alt fa-lg"></i>
-      <h2 style="margin:0; font-size: 1.2rem;">EstoqueSync Nutrição <span style="font-weight:300; font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px;">PME</span></h2>
+      <h2 style="margin:0; font-size: 1.2rem;">EstoqueSync Nutrição</h2>
     </div>
     <div style="display:flex; align-items:center; gap:20px;">
       <span id="userDisplay" style="font-size: 0.8rem; font-weight: 500;"></span>
@@ -95,7 +94,7 @@
               <label>Prato Principal</label>
               <input type="text" id="cardPrincipal" placeholder="Ex: Carne de Panela" required>
               <label>Acompanhamentos</label>
-              <textarea id="cardAcomp" placeholder="Ex: Arroz, Feijão Preto, Salada de Alface" rows="2"></textarea>
+              <textarea id="cardAcomp" placeholder="Arroz, Feijão, Salada..." rows="2"></textarea>
               <button type="submit" class="btn btn-primary">Publicar para Cozinha</button>
             </form>
           </div>
@@ -130,7 +129,7 @@
       <div class="card">
         <h3><i class="fas fa-history"></i> Planejamento Histórico</h3>
         <table id="tabelaHistoricoCardapio">
-          <thead><tr><th>Data</th><th>Dia</th><th>Prato Principal</th><th>Acompanhamentos</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Data</th><th>Dia</th><th>Prato Principal</th><th>Ações</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -140,31 +139,27 @@
       <div class="grid-main">
         <aside>
           <div class="card" style="border-top: 4px solid var(--success);">
-            <h3><i class="fas fa-mortar-pestle"></i> Nova Receita Padrão</h3>
+            <h3><i class="fas fa-mortar-pestle"></i> Nova Ficha Técnica</h3>
             <form id="formNovaReceita">
               <label>Nome da Preparação</label>
-              <input type="text" id="recNome" placeholder="Ex: Feijoada de Sexta" required>
-              <label>Instruções de Preparo</label>
-              <textarea id="recPreparo" placeholder="Passo a passo..." rows="4"></textarea>
+              <input type="text" id="recNome" placeholder="Ex: Feijoada" required>
+              <label>Modo de Preparo</label>
+              <textarea id="recPreparo" placeholder="Instruções para a cozinha..." rows="4"></textarea>
               
               <div id="ingredientesLista">
-                <label>Ingredientes (Percapita/Base)</label>
-                <div class="ing-row">
-                  <input type="text" placeholder="Ingrediente" class="ing-nome">
-                  <input type="text" placeholder="Qtd/Base" class="ing-qtd">
+                <label>Ingredientes (Vinculados ao Estoque)</label>
                 </div>
-              </div>
-              <button type="button" onclick="addIngrediente()" class="btn-outline" style="width:100%; padding:5px; margin-bottom:15px; border-style: dashed;">+ Ingrediente</button>
+              <button type="button" onclick="addIngredienteCampo()" class="btn-outline" style="width:100%; padding:5px; margin-bottom:15px; border-style: dashed;">+ Ingrediente</button>
               
-              <button type="submit" class="btn btn-primary" style="background:var(--success)">Salvar no Banco</button>
+              <button type="submit" class="btn btn-primary" style="background:var(--success)">Salvar Ficha Técnica</button>
             </form>
           </div>
         </aside>
         <section>
           <div class="card">
-            <h3><i class="fas fa-archive"></i> Banco de Receitas</h3>
+            <h3><i class="fas fa-archive"></i> Receitas Disponíveis para Cozinha</h3>
             <table id="tabelaReceitas">
-              <thead><tr><th>Nome</th><th>Ingredientes</th><th>Ações</th></tr></thead>
+              <thead><tr><th>Nome</th><th>Itens</th><th>Ações</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -174,7 +169,6 @@
   </div>
 
   <script>
-    // FIREBASE CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -187,20 +181,21 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // AUTH & INIT
+    let estoqueGlobal = [];
+
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
       document.getElementById('userDisplay').innerText = user.email;
       initApp();
     });
 
-    function initApp() {
-      carregarEstoque();
+    async function initApp() {
+      await carregarEstoque();
       monitorarTabelas();
+      addIngredienteCampo(); // Adiciona o primeiro campo de ingrediente
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // NAVEGAÇÃO
     function switchTab(id) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -208,74 +203,106 @@
       event.currentTarget.classList.add('active');
     }
 
-    // GERENCIAMENTO DE INGREDIENTES NO FORM
-    function addIngrediente() {
-      const div = document.createElement('div');
-      div.className = 'ing-row';
-      div.innerHTML = '<input type="text" placeholder="Ingrediente" class="ing-nome"><input type="text" placeholder="Qtd/Base" class="ing-qtd">';
-      document.getElementById('ingredientesLista').appendChild(div);
-    }
-
-    // CARREGAR ESTOQUE PARA O SELECT
-    function carregarEstoque() {
+    // CARREGA ITENS DO ESTOQUE
+    async function carregarEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-        const sel = document.getElementById('reqItem');
-        sel.innerHTML = '<option value="">Selecione o material...</option>';
-        snap.forEach(doc => { sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`; });
+        estoqueGlobal = [];
+        const selReq = document.getElementById('reqItem');
+        selReq.innerHTML = '<option value="">Selecione o material...</option>';
+        
+        snap.forEach(doc => {
+          const item = doc.data().nome;
+          estoqueGlobal.push(item);
+          selReq.innerHTML += `<option value="${item}">${item}</option>`;
+        });
+        // Atualiza selects de ingredientes existentes caso o estoque mude
+        document.querySelectorAll('.ing-select').forEach(sel => popularSelect(sel));
       });
     }
 
-    // MONITORAMENTO EM TEMPO REAL
+    function popularSelect(selectElement) {
+      const valorAtual = selectElement.value;
+      selectElement.innerHTML = '<option value="">Selecione...</option>';
+      estoqueGlobal.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.text = item;
+        selectElement.add(opt);
+      });
+      selectElement.value = valorAtual;
+    }
+
+    function addIngredienteCampo() {
+      const container = document.getElementById('ingredientesLista');
+      const div = document.createElement('div');
+      div.className = 'ing-row';
+      div.innerHTML = `
+        <select class="ing-select" required></select>
+        <input type="text" placeholder="Qtd" class="ing-qtd" required>
+        <button type="button" onclick="this.parentElement.remove()" style="border:none; background:none; color:red; cursor:pointer"><i class="fas fa-times"></i></button>
+      `;
+      container.appendChild(div);
+      popularSelect(div.querySelector('.ing-select'));
+    }
+
     function monitorarTabelas() {
-      // 1. Requisições
+      // Requisições
       db.collection('requisicoes').orderBy('dataUso', 'asc').onSnapshot(snap => {
         const tb = document.querySelector('#tabelaReq tbody');
         tb.innerHTML = '';
         snap.forEach(doc => {
           const r = doc.data();
           const bCls = r.status === 'pendente' ? 'badge-pendente' : 'badge-entregue';
-          tb.innerHTML += `<tr>
-            <td>${r.dataUso}</td>
-            <td><strong>${r.item}</strong></td>
-            <td>${r.quantidade}</td>
-            <td><span class="badge ${bCls}">${r.status.toUpperCase()}</span></td>
-          </tr>`;
+          tb.innerHTML += `<tr><td>${r.dataUso}</td><td><strong>${r.item}</strong></td><td>${r.quantidade}</td><td><span class="badge ${bCls}">${(r.status || 'pendente').toUpperCase()}</span></td></tr>`;
         });
       });
 
-      // 2. Cardápios Salvos
+      // Cardápios
       db.collection('cardapios').orderBy('data', 'desc').onSnapshot(snap => {
         const tb = document.querySelector('#tabelaHistoricoCardapio tbody');
         tb.innerHTML = '';
         snap.forEach(doc => {
           const c = doc.data();
-          tb.innerHTML += `<tr>
-            <td>${c.data}</td>
-            <td>${c.diaSemana}</td>
-            <td><strong>${c.pratoPrincipal}</strong></td>
-            <td style="font-size:0.75rem">${c.acompanhamentos}</td>
-            <td><button onclick="deletarDoc('cardapios','${doc.id}')" style="border:none; background:none; color:red; cursor:pointer"><i class="fas fa-trash"></i></button></td>
-          </tr>`;
+          tb.innerHTML += `<tr><td>${c.data}</td><td>${c.diaSemana}</td><td><strong>${c.pratoPrincipal}</strong></td><td><button onclick="deletarDoc('cardapios','${doc.id}')" style="color:red; border:none; background:none; cursor:pointer"><i class="fas fa-trash"></i></button></td></tr>`;
         });
       });
 
-      // 3. Receitas
+      // Receitas (Fichas Técnicas)
       db.collection('receitas').orderBy('nome').onSnapshot(snap => {
         const tb = document.querySelector('#tabelaReceitas tbody');
         tb.innerHTML = '';
         snap.forEach(doc => {
           const r = doc.data();
-          const ings = r.ingredientes.map(i => i.nome).join(', ');
-          tb.innerHTML += `<tr>
-            <td><strong>${r.nome}</strong></td>
-            <td style="font-size:0.75rem">${ings}</td>
-            <td><button onclick="deletarDoc('receitas','${doc.id}')" style="border:none; background:none; color:red; cursor:pointer"><i class="fas fa-trash"></i></button></td>
-          </tr>`;
+          const count = r.ingredientes ? r.ingredientes.length : 0;
+          tb.innerHTML += `<tr><td><strong>${r.nome}</strong></td><td>${count} itens vinculados</td><td><button onclick="deletarDoc('receitas','${doc.id}')" style="color:red; border:none; background:none; cursor:pointer"><i class="fas fa-trash"></i></button></td></tr>`;
         });
       });
     }
 
-    // SUBMISSÕES
+    // SUBMISSÃO DE RECEITA INTEGRADA
+    document.getElementById('formNovaReceita').onsubmit = async (e) => {
+      e.preventDefault();
+      const ingredientes = [];
+      document.querySelectorAll('.ing-row').forEach(row => {
+        const item = row.querySelector('.ing-select').value;
+        const qtd = row.querySelector('.ing-qtd').value;
+        if(item) ingredientes.push({ nome: item, qtd: qtd });
+      });
+
+      await db.collection('receitas').add({
+        nome: document.getElementById('recNome').value,
+        preparo: document.getElementById('recPreparo').value,
+        ingredientes: ingredientes,
+        timestamp: new Date()
+      });
+
+      alert("Ficha Técnica integrada salva com sucesso!");
+      e.target.reset();
+      document.getElementById('ingredientesLista').innerHTML = '<label>Ingredientes (Vinculados ao Estoque)</label>';
+      addIngredienteCampo();
+    };
+
+    // FORM CARDÁPIO
     document.getElementById('formCardapio').onsubmit = async (e) => {
       e.preventDefault();
       await db.collection('cardapios').add({
@@ -288,6 +315,7 @@
       alert("Cardápio publicado!"); e.target.reset();
     };
 
+    // FORM REQUISIÇÃO
     document.getElementById('formRequisicao').onsubmit = async (e) => {
       e.preventDefault();
       await db.collection('requisicoes').add({
@@ -298,32 +326,11 @@
         dataSolicitacao: new Date(),
         solicitante: auth.currentUser.email
       });
-      alert("Pedido enviado à despensa!"); e.target.reset();
-    };
-
-    document.getElementById('formNovaReceita').onsubmit = async (e) => {
-      e.preventDefault();
-      const ingredientes = [];
-      document.querySelectorAll('.ing-row').forEach(row => {
-        const n = row.querySelector('.ing-nome').value;
-        const q = row.querySelector('.ing-qtd').value;
-        if(n) ingredientes.push({ nome: n, qtd: q });
-      });
-
-      await db.collection('receitas').add({
-        nome: document.getElementById('recNome').value,
-        preparo: document.getElementById('recPreparo').value,
-        ingredientes: ingredientes
-      });
-      alert("Ficha Técnica salva!");
-      e.target.reset();
-      document.getElementById('ingredientesLista').innerHTML = '<label>Ingredientes (Percapita/Base)</label><div class="ing-row"><input type="text" placeholder="Ingrediente" class="ing-nome"><input type="text" placeholder="Qtd/Base" class="ing-qtd"></div>';
+      alert("Requisição enviada!"); e.target.reset();
     };
 
     async function deletarDoc(col, id) {
-      if(confirm("Deseja remover este registro permanentemente?")) {
-        await db.collection(col).doc(id).delete();
-      }
+      if(confirm("Deseja remover este registro?")) await db.collection(col).doc(id).delete();
     }
   </script>
 </body>
