@@ -192,13 +192,21 @@
 
     // 2. AUTENTICAÇÃO
     auth.onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = 'index.html'; return; }
-      const doc = await db.collection('usuarios_autorizados').doc(user.email).get();
-      if (doc.exists && doc.data().role === 'estoque') {
-        document.getElementById('userDisplay').innerText = user.email;
-        initApp();
-      } else { auth.signOut(); }
-    });
+     if (!user) { window.location.href = 'index.html'; return; }
+    
+    const doc = await db.collection('usuarios').doc(user.uid).get();
+    const role = doc.data().role;
+
+    // Se for ADMIN, ele entra em qualquer uma. Se não for, precisa ser a role da página.
+    const roleDaPagina = "estoque"; // 
+    
+    if (role === 'admin' || role === roleDaPagina) {
+        initModulo(); // Sua função que carrega a tela
+    } else {
+        alert("Acesso negado.");
+        window.location.href = 'index.html';
+    }
+});
 
     function initApp() {
       renderEstoque();
@@ -400,3 +408,4 @@
   </script>
 </body>
 </html>
+
