@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Programação de Rancho</title>
+  <title>EstoqueSync Nutrição — Gestão de Rancho</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -14,102 +14,147 @@
 
   <style>
     :root {
-      --military: #1e293b; --accent: #2563eb; --bg: #f1f5f9; --card: #ffffff;
-      --cafe: #f59e0b; --almoco: #10b981; --janta: #6366f1;
+      --primary: #1e293b; --accent: #2563eb; --bg: #f8fafc; --card: #ffffff;
+      --text: #1e293b; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
     }
 
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #1e293b; }
-    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    nav { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
     
-    .container { max-width: 1600px; margin: 1.5rem auto; padding: 0 1rem; }
+    .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
     
-    /* Grade Semanal */
-    .semana-grid { 
-      display: grid; 
-      grid-template-columns: repeat(7, 1fr); 
-      gap: 15px; 
-      margin-top: 20px;
-      overflow-x: auto;
-    }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; }
+    .tab-btn { padding: 12px 20px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-    .dia-col { background: #e2e8f0; border-radius: 12px; padding: 10px; min-width: 200px; border: 1px solid #cbd5e1; }
-    .dia-header { text-align: center; font-weight: 700; padding-bottom: 10px; color: var(--military); border-bottom: 2px solid #cbd5e1; margin-bottom: 10px; }
+    .grid-layout { display: grid; grid-template-columns: 400px 1fr; gap: 1.5rem; }
+    @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
 
-    .slot { background: white; border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid #ccc; }
-    .slot-cafe { border-left-color: var(--cafe); }
-    .slot-almoco { border-left-color: var(--almoco); }
-    .slot-janta { border-left-color: var(--janta); }
+    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .card h3 { margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; color: var(--primary); font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--bg); padding-bottom: 10px; }
+
+    input, select, textarea { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; }
     
-    .slot-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: block; }
-    .slot-label.cafe { color: var(--cafe); }
-    .slot-label.almoco { color: var(--almoco); }
-    .slot-label.janta { color: var(--janta); }
+    .btn { padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    select { width: 100%; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem; }
-
-    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
-    .btn-save { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 20px; font-size: 1rem; }
+    .item-carga { display: flex; justify-content: space-between; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.85rem; }
     
-    .floating-actions { position: sticky; bottom: 20px; width: 100%; display: flex; justify-content: center; }
-
-    .btn-toggle { background: #fff; border: 1px solid var(--accent); color: var(--accent); padding: 8px 16px; border-radius: 20px; cursor: pointer; margin-bottom: 20px; font-weight: 600; }
-    .btn-toggle.active { background: var(--accent); color: white; }
+    .slot-dia { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+    .slot-label { font-weight: 800; font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block; }
 
     .hidden { display: none !important; }
+
+    /* Estilos Histórico */
+    .hist-card { border-left: 5px solid var(--accent); transition: 0.3s; }
+    .hist-card:hover { transform: scale(1.01); }
+    .badge-turno { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; background: #e0e7ff; color: #3730a3; }
   </style>
 </head>
 <body>
 
   <nav>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <i class="fas fa-shield-halved fa-lg"></i>
-      <h2 style="margin:0; font-size: 1.2rem;">Rancho Militar <span style="font-weight:300;">EstoqueSync</span></h2>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <i class="fas fa-apple-whole fa-lg"></i>
+      <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">NUTRIÇÃO</span></h2>
     </div>
     <div style="display:flex; align-items:center; gap:20px;">
-      <button class="btn-toggle" onclick="toggleView('config')">Cadastrar Receitas</button>
-      <button class="btn-toggle active" onclick="toggleView('agenda')">Programação Semanal</button>
-      <button onclick="firebase.auth().signOut()" style="background:none; border:1px solid white; color:white; padding:5px 15px; border-radius:6px; cursor:pointer;">SAIR</button>
+      <span id="userMail" style="font-size: 0.75rem; opacity: 0.8;"></span>
+      <button id="logoutBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:5px 15px; border-radius:6px; cursor:pointer;">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
-    
-    <div id="view-config" class="hidden">
-        <div class="card">
-            <h3><i class="fas fa-plus-circle"></i> Cadastrar Nova Carga (Receita Padrão)</h3>
-            <p style="font-size: 0.85rem; color: #64748b;">Cadastre aqui os pratos fixos. Ex: "Arroz de Carreteiro", "Café Padrão", "Sopa de Legumes".</p>
-            <form id="formNovaReceita">
-                <input type="text" id="recNome" placeholder="Nome da Carga (ex: Almoço Tipo A)" required>
-                <div id="ingredientesLista">
-                    <label>Itens da Despensa para esta Carga:</label>
-                    </div>
-                <button type="button" onclick="addIngredienteCampo()" style="margin: 10px 0; padding: 5px; cursor:pointer;">+ Adicionar Item</button>
-                <button type="submit" class="btn-save" style="background: var(--almoco);">Salvar Receita no Banco</button>
-            </form>
-        </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-cargas')"><i class="fas fa-boxes-packing"></i> Montar Cargas (Receitas)</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-calendar-alt"></i> Programação Semanal</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico de Rancho</button>
     </div>
 
-    <div id="view-agenda">
-        <div class="card">
-            <h3><i class="fas fa-calendar-alt"></i> Planejamento do Rancho (QTS)</h3>
-            <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
-                <label>Data de Início (Segunda-feira):</label>
-                <input type="date" id="dataInicioSemana" style="width:auto; padding:5px;">
+    <div id="tab-cargas" class="tab-content">
+      <div class="grid-layout">
+        <aside>
+          <div class="card">
+            <h3><i class="fas fa-plus-circle"></i> Nova Carga/Prato</h3>
+            <label>Nome da Carga (ex: Almoço Padrão)</label>
+            <input type="text" id="cargaNome" placeholder="Ex: Galinhada de Terça">
+            
+            <label>Adicionar Ingrediente</label>
+            <div style="display:flex; gap:5px;">
+              <select id="cargaItem" style="margin:0"></select>
+              <input type="number" id="cargaQtd" placeholder="Qtd" style="width:80px; margin:0">
+              <button onclick="addIngrediente()" class="btn btn-accent"><i class="fas fa-plus"></i></button>
             </div>
-
-            <div class="semana-grid" id="semanaGrid">
-                </div>
-
-            <button class="btn-save" onclick="salvarProgramacaoSemanal()">
-                <i class="fas fa-cloud-upload-alt"></i> PUBLICAR SEMANA E GERAR REQUISIÇÕES
-            </button>
-        </div>
+            
+            <div id="listaIngredientesTemp" style="margin: 15px 0;"></div>
+            
+            <button onclick="salvarCarga()" class="btn btn-success" style="width:100%"><i class="fas fa-save"></i> Salvar Carga</button>
+          </div>
+        </aside>
+        <section>
+          <div class="card">
+            <h3><i class="fas fa-list"></i> Minhas Cargas Salvas</h3>
+            <div id="gridCargas" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;"></div>
+          </div>
+        </section>
+      </div>
     </div>
 
+    <div id="tab-programacao" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-calendar-check"></i> Planejamento de Refeições</h3>
+        <p style="font-size: 0.8rem; color: #64748b;">Selecione o dia e vincule as cargas para cada turno. Isso enviará os pedidos automaticamente para a despensa.</p>
+        
+        <div style="display: grid; grid-template-columns: 200px 1fr 1fr 1fr; gap: 15px; align-items: end; background: #f1f5f9; padding: 15px; border-radius: 12px;">
+          <div>
+            <label>Data</label>
+            <input type="date" id="progData" style="margin:0">
+          </div>
+          <div>
+            <span class="slot-label">Café da Manhã</span>
+            <select id="progCafe" class="sel-carga" style="margin:0"></select>
+          </div>
+          <div>
+            <span class="slot-label">Almoço</span>
+            <select id="progAlmoco" class="sel-carga" style="margin:0"></select>
+          </div>
+          <div>
+            <span class="slot-label">Jantar</span>
+            <select id="progJanta" class="sel-carga" style="margin:0"></select>
+          </div>
+        </div>
+        <button onclick="publicarProgramacao()" class="btn btn-accent" style="margin-top: 15px; width: 100%;"><i class="fas fa-paper-plane"></i> Publicar e Enviar para Cozinha/Despensa</button>
+      </div>
+    </div>
+
+    <div id="tab-historico" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-search"></i> Consultar Cardápios Anteriores</h3>
+        <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-size: 0.8rem; font-weight: 600;">Filtrar por Data:</label>
+                <input type="date" id="buscaDataHist" style="margin: 5px 0 0 0;">
+            </div>
+            <button onclick="buscarHistoricoCardapio()" class="btn btn-accent" style="height: 45px;">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+            <button onclick="limparBuscaHist()" class="btn" style="height:45px; background:#e2e8f0;">Limpar</button>
+        </div>
+
+        <div id="resultadoHistorico">
+            <p style="text-align: center; color: #64748b; padding: 40px; border: 2px dashed #e2e8f0; border-radius: 12px;">
+                Use o filtro acima para buscar cardápios de datas passadas.
+            </p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    // CONFIGURAÇÃO FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -118,153 +163,198 @@
       messagingSenderId: "67257178512",
       appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    let estoqueItens = [];
-    let receitasSalvas = [];
-    const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+    let ingredientesTemp = [];
 
-    // INICIALIZAÇÃO
-    firebase.auth().onAuthStateChanged(user => {
-      if (!user) window.location.href = 'index.html';
-      carregarDadosBase();
+    auth.onAuthStateChanged(user => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      document.getElementById('userMail').innerText = user.email;
+      initNutricao();
     });
 
-    async function carregarDadosBase() {
-        // Carrega Itens do Estoque
-        db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-            estoqueItens = [];
-            snap.forEach(doc => estoqueItens.push(doc.data().nome));
-        });
+    function initNutricao() {
+      carregarItensEstoque();
+      carregarCargasSalvas();
+    }
 
-        // Carrega Receitas (Cargas)
-        db.collection('receitas').orderBy('nome').onSnapshot(snap => {
-            receitasSalvas = [];
-            snap.forEach(doc => {
-                receitasSalvas.push({ id: doc.id, ...doc.data() });
+    function switchTab(event, id) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
+    }
+
+    // GESTÃO DE CARGAS
+    async function carregarItensEstoque() {
+      const snap = await db.collection('estoque').orderBy('nome').get();
+      const sel = document.getElementById('cargaItem');
+      sel.innerHTML = '<option value="">Selecione...</option>';
+      snap.forEach(doc => {
+        sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`;
+      });
+    }
+
+    function addIngrediente() {
+      const item = document.getElementById('cargaItem').value;
+      const qtd = document.getElementById('cargaQtd').value;
+      if(!item || !qtd) return;
+      ingredientesTemp.push({ nome: item, qtd: parseFloat(qtd) });
+      renderIngredientesTemp();
+      document.getElementById('cargaQtd').value = '';
+    }
+
+    function renderIngredientesTemp() {
+      const div = document.getElementById('listaIngredientesTemp');
+      div.innerHTML = ingredientesTemp.map((ing, idx) => `
+        <div class="item-carga">
+          <span>${ing.nome} - <b>${ing.qtd}</b></span>
+          <i class="fas fa-times" style="color:red; cursor:pointer" onclick="ingredientesTemp.splice(${idx},1); renderIngredientesTemp();"></i>
+        </div>
+      `).join('');
+    }
+
+    async function salvarCarga() {
+      const nome = document.getElementById('cargaNome').value;
+      if(!nome || ingredientesTemp.length === 0) return alert("Preencha o nome e adicione itens!");
+      
+      await db.collection('cargas_predefinidas').add({
+        nome: nome,
+        itens: ingredientesTemp,
+        criadoEm: new Date()
+      });
+      
+      alert("Carga salva!");
+      document.getElementById('cargaNome').value = '';
+      ingredientesTemp = [];
+      renderIngredientesTemp();
+      carregarCargasSalvas();
+    }
+
+    async function carregarCargasSalvas() {
+      const snap = await db.collection('cargas_predefinidas').get();
+      const grid = document.getElementById('gridCargas');
+      const selects = document.querySelectorAll('.sel-carga');
+      
+      grid.innerHTML = '';
+      let options = '<option value="">Pular Turno</option>';
+
+      snap.forEach(doc => {
+        const c = doc.data();
+        options += `<option value="${doc.id}">${c.nome}</option>`;
+        grid.innerHTML += `
+          <div class="card" style="margin:0; padding:10px; font-size:0.8rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong>${c.nome}</strong>
+                <button onclick="deletarCarga('${doc.id}')" style="background:none; border:none; color:red; cursor:pointer;"><i class="fas fa-trash"></i></button>
+            </div>
+            <div style="color:#64748b; margin-top:5px;">${c.itens.length} itens cadastrados</div>
+          </div>`;
+      });
+
+      selects.forEach(s => s.innerHTML = options);
+    }
+
+    async function deletarCarga(id) {
+        if(confirm("Deseja excluir esta carga definitiva?")) {
+            await db.collection('cargas_predefinidas').doc(id).delete();
+            carregarCargasSalvas();
+        }
+    }
+
+    // PROGRAMAÇÃO SEMANAL
+    async function publicarProgramacao() {
+      const data = document.getElementById('progData').value;
+      if(!data) return alert("Selecione uma data!");
+
+      const turnos = [
+        { id: document.getElementById('progCafe').value, label: 'Café da Manhã (Cafe)' },
+        { id: document.getElementById('progAlmoco').value, label: 'Almoço (Almoco)' },
+        { id: document.getElementById('progJanta').value, label: 'Jantar (Janta)' }
+      ];
+
+      for (let t of turnos) {
+        if(t.id) {
+          const docCarga = await db.collection('cargas_predefinidas').doc(t.id).get();
+          const carga = docCarga.data();
+
+          // Salva no histórico de cardápios
+          await db.collection('cardapios').add({
+            data: data,
+            pratoPrincipal: carga.nome,
+            acompanhamentos: "Ver lista de ingredientes",
+            diaSemana: t.label.split('(')[0].trim(),
+            nutricionista: auth.currentUser.email
+          });
+
+          // Gera as requisições individuais para a despensa
+          for (let item of carga.itens) {
+            await db.collection('requisicoes').add({
+              item: item.nome,
+              quantidade: item.qtd,
+              dataUso: data,
+              status: 'pendente',
+              tipo: 'PROGRAMADO',
+              detalhe: `${t.label} (${carga.nome})`,
+              dataSolicitacao: new Date()
             });
-            montarGradeSemanal();
-        });
+          }
+        }
+      }
+      alert("Programação publicada! A Cozinha e a Despensa já podem visualizar.");
     }
 
-    function toggleView(view) {
-        document.getElementById('view-config').classList.toggle('hidden', view !== 'config');
-        document.getElementById('view-agenda').classList.toggle('hidden', view !== 'agenda');
-        document.querySelectorAll('.btn-toggle').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(view)));
-    }
+    // HISTÓRICO DE CARDÁPIOS
+    async function buscarHistoricoCardapio() {
+        const dataBusca = document.getElementById('buscaDataHist').value;
+        const container = document.getElementById('resultadoHistorico');
 
-    // MONTAGEM DA GRADE DE PROGRAMAÇÃO
-    function montarGradeSemanal() {
-        const grid = document.getElementById('semanaGrid');
-        grid.innerHTML = '';
+        if (!dataBusca) return alert("Selecione uma data.");
 
-        diasSemana.forEach((dia, index) => {
-            const col = document.createElement('div');
-            col.className = 'dia-col';
-            col.innerHTML = `
-                <div class="dia-header">${dia}</div>
-                
-                <div class="slot slot-cafe">
-                    <span class="slot-label cafe">Café da Manhã</span>
-                    <select class="sel-refeicao" data-dia="${dia}" data-turno="Cafe">
-                        <option value="">-- Vazio --</option>
-                        ${receitasSalvas.map(r => `<option value="${r.id}">${r.nome}</option>`).join('')}
-                    </select>
-                </div>
+        container.innerHTML = '<p style="text-align:center;">Buscando registros...</p>';
 
-                <div class="slot slot-almoco">
-                    <span class="slot-label almoco">Almoço</span>
-                    <select class="sel-refeicao" data-dia="${dia}" data-turno="Almoco">
-                        <option value="">-- Vazio --</option>
-                        ${receitasSalvas.map(r => `<option value="${r.id}">${r.nome}</option>`).join('')}
-                    </select>
-                </div>
+        try {
+            const snap = await db.collection('cardapios')
+                .where('data', '==', dataBusca)
+                .get();
 
-                <div class="slot slot-janta">
-                    <span class="slot-label janta">Jantar</span>
-                    <select class="sel-refeicao" data-dia="${dia}" data-turno="Janta">
-                        <option value="">-- Vazio --</option>
-                        ${receitasSalvas.map(r => `<option value="${r.id}">${r.nome}</option>`).join('')}
-                    </select>
-                </div>
-            `;
-            grid.appendChild(col);
-        });
-    }
-
-    // SALVAR PROGRAMAÇÃO E GERAR REQUISIÇÕES AUTOMÁTICAS
-    async function salvarProgramacaoSemanal() {
-        const dataInicio = document.getElementById('dataInicioSemana').value;
-        if(!dataInicio) return alert("Selecione a data de início da semana!");
-
-        if(!confirm("Isso enviará todas as requisições de materiais para a Despensa. Confirmar?")) return;
-
-        const selects = document.querySelectorAll('.sel-refeicao');
-        const batch = db.batch();
-
-        selects.forEach(sel => {
-            const receitaId = sel.value;
-            if(receitaId) {
-                const receita = receitasSalvas.find(r => r.id === receitaId);
-                const dia = sel.dataset.dia;
-                const turno = sel.dataset.turno;
-
-                // Para cada ingrediente da receita, cria uma requisição
-                receita.ingredientes.forEach(ing => {
-                    const reqRef = db.collection('requisicoes').doc();
-                    batch.set(reqRef, {
-                        item: ing.nome,
-                        quantidade: parseFloat(ing.qtd),
-                        status: 'pendente',
-                        dataUso: dataInicio, // Idealmente calcular a data exata do dia da semana
-                        detalhe: `${dia} - ${turno} (${receita.nome})`,
-                        solicitante: "Nutrição (Automático)",
-                        dataSolicitacao: new Date()
-                    });
-                });
+            if (snap.empty) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px; border: 2px dashed var(--border); border-radius:12px;">
+                        <i class="fas fa-calendar-times fa-3x" style="color:#cbd5e1; margin-bottom:10px;"></i>
+                        <p>Nenhuma programação encontrada para esta data.</p>
+                    </div>`;
+                return;
             }
-        });
 
-        await batch.commit();
-        alert("Programação Salva! A Despensa já recebeu a lista de materiais.");
-    }
-
-    // FUNÇÕES DE CADASTRO DE RECEITA (CARGA)
-    function addIngredienteCampo() {
-        const div = document.createElement('div');
-        div.style.display = "flex";
-        div.style.gap = "5px";
-        div.style.marginBottom = "5px";
-        div.innerHTML = `
-            <select class="ing-item" required>${estoqueItens.map(i => `<option value="${i}">${i}</option>`).join('')}</select>
-            <input type="number" step="0.01" class="ing-qtd" placeholder="Qtd" style="width:80px" required>
-            <button type="button" onclick="this.parentElement.remove()" style="color:red">X</button>
-        `;
-        document.getElementById('ingredientesLista').appendChild(div);
-    }
-
-    document.getElementById('formNovaReceita').onsubmit = async (e) => {
-        e.preventDefault();
-        const ings = [];
-        document.querySelectorAll('#ingredientesLista div').forEach(div => {
-            ings.push({
-                nome: div.querySelector('.ing-item').value,
-                qtd: div.querySelector('.ing-qtd').value
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">';
+            snap.forEach(doc => {
+                const c = doc.data();
+                html += `
+                    <div class="card hist-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span class="badge-turno">${c.diaSemana}</span>
+                            <small style="color:#64748b">${c.data.split('-').reverse().join('/')}</small>
+                        </div>
+                        <h2 style="margin: 10px 0; font-size:1.2rem; color:var(--primary)">${c.pratoPrincipal}</h2>
+                        <p style="font-size:0.85rem; color:#475569"><i class="fas fa-user-edit"></i> Resp: ${c.nutricionista.split('@')[0]}</p>
+                    </div>
+                `;
             });
-        });
+            html += '</div>';
+            container.innerHTML = html;
+        } catch (e) {
+            container.innerHTML = "Erro ao carregar.";
+        }
+    }
 
-        await db.collection('receitas').add({
-            nome: document.getElementById('recNome').value,
-            ingredientes: ings,
-            dataCriacao: new Date()
-        });
-
-        alert("Carga de Rancho salva!");
-        e.target.reset();
-        document.getElementById('ingredientesLista').innerHTML = '';
-    };
-
+    function limparBuscaHist() {
+        document.getElementById('buscaDataHist').value = '';
+        document.getElementById('resultadoHistorico').innerHTML = '<p style="text-align: center; color: #64748b; padding: 40px; border: 2px dashed #e2e8f0; border-radius: 12px;">Use o filtro acima para buscar cardápios de datas passadas.</p>';
+    }
   </script>
 </body>
 </html>
