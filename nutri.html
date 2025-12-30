@@ -1,128 +1,258 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <title>Nutricionista — EstoqueSync</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EstoqueSync — Nutrição Militar</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
   <style>
-    :root { --primary: #2f75b5; --bg: #f8fbff; --card: #ffffff; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; }
-    header { background: var(--primary); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-    .container { max-width: 800px; margin: 20px auto; padding: 20px; }
-    .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    :root {
+      --primary: #1e3a8a; --accent: #2563eb; --bg: #f8fafc; --card: #ffffff;
+      --text: #0f172a; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --military: #374151;
+    }
+
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+    
+    .grid-main { display: grid; grid-template-columns: 400px 1fr; gap: 2rem; }
+    @media (max-width: 1100px) { .grid-main { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; color: var(--military); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+
+    label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: #64748b; }
+    input, select, textarea { width: 100%; padding: 0.7rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-family: inherit; box-sizing: border-box; }
+    
+    .btn { cursor: pointer; border: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 600; transition: 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-accent { background: var(--accent); color: white; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px; background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+
+    .section-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
     .hidden { display: none; }
-    .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .btn-add { background: #2ecc71; margin-bottom: 10px; }
-    input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-    .ingrediente-row { display: flex; gap: 10px; margin-bottom: 10px; }
-    .badge { background: #eee; padding: 5px 10px; border-radius: 20px; font-size: 12px; margin-right: 5px; }
   </style>
 </head>
 <body>
-  <header>
-    <h2><i class="fas fa-apple-whole"></i> Planejamento Nutricional</h2>
-    <button onclick="auth.signOut()" class="btn" style="background:rgba(0,0,0,0.2)">Sair</button>
-  </header>
 
-  <div class="container hidden" id="mainContent">
-    <div class="card">
-      <h3><i class="fas fa-calendar-alt"></i> Definir Cardápio do Dia</h3>
-      <label>Dia da Semana:</label>
-      <select id="menuDay">
-        <option value="Segunda">Segunda-feira</option>
-        <option value="Terça">Terça-feira</option>
-        <option value="Quarta">Quarta-feira</option>
-        <option value="Quinta">Quinta-feira</option>
-        <option value="Sexta">Sexta-feira</option>
-      </select>
+  <nav>
+    <h2><i class="fas fa-user-md"></i> EstoqueSync Nutrição <span style="font-weight:300; font-size: 0.8rem;">CONTROLE DE RANCHO</span></h2>
+    <button id="logoutBtn" style="background:none; border:1px solid white; color:white; padding:5px 15px; border-radius:8px; cursor:pointer;">Sair</button>
+  </nav>
 
-      <label>Nome do Prato Principial:</label>
-      <input type="text" id="recipeName" placeholder="Ex: Strogonoff de Frango">
+  <div class="container">
+    <div class="grid-main">
+      <aside>
+        <div class="card">
+          <h3><i class="fas fa-utensils"></i> Lançar Cardápio</h3>
+          <form id="formCardapio">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div>
+                    <label>Data</label>
+                    <input type="date" id="cardData" required>
+                </div>
+                <div>
+                    <label>Dia da Semana</label>
+                    <select id="cardDiaSemana" required>
+                        <option value="Segunda">Segunda</option>
+                        <option value="Terça">Terça</option>
+                        <option value="Quarta">Quarta</option>
+                        <option value="Quinta">Quinta</option>
+                        <option value="Sexta">Sexta</option>
+                        <option value="Sábado">Sábado</option>
+                        <option value="Domingo">Domingo</option>
+                    </select>
+                </div>
+            </div>
+            
+            <label>Refeição</label>
+            <select id="cardRefeicao">
+                <option value="Café da Manhã">Café da Manhã</option>
+                <option value="Almoço" selected>Almoço</option>
+                <option value="Jantar">Jantar</option>
+                <option value="Ceia">Ceia</option>
+            </select>
 
-      <hr style="border: 0.5px solid #eee; margin: 20px 0;">
-      
-      <h4><i class="fas fa-utensils"></i> Itens Necessários (Matéria-Prima)</h4>
-      <p style="font-size: 12px; color: #666;">Selecione os itens que a cozinha precisará pedir ao estoque para este prato.</p>
-      
-      <div id="ingredientesLista">
-        <div class="ingrediente-row">
-          <select class="ing-nome" id="selectEstoquePadrao"><option>Carregando itens do estoque...</option></select>
-          <input type="number" class="ing-qtd" placeholder="Qtd Total" style="width: 120px;">
-          <button class="btn btn-add" onclick="adicionarLinha()" title="Adicionar item"><i class="fas fa-plus"></i></button>
+            <label>Prato Principal</label>
+            <input type="text" id="cardPrincipal" placeholder="Ex: Carne Assada" required>
+            
+            <label>Guarnição / Acompanhamentos</label>
+            <textarea id="cardAcomp" placeholder="Ex: Arroz, Feijão, Farofa" rows="2"></textarea>
+            
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Publicar Cardápio</button>
+          </form>
         </div>
-      </div>
 
-      <button class="btn" onclick="salvarCardapioCompleto()" style="width: 100%; margin-top: 20px;">
-        <i class="fas fa-paper-plane"></i> Publicar Cardápio para Cozinha
-      </button>
+        <div class="card">
+          <h3><i class="fas fa-truck-loading"></i> Requisição de Material</h3>
+          <form id="formRequisicao">
+            <label>Data para Uso</label>
+            <input type="date" id="reqDataUso" required>
+            
+            <label>Item do Estoque</label>
+            <select id="reqItem" required>
+              <option value="">Carregando produtos...</option>
+            </select>
+            
+            <label>Quantidade</label>
+            <input type="number" id="reqQtd" step="0.01" required>
+            
+            <button type="submit" class="btn btn-accent"><i class="fas fa-paper-plane"></i> Enviar Pedido</button>
+          </form>
+        </div>
+      </aside>
+
+      <section>
+        <div class="card">
+          <div class="section-title"><i class="fas fa-calendar-alt"></i> Planejamento da Semana</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Dia</th>
+                <th>Refeição</th>
+                <th>Prato Principal</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaCardapios"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="section-title"><i class="fas fa-list-check"></i> Status das Requisições (Despensa)</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Uso em</th>
+                <th>Item</th>
+                <th>Qtd</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="listaReqStatus"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
   </div>
 
   <script>
-    const firebaseConfig = { /* Suas Configurações do Firebase aqui */ };
+    // Configurações do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+      authDomain: "estoquesync-f0d10.firebaseapp.com",
+      projectId: "estoquesync-f0d10",
+      storageBucket: "estoquesync-f0d10.appspot.com",
+      messagingSenderId: "67257178512",
+      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Proteção de Rota
-    auth.onAuthStateChanged(async (user) => {
+    auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
-      const doc = await db.collection('usuarios').doc(user.uid).get();
-      if (!doc.exists || (doc.data().role !== 'nutricionista' && doc.data().role !== 'admin')) {
-        alert("Acesso restrito.");
-        auth.signOut();
-        return;
-      }
-      document.getElementById('mainContent').classList.remove('hidden');
-      carregarOpcoesEstoque();
+      initNutri();
     });
 
-    // Carrega itens existentes no estoque para a Nutricionista escolher
-    async function carregarOpcoesEstoque() {
-      const snap = await db.collection('estoque').orderBy('nome').get();
-      const selects = document.querySelectorAll('.ing-nome');
-      let options = '<option value="">Selecione o produto...</option>';
-      snap.forEach(doc => {
-        options += `<option value="${doc.data().nome}">${doc.data().nome}</option>`;
-      });
-      selects.forEach(s => s.innerHTML = options);
+    function initNutri() {
+      carregarEstoque();
+      monitorarCardapios();
+      monitorarRequisicoes();
+      document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    function adicionarLinha() {
-      const container = document.getElementById('ingredientesLista');
-      const novaLinha = container.firstElementChild.cloneNode(true);
-      novaLinha.querySelector('.ing-qtd').value = '';
-      container.appendChild(novaLinha);
-    }
-
-    async function salvarCardapioCompleto() {
-      const dia = document.getElementById('menuDay').value;
-      const prato = document.getElementById('recipeName').value;
-      
-      if(!prato) { alert("Informe o nome do prato."); return; }
-
-      const rows = document.querySelectorAll('.ingrediente-row');
-      const itens = [];
-      
-      rows.forEach(row => {
-        const nome = row.querySelector('.ing-nome').value;
-        const qtd = row.querySelector('.ing-qtd').value;
-        if(nome && qtd) itens.push({ nome, qtd: parseFloat(qtd) });
-      });
-
-      try {
-        await db.collection('cardapio_planejado').doc(dia).set({
-          dia,
-          prato,
-          itens,
-          dataAtualizacao: new Date(),
-          autor: auth.currentUser.email
+    // Carrega itens da despensa para o SELECT
+    function carregarEstoque() {
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        const select = document.getElementById('reqItem');
+        select.innerHTML = '<option value="">Selecione o material...</option>';
+        snap.forEach(doc => {
+          const p = doc.data();
+          select.innerHTML += `<option value="${p.nome}">${p.nome} (Saldo: ${p.quantidade})</option>`;
         });
-        alert("Cardápio de " + dia + " enviado para a cozinha!");
-      } catch (e) { alert("Erro: " + e.message); }
+      });
+    }
+
+    // Lançar Cardápio
+    document.getElementById('formCardapio').onsubmit = async (e) => {
+      e.preventDefault();
+      await db.collection('cardapios').add({
+        data: document.getElementById('cardData').value,
+        diaSemana: document.getElementById('cardDiaSemana').value,
+        refeicao: document.getElementById('cardRefeicao').value,
+        pratoPrincipal: document.getElementById('cardPrincipal').value,
+        acompanhamentos: document.getElementById('cardAcomp').value,
+        timestamp: new Date()
+      });
+      alert("Cardápio publicado!");
+      e.target.reset();
+    };
+
+    // Lançar Requisição
+    document.getElementById('formRequisicao').onsubmit = async (e) => {
+      e.preventDefault();
+      await db.collection('requisicoes').add({
+        dataUso: document.getElementById('reqDataUso').value,
+        item: document.getElementById('reqItem').value,
+        quantidade: parseFloat(document.getElementById('reqQtd').value),
+        status: 'pendente',
+        dataSolicitacao: new Date(),
+        solicitante: auth.currentUser.email
+      });
+      alert("Requisição enviada à despensa!");
+      e.target.reset();
+    };
+
+    function monitorarCardapios() {
+      db.collection('cardapios').orderBy('data', 'asc').onSnapshot(snap => {
+        const tbody = document.getElementById('listaCardapios');
+        tbody.innerHTML = '';
+        snap.forEach(doc => {
+          const c = doc.data();
+          tbody.innerHTML += `<tr>
+            <td>${c.data}</td>
+            <td>${c.diaSemana}</td>
+            <td>${c.refeicao}</td>
+            <td><strong>${c.pratoPrincipal}</strong></td>
+            <td><button onclick="deletarDoc('cardapios','${doc.id}')" style="color:red; border:none; background:none; cursor:pointer"><i class="fas fa-trash"></i></button></td>
+          </tr>`;
+        });
+      });
+    }
+
+    function monitorarRequisicoes() {
+      db.collection('requisicoes').orderBy('dataUso', 'asc').onSnapshot(snap => {
+        const tbody = document.getElementById('listaReqStatus');
+        tbody.innerHTML = '';
+        snap.forEach(doc => {
+          const r = doc.data();
+          const cor = r.status === 'pendente' ? '#f59e0b' : '#10b981';
+          tbody.innerHTML += `<tr>
+            <td>${r.dataUso}</td>
+            <td>${r.item}</td>
+            <td>${r.quantidade}</td>
+            <td style="color:${cor}; font-weight:bold">${r.status.toUpperCase()}</td>
+          </tr>`;
+        });
+      });
+    }
+
+    async function deletarDoc(col, id) {
+      if(confirm("Deseja excluir este registro?")) await db.collection(col).doc(id).delete();
     }
   </script>
 </body>
