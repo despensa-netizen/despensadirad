@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync Despensa — Gestão de Rancho</title>
+  <title>EstoqueSync — Despensa Total</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,102 +22,86 @@
       --military: #334155;
     }
 
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
-    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow); }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
     
     .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
-
-    .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); overflow-x: auto; }
-    .tab-btn { padding: 0.75rem 1.5rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; }
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); overflow-x: auto; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; }
+    .tab-btn { padding: 0.75rem 1.5rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; transition: 0.2s; }
     .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
     .grid-layout { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; }
     @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
 
     .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
-    .card h3 { margin-top: 0; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; text-transform: uppercase; }
+    .card h3 { margin-top: 0; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; text-transform: uppercase; }
 
     .req-group { margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: white; }
     .req-header { padding: 8px 12px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: flex; justify-content: space-between; }
     .header-cafe { background: #fef3c7; color: #92400e; }
     .header-almoco { background: #dcfce7; color: #166534; }
     .header-janta { background: #e0e7ff; color: #3730a3; }
-    .header-urgente { background: #fee2e2; color: #991b1b; }
 
-    .req-item { padding: 12px; border-bottom: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 8px; }
-    .req-item:last-child { border-bottom: none; }
-    .req-info { display: flex; justify-content: space-between; align-items: center; }
-    .req-actions { display: flex; gap: 5px; }
-    
-    .btn { cursor: pointer; border: none; padding: 0.6rem 0.8rem; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; font-size: 0.75rem; }
+    .btn { cursor: pointer; border: none; padding: 0.6rem 0.8rem; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; font-size: 0.7rem; text-transform: uppercase; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-primary { background: var(--primary); color: white; }
 
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 0.75rem; background: #f1f5f9; font-size: 0.75rem; color: #64748b; }
-    td { padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+    th { text-align: left; padding: 0.75rem; background: #f8fafc; font-size: 0.7rem; color: #64748b; }
+    td { padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
-    .badge { padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
-    .badge-entrada { background: #dcfce7; color: #166534; }
-    .badge-saida { background: #fee2e2; color: #991b1b; }
-    .badge-cancelado { background: #f1f5f9; color: #64748b; text-decoration: line-through; }
-
-    #reader { width: 100%; border-radius: 12px; background: #000; overflow: hidden; margin-bottom: 10px; }
+    #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 15px; }
     .hidden { display: none !important; }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
-    .modal-content { background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; }
+    /* Modal de QR Code */
+    #qrModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+    .qr-box { background: white; padding: 2rem; border-radius: 16px; text-align: center; }
 
-    input, select { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; }
+    @media print {
+        body * { visibility: hidden; }
+        #qrModal, #qrModal * { visibility: visible; }
+        #qrModal { position: absolute; left: 0; top: 0; background: white; }
+        .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body>
 
   <nav>
-    <h2 style="margin:0"><i class="fas fa-warehouse"></i> EstoqueSync <span style="font-weight:300; font-size: 0.8rem;">DESPENSA</span></h2>
+    <h2 style="margin:0"><i class="fas fa-warehouse"></i> ESTOQUESYNC <span style="font-weight:300;">DESPENSA</span></h2>
     <div style="display:flex; align-items:center; gap:15px;">
-      <span id="userDisplay" style="font-size: 0.8rem; opacity: 0.9;"></span>
-      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
+      <span id="userDisplay" style="font-size: 0.75rem;"></span>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white; border: 1px solid rgba(255,255,255,0.2);">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tab-operacao')"><i class="fas fa-truck-loading"></i> Operações Diárias</button>
-      <button class="tab-btn" onclick="switchTab('tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário Cego</button>
-      <button class="tab-btn" onclick="switchTab('tab-relatorios')"><i class="fas fa-history"></i> Histórico</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-operacao')"><i class="fas fa-camera"></i> Saídas & QR</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-list"></i> Inventário</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-plus-circle"></i> Entrada Manual</button>
     </div>
 
     <div id="tab-operacao" class="tab-content">
       <div class="grid-layout">
         <aside>
-          <div class="card" style="border-top: 4px solid var(--warning)">
-            <h3><i class="fas fa-clipboard-list"></i> Cargas Pendentes (Nutrição)</h3>
-            <div id="listaRequisicoesAgrupadas">
-               <p style="text-align:center; color:#999; font-size:0.8rem;">Carregando...</p>
-            </div>
+          <div class="card">
+            <h3><i class="fas fa-qrcode"></i> Scanner de Saída</h3>
+            <div id="reader"></div>
           </div>
 
           <div class="card">
-            <h3><i class="fas fa-plus-circle"></i> Entrada de Produto</h3>
-            <form id="formEntrada">
-              <input type="text" id="prodNome" placeholder="Nome do Produto" required>
-              <div style="display:flex; gap:10px;">
-                <input type="number" id="prodQtd" placeholder="Qtd" step="0.01" required>
-                <select id="prodUnidade" style="flex:0.5"><option value="un">un</option><option value="kg">kg</option><option value="lt">lt</option></select>
-              </div>
-              <input type="date" id="prodValidade" required>
-              <button type="submit" class="btn btn-primary" style="width:100%">Salvar Entrada</button>
-            </form>
+            <h3><i class="fas fa-clock"></i> Requisições Pendentes</h3>
+            <div id="listaRequisicoes"></div>
           </div>
         </aside>
 
         <section>
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3><i class="fas fa-boxes-stacked"></i> Saldo em Prateleira</h3>
-              <input type="text" id="inputBusca" placeholder="Filtrar estoque..." style="width:200px; margin:0" onkeyup="filtrarTabela()">
+              <h3><i class="fas fa-boxes-stacked"></i> Estoque Atual</h3>
+              <input type="text" id="inputBusca" placeholder="Buscar produto..." style="width:200px; padding:8px; border-radius:8px; border:1px solid #ddd;" onkeyup="filtrarTabela()">
             </div>
             <table id="tabelaEstoque">
               <thead><tr><th>Produto</th><th>Saldo</th><th>Un</th><th>Validade</th><th>Ações</th></tr></thead>
@@ -132,21 +116,35 @@
         <div class="card">
             <h3>Inventário Cego</h3>
             <table id="tabelaCego">
-                <thead><tr><th>Produto</th><th>Saldo Sistema</th><th>Contagem Real</th><th>Ação</th></tr></thead>
+                <thead><tr><th>Produto</th><th>Saldo Atual</th><th>Contagem Real</th><th>Ação</th></tr></thead>
                 <tbody id="corpoCego"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="tab-relatorios" class="tab-content hidden">
-        <div class="card">
-            <h3>Histórico de Movimentação</h3>
-            <table id="tabelaLogs">
-                <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
-                <tbody></tbody>
-            </table>
+    <div id="tab-entrada" class="tab-content hidden">
+        <div class="card" style="max-width: 500px; margin: auto;">
+            <h3>Nova Entrada</h3>
+            <form id="formEntrada">
+                <input type="text" id="prodNome" placeholder="Nome do Produto" required>
+                <input type="number" id="prodQtd" placeholder="Quantidade" step="0.01" required>
+                <select id="prodUnidade"><option value="kg">kg</option><option value="un">un</option><option value="lt">lt</option></select>
+                <input type="date" id="prodValidade" required>
+                <button type="submit" class="btn btn-primary" style="width:100%">Salvar Produto</button>
+            </form>
         </div>
     </div>
+  </div>
+
+  <div id="qrModal" class="hidden">
+      <div class="qr-box">
+          <h2 id="qrTitle"></h2>
+          <canvas id="qrCanvas"></canvas>
+          <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;" class="no-print">
+              <button onclick="window.print()" class="btn btn-success"><i class="fas fa-print"></i> Imprimir</button>
+              <button onclick="fecharModal()" class="btn btn-danger">Fechar</button>
+          </div>
+      </div>
   </div>
 
   <script>
@@ -162,192 +160,129 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    const hojeIso = new Date().toISOString().split('T')[0];
-
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
-      document.getElementById('userDisplay').innerText = user.email;
-      initModulo();
+      document.getElementById('userDisplay').innerText = user.email.toUpperCase();
+      initDespensa();
     });
 
-    function initModulo() {
+    function initDespensa() {
       renderEstoque();
-      renderLogs();
-      monitorarCargasDoDia();
-      document.getElementById('logoutBtn').onclick = () => auth.signOut();
+      monitorarRequisicoes();
+      iniciarScanner();
     }
 
-    // MONITORAMENTO DE REQUISIÇÕES (COM BOTÃO DE CANCELAR)
-    function monitorarCargasDoDia() {
-      db.collection('requisicoes')
-        .where('dataUso', '==', hojeIso)
-        .where('status', '==', 'pendente')
-        .onSnapshot(snap => {
-          const container = document.getElementById('listaRequisicoesAgrupadas');
-          container.innerHTML = '';
-          
-          if(snap.empty) {
-            container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Nenhuma carga pendente.</p>';
-            return;
-          }
-
-          const grupos = { 'Cafe': [], 'Almoco': [], 'Janta': [], 'Outros': [] };
-          snap.forEach(doc => {
-            const data = { id: doc.id, ...doc.data() };
-            if (data.detalhe?.includes('Cafe')) grupos.Cafe.push(data);
-            else if (data.detalhe?.includes('Almoco')) grupos.Almoco.push(data);
-            else if (data.detalhe?.includes('Janta')) grupos.Janta.push(data);
-            else grupos.Outros.push(data);
-          });
-
-          Object.keys(grupos).forEach(key => {
-            if(grupos[key].length > 0) {
-              const divGrupo = document.createElement('div');
-              divGrupo.className = 'req-group';
-              const label = key === 'Outros' ? 'Urgências' : key;
-              const headerCls = `header-${key.toLowerCase()}`;
-              
-              divGrupo.innerHTML = `<div class="req-header ${headerCls}"><span>${label}</span></div>`;
-              
-              grupos[key].forEach(req => {
-                divGrupo.innerHTML += `
-                  <div class="req-item">
-                    <div class="req-info">
-                        <span><strong>${req.item}</strong> (${req.quantidade})</span>
-                    </div>
-                    <div class="req-actions">
-                        <button onclick="entregarMaterial('${req.id}', '${req.item}', ${req.quantidade}, '${key}')" class="btn btn-success" style="flex:2">
-                            <i class="fas fa-check"></i> ENTREGAR
-                        </button>
-                        <button onclick="cancelarRequisicao('${req.id}', '${req.item}')" class="btn btn-danger" style="flex:1">
-                            <i class="fas fa-ban"></i> RECUSAR
-                        </button>
-                    </div>
-                  </div>`;
-              });
-              container.appendChild(divGrupo);
-            }
-          });
-        });
+    function iniciarScanner() {
+      const scanner = new Html5Qrcode("reader");
+      scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => realizarBaixa(text));
     }
 
-    // AÇÃO DE ENTREGAR (BAIXA NO ESTOQUE)
-    async function entregarMaterial(reqId, itemNome, qtd, turno) {
-      const snapEst = await db.collection('estoque').where('nome', '==', itemNome).get();
-      if(snapEst.empty) return alert("Erro: Produto não existe no estoque.");
-
-      const docEst = snapEst.docs[0];
-      const novoSaldo = docEst.data().quantidade - qtd;
-
-      const batch = db.batch();
-      batch.update(db.collection('estoque').doc(docEst.id), { quantidade: novoSaldo });
-      batch.update(db.collection('requisicoes').doc(reqId), { status: 'entregue', dataEntrega: new Date() });
-      
-      await batch.commit();
-      await registrarLog(`Saída Rancho (${turno})`, itemNome, qtd);
-    }
-
-    // NOVA FUNÇÃO: CANCELAR / NÃO ENTREGUE
-    async function cancelarRequisicao(reqId, itemNome) {
-        const motivo = prompt(`Por que o item "${itemNome}" não será entregue? (Ex: Falta no estoque, Produto avariado)`);
-        
-        if (motivo !== null) {
-            await db.collection('requisicoes').doc(reqId).update({
-                status: 'cancelado',
-                motivoCancelamento: motivo || 'Não especificado',
-                dataCancelamento: new Date(),
-                canceladoPor: auth.currentUser.email
-            });
-            
-            await registrarLog(`RECUSADO: ${itemNome}`, motivo || 'Sem motivo', 0);
-            alert("Requisição cancelada. A Nutrição/Cozinha será notificada pelo status.");
-        }
-    }
-
-    // AUXILIARES (LOGS E TABELAS)
-    async function registrarLog(tipo, prod, qtd) {
-      await db.collection('historico').add({
-        data: new Date(), tipo: tipo, produto: prod, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
-      });
+    async function realizarBaixa(nome) {
+        const qtd = prompt(`Produto: ${nome}\nQuantidade para SAÍDA:`);
+        if(!qtd) return;
+        const snap = await db.collection('estoque').where('nome', '==', nome).get();
+        if(snap.empty) return alert("Produto não encontrado!");
+        const doc = snap.docs[0];
+        const novoSaldo = doc.data().quantidade - parseFloat(qtd);
+        if(novoSaldo < 0) return alert("Saldo insuficiente!");
+        await db.collection('estoque').doc(doc.id).update({ quantidade: novoSaldo });
+        alert("Baixa realizada!");
     }
 
     function renderEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-        const tbody = document.querySelector('#tabelaEstoque tbody');
-        const tCego = document.querySelector('#corpoCego');
-        tbody.innerHTML = ''; tCego.innerHTML = '';
+        const tb = document.querySelector('#tabelaEstoque tbody');
+        const tc = document.querySelector('#corpoCego');
+        tb.innerHTML = ''; tc.innerHTML = '';
         snap.forEach(doc => {
           const p = doc.data();
-          tbody.innerHTML += `<tr>
+          tb.innerHTML += `<tr>
             <td><strong>${p.nome}</strong></td>
             <td>${p.quantidade}</td>
             <td>${p.unidade}</td>
-            <td>${p.validade || '-'}</td>
-            <td><button onclick="deletar('${doc.id}')" style="border:none; background:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+            <td>${p.validade}</td>
+            <td>
+                <button onclick="gerarEtiqueta('${p.nome}')" class="btn btn-primary" style="padding:4px 8px;"><i class="fas fa-qrcode"></i></button>
+                <button onclick="deletarItem('${doc.id}')" style="color:red; background:none; border:none; cursor:pointer; margin-left:10px;"><i class="fas fa-trash"></i></button>
+            </td>
           </tr>`;
-          tCego.innerHTML += `<tr>
-            <td>${p.nome}</td>
-            <td>${p.quantidade}</td>
-            <td><input type="number" id="cego-${doc.id}" style="width:60px; margin:0"></td>
-            <td><button onclick="validarCego('${doc.id}', '${p.nome}', ${p.quantidade})" class="btn btn-primary">OK</button></td>
-          </tr>`;
+          tc.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td><input type="number" id="cego-${doc.id}" style="width:60px;"></td><td><button onclick="ajustar('${doc.id}', ${p.quantidade})" class="btn btn-primary">OK</button></td></tr>`;
         });
       });
     }
 
-    function renderLogs() {
-      db.collection('historico').orderBy('data', 'desc').limit(20).onSnapshot(snap => {
-        const tb = document.querySelector('#tabelaLogs tbody');
-        tb.innerHTML = '';
+    function gerarEtiqueta(nome) {
+        document.getElementById('qrModal').classList.remove('hidden');
+        document.getElementById('qrTitle').innerText = nome;
+        new QRious({ element: document.getElementById('qrCanvas'), value: nome, size: 200 });
+    }
+
+    function fecharModal() { document.getElementById('qrModal').classList.add('hidden'); }
+
+    function monitorarRequisicoes() {
+      const hoje = new Date().toISOString().split('T')[0];
+      db.collection('requisicoes').where('dataUso', '==', hoje).where('status', '==', 'pendente').onSnapshot(snap => {
+        const container = document.getElementById('listaRequisicoes');
+        container.innerHTML = '';
         snap.forEach(doc => {
-          const l = doc.data();
-          const cls = l.tipo.includes('RECUSADO') ? 'badge-cancelado' : (l.tipo.includes('Entrada') ? 'badge-entrada' : 'badge-saida');
-          tb.innerHTML += `<tr>
-            <td>${l.data.toDate().toLocaleDateString()}</td>
-            <td><span class="badge ${cls}">${l.tipo}</span></td>
-            <td>${l.produto}</td>
-            <td>${l.quantidade}</td>
-            <td><small>${l.usuario}</small></td>
-          </tr>`;
+          const r = doc.data();
+          container.innerHTML += `<div class="req-group">
+            <div class="req-header header-almoco"><span>${r.detalhe}</span></div>
+            <div style="padding:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span>${r.item} (<b>${r.quantidade}</b>)</span>
+                <div style="display:flex; gap:5px;">
+                    <button onclick="confirmarEntrega('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success">V</button>
+                    <button onclick="recusar('${doc.id}', '${r.item}')" class="btn btn-danger">X</button>
+                </div>
+            </div>
+          </div>`;
         });
       });
     }
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.remove('hidden');
-      event.currentTarget.classList.add('active');
+    async function confirmarEntrega(id, item, qtd) {
+        const snap = await db.collection('estoque').where('nome', '==', item).get();
+        if(snap.empty) return alert("Erro estoque!");
+        const doc = snap.docs[0];
+        const saldo = doc.data().quantidade;
+        if(saldo < qtd) return alert("Falta estoque!");
+        const b = db.batch();
+        b.update(db.collection('estoque').doc(doc.id), { quantidade: saldo - qtd });
+        b.update(db.collection('requisicoes').doc(id), { status: 'entregue' });
+        await b.commit();
+    }
+
+    async function recusar(id, item) {
+        const m = prompt("Motivo:");
+        if(m) await db.collection('requisicoes').doc(id).update({ status: 'cancelado', motivoCancelamento: m });
     }
 
     document.getElementById('formEntrada').onsubmit = async (e) => {
-      e.preventDefault();
-      const n = document.getElementById('prodNome').value;
-      const q = parseFloat(document.getElementById('prodQtd').value);
-      await db.collection('estoque').add({
-        nome: n, quantidade: q, unidade: document.getElementById('prodUnidade').value, validade: document.getElementById('prodValidade').value
-      });
-      await registrarLog('Entrada Manual', n, q);
-      e.target.reset();
+        e.preventDefault();
+        const n = document.getElementById('prodNome').value;
+        const q = parseFloat(document.getElementById('prodQtd').value);
+        await db.collection('estoque').add({ nome: n, quantidade: q, unidade: document.getElementById('prodUnidade').value, validade: document.getElementById('prodValidade').value });
+        e.target.reset();
+        alert("Salvo!");
     };
 
-    function filtrarTabela() {
-      const b = document.getElementById('inputBusca').value.toLowerCase();
-      document.querySelectorAll('#tabelaEstoque tbody tr').forEach(r => {
-        r.style.display = r.innerText.toLowerCase().includes(b) ? '' : 'none';
-      });
+    function switchTab(e, id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.remove('hidden');
+        e.currentTarget.classList.add('active');
     }
 
-    async function deletar(id) { if(confirm("Remover item?")) await db.collection('estoque').doc(id).delete(); }
+    function filtrarTabela() {
+        const b = document.getElementById('inputBusca').value.toLowerCase();
+        document.querySelectorAll('#tabelaEstoque tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none');
+    }
 
-    async function validarCego(id, nome, saldo) {
-      const v = parseFloat(document.getElementById(`cego-${id}`).value);
-      if(isNaN(v)) return;
-      if(v !== saldo && confirm(`Ajustar de ${saldo} para ${v}?`)) {
-          await db.collection('estoque').doc(id).update({ quantidade: v });
-          await registrarLog('Ajuste Inventário', nome, v);
-      } else if (v === saldo) { alert("Saldo correto!"); }
-      document.getElementById(`cego-${id}`).value = '';
+    async function deletarItem(id) { if(confirm("Remover?")) await db.collection('estoque').doc(id).delete(); }
+
+    async function ajustar(id, s) { 
+        const v = parseFloat(document.getElementById(`cego-${id}`).value);
+        if(!isNaN(v)) await db.collection('estoque').doc(id).update({ quantidade: v });
     }
   </script>
 </body>
