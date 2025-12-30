@@ -22,52 +22,48 @@
         }
         body{ font-family: 'Inter', sans-serif; background-color: var(--bg); margin:0; color:#334155; }
         
-        /* Navbar Superior Especial para Admin */
+        /* Navbar Superior */
         .admin-nav {
             background: var(--primary); color: white; padding: 0.8rem 2rem;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 4px solid var(--accent); position: sticky; top: 0; z-index: 1000;
         }
 
-        /* Barra de Acesso Rápido aos Módulos */
+        /* Barra de Navegação Interna (Mesma Aba) */
         .quick-access {
             background: #1e293b; padding: 10px 2rem; display: flex; gap: 15px; overflow-x: auto;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         .nav-link {
-            color: #94a3b8; text-decoration: none; font-size: 0.75rem; font-weight: 700;
+            color: #94a3b8; text-decoration: none; font-size: 0.7rem; font-weight: 700;
             text-transform: uppercase; padding: 8px 15px; border-radius: 6px;
-            transition: 0.3s; border: 1px solid transparent;
+            transition: 0.3s; border: 1px solid transparent; display: flex; align-items: center; gap: 8px;
         }
         .nav-link:hover { background: rgba(255,255,255,0.1); color: white; border-color: var(--accent); }
+        .nav-link.active { background: var(--accent); color: white; }
 
         .container { max-width: 1600px; margin: 2rem auto; padding: 0 1.5rem; }
         
-        /* Cards de Estatísticas */
+        /* Dashboard Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background: var(--card); padding: 1.5rem; border-radius: 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1.5rem; border: 1px solid #e2e8f0; }
         .stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; }
         
-        /* Layout Principal */
         .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 2rem; }
         @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
 
         .card { background: var(--card); padding: 1.8rem; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
         h2 { font-size: 0.9rem; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Estilo de Tabelas */
-        .table-container { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 15px; background: #f8fafc; text-transform: uppercase; border-bottom: 2px solid #f1f5f9; }
+        th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 15px; background: #f8fafc; text-transform: uppercase; }
         td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
 
-        /* Botões e Inputs */
-        input, select { padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; background: #f8fafc; width: 100%; box-sizing: border-box; }
-        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; justify-content: center; transition: 0.2s; }
+        input, select { padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; width: 100%; box-sizing: border-box; }
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; justify-content: center; }
         .btn-primary { background: var(--accent); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
         
         .critical-alert { background: #fff1f2; border-left: 4px solid var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; color: #991b1b; }
-        
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
         .bg-cozinha { background: #dbeafe; color: #1e40af; }
         .bg-nutri { background: #dcfce7; color: #15803d; }
@@ -78,22 +74,22 @@
 
     <nav class="admin-nav">
         <div style="display:flex; align-items:center; gap:15px;">
-            <i class="fas fa-user-shield fa-2x" style="color:var(--accent)"></i>
+            <i class="fas fa-shield-check fa-2x" style="color:var(--accent)"></i>
             <div>
-                <h1 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">COMMAND</span></h1>
-                <small style="opacity:0.7">Central de Gestão e Auditoria</small>
+                <h1 style="margin:0; font-size: 1.1rem;">ESTOQUESYNC MASTER</h1>
+                <small style="opacity:0.7">Sessão Administrativa Ativa</small>
             </div>
         </div>
-        <button onclick="firebase.auth().signOut()" class="btn" style="background:rgba(255,255,255,0.1); color:white; border: 1px solid rgba(255,255,255,0.2); font-size: 0.7rem;">
+        <button onclick="logout()" class="btn" style="background:rgba(255,255,255,0.1); color:white; font-size:0.7rem;">
             <i class="fas fa-power-off"></i> SAIR
         </button>
     </nav>
 
     <div class="quick-access">
-        <span style="color:#64748b; font-size:0.7rem; display:flex; align-items:center;">TERMINAIS:</span>
-        <a href="estoque.html" target="_blank" class="nav-link"><i class="fas fa-boxes-stacked"></i> Despensa</a>
-        <a href="nutricionista.html" target="_blank" class="nav-link"><i class="fas fa-apple-whole"></i> Nutrição</a>
-        <a href="cozinha.html" target="_blank" class="nav-link"><i class="fas fa-fire-burner"></i> Cozinha</a>
+        <a href="admin.html" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a href="estoque.html" class="nav-link"><i class="fas fa-boxes-stacked"></i> Despensa</a>
+        <a href="nutricionista.html" class="nav-link"><i class="fas fa-apple-whole"></i> Nutrição</a>
+        <a href="cozinha.html" class="nav-link"><i class="fas fa-fire-burner"></i> Cozinha</a>
     </div>
 
     <div class="container">
@@ -108,7 +104,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background: var(--success);"><i class="fas fa-user-shield"></i></div>
-                <div><small>Usuários Ativos</small><div id="countUsers" style="font-size:1.8rem; font-weight:800;">0</div></div>
+                <div><small>Militares Ativos</small><div id="countUsers" style="font-size:1.8rem; font-weight:800;">0</div></div>
             </div>
         </div>
 
@@ -116,52 +112,44 @@
             <div class="left-col">
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h2><i class="fas fa-list-check"></i> Auditoria de Estoque</h2>
-                        <button onclick="window.print()" class="btn" style="background:#f1f5f9; color:#475569; font-size:0.7rem;"><i class="fas fa-print"></i> PDF</button>
+                        <h2><i class="fas fa-list-check"></i> Auditoria Geral de Insumos</h2>
+                        <button onclick="window.print()" class="btn" style="background:#f1f5f9; font-size:0.7rem;"><i class="fas fa-print"></i> RELATÓRIO</button>
                     </div>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr><th>Produto</th><th>Categoria</th><th>Saldo</th><th>Validade</th><th>Ações</th></tr>
-                            </thead>
-                            <tbody id="stockBody"></tbody>
-                        </table>
-                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Produto</th><th>Categoria</th><th>Saldo</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody id="stockBody"></tbody>
+                    </table>
                 </div>
 
                 <div class="card">
-                    <h2><i class="fas fa-user-plus"></i> Conceder Nova Autorização</h2>
-                    <form id="formNovoUsuario" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:15px; align-items:end;">
-                        <div>
-                            <input type="email" id="newEmail" placeholder="e-mail do militar" required>
-                        </div>
-                        <div>
-                            <select id="newRole">
-                                <option value="cozinha">Cozinha</option>
-                                <option value="estoque">Estoque</option>
-                                <option value="nutricionista">Nutricionista</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> AUTORIZAR</button>
+                    <h2><i class="fas fa-user-plus"></i> Registrar Acesso no Sistema</h2>
+                    <form id="formNovoUsuario" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:15px;">
+                        <input type="email" id="newEmail" placeholder="e-mail militar" required>
+                        <select id="newRole">
+                            <option value="cozinha">Cozinha</option>
+                            <option value="estoque">Estoque</option>
+                            <option value="nutricionista">Nutricionista</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">LIBERAR</button>
                     </form>
                 </div>
             </div>
 
             <div class="right-col">
                 <div class="card">
-                    <h2><i class="fas fa-chart-pie"></i> Composição do Estoque</h2>
-                    <canvas id="categoryChart" style="max-height: 220px;"></canvas>
+                    <h2><i class="fas fa-chart-pie"></i> Ocupação por Categoria</h2>
+                    <canvas id="categoryChart"></canvas>
                 </div>
-
                 <div class="card">
-                    <h2><i class="fas fa-triangle-exclamation" style="color:var(--danger)"></i> Alertas de Reposição</h2>
+                    <h2><i class="fas fa-triangle-exclamation" style="color:var(--danger)"></i> Baixo Estoque</h2>
                     <div id="listaAlertas"></div>
                 </div>
-
                 <div class="card">
-                    <h2><i class="fas fa-users-gear"></i> Equipe Registrada</h2>
-                    <div id="usersList" style="max-height: 300px; overflow-y: auto;"></div>
+                    <h2><i class="fas fa-users-gear"></i> Equipe do Quartel</h2>
+                    <div id="usersList"></div>
                 </div>
             </div>
         </div>
@@ -179,13 +167,14 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        // SEGURANÇA MASTER: Apenas Admin entra aqui
         firebase.auth().onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
             const doc = await db.collection('usuarios').doc(user.uid).get();
-            if (!doc.exists || doc.data().role !== 'admin') { 
-                alert("ACESSO NEGADO: PERFIL NÃO ADMINISTRATIVO.");
-                window.location.href = 'index.html'; 
-                return; 
+            if (!doc.exists || doc.data().role !== 'admin') {
+                alert("ACESSO NEGADO.");
+                window.location.href = 'index.html';
+                return;
             }
             initAdmin();
         });
@@ -197,19 +186,31 @@
             renderChart();
         }
 
-        // 1. GESTÃO DE USUÁRIOS
-        document.getElementById('formNovoUsuario').onsubmit = async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('newEmail').value.toLowerCase().trim();
-            const role = document.getElementById('newRole').value;
-            try {
-                await db.collection('usuarios_autorizados').doc(email).set({
-                    role: role, approved: true, dataCriacao: new Date()
+        // Funções de Renderização
+        function renderStock() {
+            db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+                const tbody = document.getElementById('stockBody');
+                const alertas = document.getElementById('listaAlertas');
+                tbody.innerHTML = ''; alertas.innerHTML = '';
+                document.getElementById('countEstoque').innerText = snap.size;
+
+                snap.forEach(doc => {
+                    const p = doc.data();
+                    const low = p.quantidade <= 10;
+                    if(low) alertas.innerHTML += `<div class="critical-alert">⚠️ ${p.nome} (${p.quantidade})</div>`;
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${p.nome}</strong></td>
+                            <td><span class="badge" style="background:#f1f5f9; color:#475569">${p.categoria}</span></td>
+                            <td style="color:${low?'red':'inherit'}; font-weight:bold">${p.quantidade}</td>
+                            <td>
+                                <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade})" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-edit"></i></button>
+                            </td>
+                        </tr>`;
                 });
-                alert("Acesso autorizado para " + email);
-                e.target.reset();
-            } catch (err) { alert("Erro ao autorizar."); }
-        };
+            });
+        }
 
         function renderUsers() {
             db.collection('usuarios').onSnapshot(snap => {
@@ -218,92 +219,45 @@
                 list.innerHTML = '';
                 snap.forEach(doc => {
                     const u = doc.data();
-                    list.innerHTML += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #f1f5f9;">
-                            <div>
-                                <div style="font-size:0.8rem; font-weight:700;">${u.email}</div>
-                                <span class="badge bg-${u.role}">${u.role}</span>
-                            </div>
-                            <button onclick="deletarUser('${doc.id}')" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fas fa-trash-can"></i></button>
-                        </div>`;
+                    list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                        <span>${u.email}</span> <span class="badge bg-${u.role}">${u.role}</span>
+                    </div>`;
                 });
             });
         }
 
-        // 2. AUDITORIA DE ESTOQUE
-        function renderStock() {
-            db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-                const tbody = document.getElementById('stockBody');
-                const alertas = document.getElementById('listaAlertas');
-                document.getElementById('countEstoque').innerText = snap.size;
-                tbody.innerHTML = ''; alertas.innerHTML = '';
-
-                snap.forEach(doc => {
-                    const p = doc.data();
-                    const isLow = p.quantidade <= 10;
-                    
-                    if(isLow) {
-                        alertas.innerHTML += `<div class="critical-alert"><i class="fas fa-circle-exclamation"></i> <strong>${p.nome}:</strong> Apenas ${p.quantidade} ${p.unidade || ''} restando.</div>`;
-                    }
-
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${p.nome}</strong></td>
-                            <td><span style="color:#64748b; font-size:0.75rem;">${p.categoria}</span></td>
-                            <td style="color:${isLow ? 'var(--danger)' : 'inherit'}; font-weight:${isLow ? '800' : '500'}">${p.quantidade}</td>
-                            <td>${p.validade || '-'}</td>
-                            <td>
-                                <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade})" style="color:var(--accent); background:none; border:none; cursor:pointer; margin-right:12px;"><i class="fas fa-edit"></i></button>
-                                <button onclick="deletarItemEstoque('${doc.id}')" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fas fa-circle-xmark"></i></button>
-                            </td>
-                        </tr>`;
-                });
-            });
-        }
-
-        // 3. GRÁFICOS
         function renderChart() {
             db.collection('estoque').onSnapshot(snap => {
-                const cats = {};
-                snap.forEach(doc => { 
-                    const cat = doc.data().categoria || 'Outros';
-                    cats[cat] = (cats[cat] || 0) + 1; 
-                });
+                const data = {};
+                snap.forEach(d => { const c = d.data().categoria || 'Outros'; data[c] = (data[c] || 0) + 1; });
                 const ctx = document.getElementById('categoryChart').getContext('2d');
-                if(window.myChart) window.myChart.destroy();
-                window.myChart = new Chart(ctx, {
+                if(window.mChart) window.mChart.destroy();
+                window.mChart = new Chart(ctx, {
                     type: 'doughnut',
-                    data: {
-                        labels: Object.keys(cats),
-                        datasets: [{ 
-                            data: Object.values(cats), 
-                            backgroundColor: ['#0f172a', '#2563eb', '#10b981', '#f59e0b', '#ef4444'],
-                            borderWidth: 2, borderColor: '#ffffff'
-                        }]
-                    },
-                    options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 10 } } } } }
+                    data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#0f172a','#2563eb','#10b981','#f59e0b'] }] },
+                    options: { plugins: { legend: { position: 'bottom' } } }
                 });
             });
         }
 
         function renderStats() {
-            db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
-                document.getElementById('countPendentes').innerText = snap.size;
-            });
+            db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(s => document.getElementById('countPendentes').innerText = s.size);
         }
 
-        async function ajustarEstoque(id, qtd) {
-            const nova = prompt("Ajustar quantidade manual:", qtd);
-            if(nova !== null) await db.collection('estoque').doc(id).update({ quantidade: parseFloat(nova) });
+        async function ajustarEstoque(id, q) {
+            const n = prompt("Novo saldo:", q);
+            if(n) await db.collection('estoque').doc(id).update({ quantidade: parseFloat(n) });
         }
 
-        async function deletarItemEstoque(id) {
-            if(confirm("Remover item do inventário?")) await db.collection('estoque').doc(id).delete();
-        }
+        function logout() { firebase.auth().signOut().then(() => window.location.href = 'index.html'); }
 
-        async function deletarUser(id) {
-            if(confirm("Revogar acesso deste usuário?")) await db.collection('usuarios').doc(id).delete();
-        }
+        document.getElementById('formNovoUsuario').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('newEmail').value.trim().toLowerCase();
+            const role = document.getElementById('newRole').value;
+            await db.collection('usuarios_autorizados').doc(email).set({ role, approved: true });
+            alert("Autorizado!"); e.target.reset();
+        };
     </script>
 </body>
 </html>
