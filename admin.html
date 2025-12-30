@@ -3,10 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Admin Dashboard — EstoqueSync</title>
+    <title>Master Admin — EstoqueSync</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -17,69 +16,97 @@
 
     <style>
         :root{
-            --primary:#2f75b5; --accent:#4f81bd; --bg:#f3f7fa; --card:#ffffff;
+            --primary:#0f172a; --accent:#2563eb; --bg:#f8fafc; --card:#ffffff;
             --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
-            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --military: #1e293b;
         }
-        body{ font-family: 'Inter', sans-serif; background-color: var(--bg); margin:0; color:#333; }
-        header { background: linear-gradient(135deg, #1e4e79, #2f75b5); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
-        .container { max-width: 1300px; margin: 2rem auto; padding: 0 1rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1rem; }
-        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
-        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
-        h2 { font-size: 1.1rem; margin-top: 0; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eee; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th { text-align: left; font-size: 0.75rem; color: #888; padding: 12px; border-bottom: 2px solid #eee; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
-        .badge-cozinha { background: #e0f2fe; color: #0369a1; }
+        body{ font-family: 'Inter', sans-serif; background-color: var(--bg); margin:0; color:#334155; }
+        
+        header { 
+            background: var(--primary); 
+            color: white; padding: 1rem 2rem; 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .container { max-width: 1600px; margin: 2rem auto; padding: 0 1.5rem; }
+        
+        /* Stats Dashboard */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--card); padding: 1.5rem; border-radius: 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1.5rem; border: 1px solid #e2e8f0; }
+        .stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; }
+        
+        /* Layout */
+        .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 2rem; }
+        @media (max-width: 1200px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .card { background: var(--card); padding: 1.8rem; border-radius: 16px; box-shadow: var(--shadow); border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+        h2 { font-size: 1rem; margin-top: 0; display: flex; align-items: center; gap: 10px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--bg); padding-bottom: 12px; margin-bottom: 20px; }
+        
+        /* Table Style */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 15px; background: #f8fafc; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        tr:hover { background: #f1f5f9; }
+
+        /* Forms & Buttons */
+        input, select { padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.9rem; background: #f8fafc; }
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; transition: 0.3s; display: flex; align-items: center; gap: 8px; justify-content: center; text-transform: uppercase; font-size: 0.8rem; }
+        .btn-primary { background: var(--accent); color: white; width: 100%; }
+        .btn-outline { background: transparent; border: 1px solid #cbd5e1; color: #64748b; }
+        
+        .badge { padding: 5px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        .badge-cozinha { background: #dbeafe; color: #1e40af; }
         .badge-estoque { background: #fef3c7; color: #92400e; }
-        .badge-nutri { background: #dcfce7; color: #166534; }
-        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 5px; justify-content: center; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-danger-sm { background: none; color: var(--danger); padding: 5px; font-size: 1rem; }
-        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-        .user-info { display: flex; flex-direction: column; }
-        .stock-low { color: var(--danger); font-weight: bold; }
+        .badge-nutri { background: #dcfce7; color: #15803d; }
+        .badge-admin { background: #f1f5f9; color: #0f172a; border: 1px solid #0f172a; }
+
+        .critical-item { background: #fff1f2; border-left: 4px solid var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
     <header>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <i class="fas fa-user-shield fa-2x"></i>
-            <h1 style="margin:0; font-size: 1.4rem;">Painel de Controle Master</h1>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <i class="fas fa-shield-halved fa-2x" style="color:var(--accent)"></i>
+            <div>
+                <h1 style="margin:0; font-size: 1.2rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">COMMAND CENTER</span></h1>
+                <small style="opacity:0.7">Controle de Acesso e Auditoria Global</small>
+            </div>
         </div>
-        <button onclick="firebase.auth().signOut()" class="btn" style="background:rgba(255,255,255,0.2); color:white; border: 1px solid rgba(255,255,255,0.3);">
-            <i class="fas fa-sign-out-alt"></i> Sair
+        <button onclick="firebase.auth().signOut()" class="btn btn-outline" style="color:white; border-color:rgba(255,255,255,0.3)">
+            <i class="fas fa-power-off"></i> Encerrar Sessão
         </button>
     </header>
 
     <div class="container">
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon" style="background: #3b82f6;"><i class="fas fa-box"></i></div>
-                <div><small style="color:#666">Itens Totais</small><div id="countEstoque" style="font-size:1.5rem; font-weight:bold;">0</div></div>
+                <div class="stat-icon" style="background: var(--accent);"><i class="fas fa-boxes-packing"></i></div>
+                <div><small>Itens Cadastrados</small><div id="countEstoque" style="font-size:1.8rem; font-weight:800;">0</div></div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background: #f59e0b;"><i class="fas fa-concierge-bell"></i></div>
-                <div><small style="color:#666">Pedidos em Aberto</small><div id="countPendentes" style="font-size:1.5rem; font-weight:bold;">0</div></div>
+                <div class="stat-icon" style="background: var(--warning);"><i class="fas fa-clock-rotate-left"></i></div>
+                <div><small>Requisições Ativas</small><div id="countPendentes" style="font-size:1.8rem; font-weight:800;">0</div></div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background: #10b981;"><i class="fas fa-users"></i></div>
-                <div><small style="color:#666">Equipe Ativa</small><div id="countUsers" style="font-size:1.5rem; font-weight:bold;">0</div></div>
+                <div class="stat-icon" style="background: var(--success);"><i class="fas fa-user-check"></i></div>
+                <div><small>Militares Online</small><div id="countUsers" style="font-size:1.8rem; font-weight:800;">0</div></div>
             </div>
         </div>
 
         <div class="main-grid">
             <div class="left-col">
                 <div class="card">
-                    <h2><i class="fas fa-user-plus"></i> Registrar Novo Acesso</h2>
-                    <form id="formNovoUsuario">
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                            <input type="email" id="newEmail" placeholder="E-mail profissional" required>
+                    <h2><i class="fas fa-user-shield"></i> Conceder Autorização de Acesso</h2>
+                    <form id="formNovoUsuario" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+                        <div>
+                            <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">E-MAIL FUNCIONAL</label>
+                            <input type="email" id="newEmail" placeholder="exemplo@eb.mil.br" required>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">PERFIL DE ACESSO</label>
                             <select id="newRole">
                                 <option value="cozinha">Cozinha (Requisitante)</option>
                                 <option value="estoque">Estoque (Operador)</option>
@@ -87,43 +114,40 @@
                                 <option value="admin">Administrador (Gestor)</option>
                             </select>
                         </div>
-                        <p style="font-size: 11px; color: #888; margin-bottom: 10px;">
-                            *Ao criar o acesso, o usuário deve ser criado manualmente no Authentication com a mesma conta.
-                        </p>
-                        <button type="submit" class="btn btn-primary">Autorizar Acesso</button>
+                        <button type="submit" class="btn btn-primary" style="height: 46px; margin-bottom: 16px;"><i class="fas fa-plus"></i> Liberar</button>
                     </form>
                 </div>
 
                 <div class="card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-                        <h2><i class="fas fa-inventory"></i> Gestão de Inventário Global</h2>
-                        <button onclick="exportarExcel()" class="btn" style="background:#166534; color:white; font-size: 0.8rem;">
-                            <i class="fas fa-file-excel"></i> Exportar
-                        </button>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                        <h2><i class="fas fa-database"></i> Auditoria de Inventário</h2>
+                        <button onclick="exportarExcel()" class="btn btn-outline"><i class="fas fa-download"></i> Relatório PDF</button>
                     </div>
-                    <table>
-                        <thead>
-                            <tr><th>Produto</th><th>Categoria</th><th>Qtd</th><th>Validade</th><th>Ações</th></tr>
-                        </thead>
-                        <tbody id="stockBody"></tbody>
-                    </table>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr><th>Produto</th><th>Categoria</th><th>Quantidade</th><th>Validade</th><th>Ações</th></tr>
+                            </thead>
+                            <tbody id="stockBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <div class="right-col">
                 <div class="card">
-                    <h2><i class="fas fa-id-card"></i> Usuários Autorizados</h2>
-                    <div id="usersList"></div>
-                </div>
-
-                <div class="card">
-                    <h2><i class="fas fa-chart-pie"></i> Ocupação do Estoque</h2>
+                    <h2><i class="fas fa-chart-pie"></i> Mix de Insumos</h2>
                     <canvas id="categoryChart" style="max-height: 250px;"></canvas>
                 </div>
 
                 <div class="card">
-                    <h2><i class="fas fa-bell"></i> Requisições Críticas</h2>
-                    <div id="listaAlertas" style="font-size: 0.85rem;"></div>
+                    <h2><i class="fas fa-triangle-exclamation" style="color:var(--danger)"></i> Níveis Críticos</h2>
+                    <div id="listaAlertas"></div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-users-gear"></i> Usuários Ativos</h2>
+                    <div id="usersList" style="max-height: 300px; overflow-y: auto;"></div>
                 </div>
             </div>
         </div>
@@ -145,7 +169,7 @@
             if (!user) { window.location.href = 'index.html'; return; }
             const doc = await db.collection('usuarios').doc(user.uid).get();
             if (!doc.exists || doc.data().role !== 'admin') { 
-                alert("Acesso negado: Perfil não administrativo.");
+                alert("ACESSO NEGADO: RESTRITO AO COMANDO.");
                 window.location.href = 'index.html'; 
                 return; 
             }
@@ -164,17 +188,15 @@
             e.preventDefault();
             const email = document.getElementById('newEmail').value.toLowerCase().trim();
             const role = document.getElementById('newRole').value;
-            
             try {
-                // Criar perfil pré-aprovado
                 await db.collection('usuarios_autorizados').doc(email).set({
                     role: role,
                     approved: true,
                     dataCriacao: new Date()
                 });
-                alert("Perfil " + role + " autorizado com sucesso para " + email);
+                alert("Acesso autorizado com sucesso!");
                 e.target.reset();
-            } catch (err) { alert("Erro ao autorizar: " + err.message); }
+            } catch (err) { alert("Erro: " + err.message); }
         };
 
         function renderUsers() {
@@ -185,58 +207,59 @@
                 snap.forEach(doc => {
                     const u = doc.data();
                     list.innerHTML += `
-                        <div class="user-row">
-                            <div class="user-info">
-                                <strong>${u.email.split('@')[0]}</strong>
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #f1f5f9;">
+                            <div>
+                                <div style="font-size:0.85rem; font-weight:600;">${u.email}</div>
                                 <span class="badge badge-${u.role}">${u.role}</span>
                             </div>
-                            <button onclick="deletarUser('${doc.id}')" class="btn btn-danger-sm"><i class="fas fa-trash-alt"></i></button>
+                            <button onclick="deletarUser('${doc.id}')" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fas fa-user-xmark"></i></button>
                         </div>`;
                 });
             });
         }
 
-        // 2. GESTÃO DE ESTOQUE
+        // 2. GESTÃO DE ESTOQUE E ALERTAS
         function renderStock() {
             db.collection('estoque').orderBy('nome').onSnapshot(snap => {
                 const tbody = document.getElementById('stockBody');
+                const alertas = document.getElementById('listaAlertas');
                 document.getElementById('countEstoque').innerText = snap.size;
                 tbody.innerHTML = '';
+                alertas.innerHTML = '';
+
                 snap.forEach(doc => {
                     const p = doc.data();
-                    const isLow = p.quantidade < 5;
+                    const isCritical = p.quantidade <= 10; // Defina seu limite crítico aqui
+                    
+                    if(isCritical) {
+                        alertas.innerHTML += `
+                            <div class="critical-item">
+                                <i class="fas fa-circle-exclamation"></i> <strong>${p.nome}</strong> está com apenas ${p.quantidade} em estoque!
+                            </div>`;
+                    }
+
                     tbody.innerHTML += `
                         <tr>
-                            <td>${p.nome}</td>
-                            <td><span style="color:#666; font-size:0.8rem;">${p.categoria}</span></td>
-                            <td class="${isLow ? 'stock-low' : ''}">${p.quantidade}</td>
+                            <td><strong>${p.nome}</strong></td>
+                            <td><span style="color:#64748b">${p.categoria}</span></td>
+                            <td style="color:${isCritical ? 'red' : 'inherit'}; font-weight:${isCritical ? 'bold' : 'normal'}">${p.quantidade}</td>
                             <td>${p.validade || '-'}</td>
                             <td>
-                                <div style="display:flex; gap:10px;">
-                                    <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade})" class="btn-danger-sm" style="color:#3b82f6"><i class="fas fa-edit"></i></button>
-                                    <button onclick="deletarItemEstoque('${doc.id}')" class="btn-danger-sm"><i class="fas fa-trash"></i></button>
-                                </div>
+                                <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade})" style="color:var(--accent); background:none; border:none; cursor:pointer; margin-right:10px;"><i class="fas fa-pen-to-square"></i></button>
+                                <button onclick="deletarItemEstoque('${doc.id}')" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>`;
                 });
             });
         }
 
-        // 3. ESTATÍSTICAS E ALERTAS
         function renderStats() {
             db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
                 document.getElementById('countPendentes').innerText = snap.size;
-                const alertas = document.getElementById('listaAlertas');
-                alertas.innerHTML = '';
-                if(snap.empty) alertas.innerHTML = '<p style="color:green">Nenhuma requisição crítica.</p>';
-                snap.forEach(doc => {
-                    const r = doc.data();
-                    alertas.innerHTML += `<div style="padding:5px 0; border-bottom:1px solid #f0f0f0;">⚠️ <b>${r.item}</b> (${r.quantidade}) solicitado por ${r.solicitante.split('@')[0]}</div>`;
-                });
             });
         }
 
-        // 4. GRÁFICOS
+        // 3. GRÁFICO PREMIUM (DOUGHNUT)
         function renderChart() {
             db.collection('estoque').onSnapshot(snap => {
                 const cats = {};
@@ -244,6 +267,7 @@
                     const cat = doc.data().categoria || 'Outros';
                     cats[cat] = (cats[cat] || 0) + 1; 
                 });
+                
                 const ctx = document.getElementById('categoryChart').getContext('2d');
                 if(window.myChart) window.myChart.destroy();
                 window.myChart = new Chart(ctx, {
@@ -252,38 +276,34 @@
                         labels: Object.keys(cats),
                         datasets: [{ 
                             data: Object.values(cats), 
-                            backgroundColor: ['#2f75b5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
-                            borderWidth: 0
+                            backgroundColor: ['#0f172a', '#2563eb', '#10b981', '#f59e0b', '#ef4444'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
                         }]
                     },
-                    options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+                    options: { 
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: { size: 11, weight: '600' } } } } 
+                    }
                 });
             });
         }
 
-        // FUNÇÕES DE OPERAÇÃO DIRETA
         async function ajustarEstoque(id, qtdAtual) {
-            const novaQtd = prompt("Ajustar quantidade para:", qtdAtual);
-            if (novaQtd !== null) {
-                await db.collection('estoque').doc(id).update({ quantidade: parseFloat(novaQtd) });
-            }
+            const novaQtd = prompt("Nova quantidade para este item:", qtdAtual);
+            if (novaQtd !== null) await db.collection('estoque').doc(id).update({ quantidade: parseFloat(novaQtd) });
         }
 
         async function deletarItemEstoque(id) {
-            if(confirm("Deseja remover permanentemente este item do inventário?")) {
-                await db.collection('estoque').doc(id).delete();
-            }
+            if(confirm("Confirmar exclusão de item do inventário?")) await db.collection('estoque').doc(id).delete();
         }
 
         async function deletarUser(id) {
-            if(confirm("Remover acesso deste usuário do banco de dados?")) {
-                await db.collection('usuarios').doc(id).delete();
-            }
+            if(confirm("Revogar acesso deste militar?")) await db.collection('usuarios').doc(id).delete();
         }
 
         function exportarExcel() {
-            alert("Gerando relatório consolidado...");
-            // Lógica para biblioteca XLSX (opcional se quiser implementar download real)
+            window.print(); // Solução nativa rápida para gerar PDF do dashboard
         }
     </script>
 </body>
