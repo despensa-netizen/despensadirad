@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa PRO</title>
+  <title>EstoqueSync — Despensa Integral v4</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,12 +22,12 @@
       --military: #334155;
     }
 
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
     nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
     
     .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
     .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; }
-    .tab-btn { padding: 12px 18px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; font-size: 0.8rem; }
+    .tab-btn { padding: 12px 18px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; }
     .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
     .grid-layout { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; }
@@ -47,14 +47,15 @@
     .btn-danger { background: var(--danger); color: white; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-warning { background: var(--warning); color: white; }
+    .btn-scanner { background: #6366f1; color: white; width: 100%; margin-bottom: 15px; }
 
     table { width: 100%; border-collapse: collapse; }
     th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.7rem; color: #64748b; }
     td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-    .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 600; }
+    .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 700; }
 
-    input, select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; }
-    #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; }
+    input, select { width: 100%; padding: 12px; margin: 5px 0 15px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; }
+    #reader, #readerAvulso { width: 100%; border-radius: 12px; overflow: hidden; background: #000; }
     .hidden { display: none !important; }
 
     #qrModal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; }
@@ -67,45 +68,45 @@
 
   <nav>
     <div style="display:flex; align-items:center; gap:12px;">
-      <i class="fas fa-warehouse fa-lg"></i>
-      <h2 style="margin:0; font-size: 1.1rem;">ESTOQUESYNC <span style="font-weight:300;">DESPENSA</span></h2>
+      <i class="fas fa-boxes-packing fa-lg"></i>
+      <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">DESPENSA</span></h2>
     </div>
     <div style="display:flex; align-items:center; gap:15px;">
-      <span id="userDisplay" style="font-size: 0.7rem;"></span>
+      <span id="userDisplay" style="font-size: 0.75rem; font-weight: 600;"></span>
       <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Cargas & QR</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-avulsa')"><i class="fas fa-hand-holding-box"></i> Saída Avulsa</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-square"></i> Cadastro de Itens</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-ramp-box"></i> Entradas</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-qrcode"></i> Cargas & Scanner</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-avulsa')"><i class="fas fa-minus-circle"></i> Saída Avulsa</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-folder-plus"></i> Cadastro</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-list-check"></i> Inventário</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-plus-circle"></i> Entradas</button>
     </div>
 
     <div id="tab-saidas" class="tab-content">
       <div class="grid-layout">
         <aside>
           <div class="card">
-            <h3><i class="fas fa-camera"></i> Scanner QR Code</h3>
+            <h3><i class="fas fa-camera"></i> Baixa Rápida QR</h3>
             <div id="reader"></div>
-            <div id="qrStatus" style="font-size: 0.7rem; text-align: center; margin-top: 10px; color: #64748b;">Aguardando câmera...</div>
+            <p style="font-size: 0.65rem; color: #64748b; text-align: center; margin-top: 10px;">Escaneie o QR do item para dar baixa instantânea.</p>
           </div>
           <div class="card">
-            <h3><i class="fas fa-truck-loading"></i> Cargas da Nutrição</h3>
+            <h3><i class="fas fa-bell"></i> Requisições da Nutrição</h3>
             <div id="listaRequisicoes"></div>
           </div>
         </aside>
         <section>
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-              <h3><i class="fas fa-boxes-stacked"></i> Estoque em Tempo Real</h3>
-              <input type="text" id="buscaEstoque" placeholder="Filtrar..." style="width:180px; margin:0" onkeyup="filtrarEstoque()">
+              <h3><i class="fas fa-warehouse"></i> Saldo em Estoque</h3>
+              <input type="text" id="buscaEstoque" placeholder="Pesquisar..." style="width:180px; margin:0" onkeyup="filtrarEstoque()">
             </div>
             <table id="tabelaEstoque">
-              <thead><tr><th>Produto</th><th>Saldo</th><th>Un</th><th>Validade</th><th>QR</th></tr></thead>
+              <thead><tr><th>Produto</th><th>Saldo</th><th>Un</th><th>Validade</th><th>Etiqueta</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -115,39 +116,45 @@
 
     <div id="tab-avulsa" class="tab-content hidden">
       <div class="card" style="max-width: 500px; margin: auto;">
-        <h3><i class="fas fa-external-link-alt"></i> Registrar Saída Extraordinária</h3>
+        <h3><i class="fas fa-hand-holding-box"></i> Nova Saída Avulsa</h3>
+        
+        <button class="btn btn-scanner" id="btnScanAvulso" onclick="toggleScannerAvulso()">
+            <i class="fas fa-qrcode"></i> USAR SCANNER PARA IDENTIFICAR
+        </button>
+        <div id="readerAvulso" class="hidden" style="margin-bottom: 15px;"></div>
+
         <form id="formSaidaAvulsa">
-          <label>Produto</label>
+          <label>Produto Selecionado</label>
           <select id="avulsaProdSelect" required></select>
           <label>Quantidade de Saída</label>
           <input type="number" id="avulsaQtd" step="0.01" required>
-          <label>Motivo da Saída</label>
-          <input type="text" id="avulsaMotivo" placeholder="Ex: Quebra, Reposição extra, Vencimento" required>
-          <button type="submit" class="btn btn-warning" style="width:100%; padding:15px;">Confirmar Baixa Avulsa</button>
+          <label>Motivo</label>
+          <input type="text" id="avulsaMotivo" placeholder="Ex: Descarte, Quebra, Extra" required>
+          <button type="submit" class="btn btn-warning" style="width:100%; padding:15px;">Confirmar Saída</button>
         </form>
       </div>
     </div>
 
     <div id="tab-cadastro" class="tab-content hidden">
-      <div class="card" style="max-width: 600px; margin: auto;">
-        <h3><i class="fas fa-folder-plus"></i> Cadastro de Catálogo</h3>
+      <div class="card" style="max-width: 550px; margin: auto;">
+        <h3><i class="fas fa-edit"></i> Cadastrar Item no Catálogo</h3>
         <form id="formCadastro">
-          <label>Nome do Item</label>
-          <input type="text" id="cadNome" placeholder="Ex: Arroz Tipo 1" required>
+          <label>Nome do Produto</label>
+          <input type="text" id="cadNome" placeholder="Ex: Açúcar Refinado 1kg" required>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
             <div><label>Unidade</label><select id="cadUnidade"><option value="kg">kg</option><option value="un">un</option><option value="lt">lt</option></select></div>
             <div><label>Estoque Mínimo</label><input type="number" id="cadMin" value="5"></div>
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%">Salvar no Catálogo</button>
+          <button type="submit" class="btn btn-primary" style="width:100%">Salvar Produto</button>
         </form>
       </div>
     </div>
 
     <div id="tab-inventario" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-clipboard-list"></i> Ajuste de Saldo</h3>
+        <h3><i class="fas fa-check-double"></i> Ajuste de Balanço</h3>
         <table id="tabelaInv">
-          <thead><tr><th>Produto</th><th>Sistema</th><th>Real</th><th>Ação</th></tr></thead>
+          <thead><tr><th>Produto</th><th>Sistema</th><th>Contagem Real</th><th>Ação</th></tr></thead>
           <tbody id="corpoInv"></tbody>
         </table>
       </div>
@@ -155,15 +162,15 @@
 
     <div id="tab-entrada" class="tab-content hidden">
       <div class="card" style="max-width: 500px; margin: auto;">
-        <h3><i class="fas fa-plus-circle"></i> Lançar Nota/Entrada</h3>
+        <h3><i class="fas fa-cart-plus"></i> Entrada de Material</h3>
         <form id="formEntrada">
           <label>Produto</label>
           <select id="entProdSelect" required></select>
           <label>Quantidade</label>
           <input type="number" id="entQtd" step="0.01" required>
-          <label>Validade</label>
+          <label>Data de Validade</label>
           <input type="date" id="entVal" required>
-          <button type="submit" class="btn btn-success" style="width:100%">Registrar Entrada</button>
+          <button type="submit" class="btn btn-success" style="width:100%">Salvar Entrada</button>
         </form>
       </div>
     </div>
@@ -171,11 +178,11 @@
 
   <div id="qrModal" class="hidden">
     <div class="qr-box">
-      <h3 id="qrTitle" style="color:#000; margin-bottom:15px;"></h3>
+      <h3 id="qrTitle" style="color:#000; margin-bottom:15px; font-size:1rem;"></h3>
       <canvas id="qrCanvas"></canvas>
       <div style="margin-top:20px; display:flex; gap:10px;" class="no-print">
-        <button onclick="window.print()" class="btn btn-success">IMPRIMIR</button>
-        <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="btn btn-danger">FECHAR</button>
+        <button onclick="window.print()" class="btn btn-success"><i class="fas fa-print"></i> IMPRIMIR</button>
+        <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="btn btn-outline">VOLTAR</button>
       </div>
     </div>
   </div>
@@ -193,50 +200,72 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    let html5QrCode;
+    let scannerGlobal, scannerAvulso;
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
       document.getElementById('userDisplay').innerText = user.email.toUpperCase();
-      initDespensa();
+      initApp();
     });
 
-    function initDespensa() {
+    function initApp() {
       renderEstoque();
       monitorarCargas();
-      iniciarScanner();
+      iniciarScannerGlobal();
     }
 
-    // --- QR CODE LOGIC ---
-    function iniciarScanner() {
-      if (html5QrCode) { html5QrCode.stop(); }
-      html5QrCode = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-      
-      html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-        processarSaidaQR(decodedText);
-      }).catch(err => {
-        document.getElementById('qrStatus').innerText = "Erro ao acessar câmera.";
-      });
+    // --- SCANNERS ---
+    function iniciarScannerGlobal() {
+      if (scannerGlobal) scannerGlobal.stop();
+      scannerGlobal = new Html5Qrcode("reader");
+      scannerGlobal.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => processarBaixaRapida(txt))
+      .catch(() => console.log("Câmera ocupada ou negada."));
     }
 
-    async function processarSaidaQR(nome) {
-      const q = prompt(`PRODUTO: ${nome}\nInforme a quantidade para BAIXA:`);
+    async function toggleScannerAvulso() {
+        const div = document.getElementById('readerAvulso');
+        const btn = document.getElementById('btnScanAvulso');
+
+        if(div.classList.contains('hidden')) {
+            div.classList.remove('hidden');
+            btn.innerHTML = '<i class="fas fa-times"></i> CANCELAR SCANNER';
+            scannerAvulso = new Html5Qrcode("readerAvulso");
+            scannerAvulso.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (nome) => {
+                selecionarProdutoNoSelect(nome);
+                toggleScannerAvulso();
+            });
+        } else {
+            div.classList.add('hidden');
+            btn.innerHTML = '<i class="fas fa-qrcode"></i> USAR SCANNER PARA IDENTIFICAR';
+            if(scannerAvulso) await scannerAvulso.stop();
+        }
+    }
+
+    function selecionarProdutoNoSelect(nome) {
+        const select = document.getElementById('avulsaProdSelect');
+        for(let i=0; i < select.options.length; i++) {
+            if(select.options[i].text === nome) {
+                select.selectedIndex = i;
+                alert("Produto identificado: " + nome);
+                return;
+            }
+        }
+        alert("Produto lido ("+nome+"), mas não encontrado no catálogo.");
+    }
+
+    async function processarBaixaRapida(nome) {
+      const q = prompt(`BAIXA QR: ${nome}\nQuantidade para saída:`);
       if(!q || isNaN(q)) return;
-
       const snap = await db.collection('estoque').where('nome', '==', nome).get();
-      if(snap.empty) return alert("Produto não cadastrado no catálogo.");
-
-      const doc = snap.docs[0];
-      const saldo = doc.data().quantidade;
-      if(saldo < q) return alert("Saldo insuficiente!");
-
-      await db.collection('estoque').doc(doc.id).update({ quantidade: saldo - parseFloat(q) });
+      if(snap.empty) return alert("Produto não cadastrado.");
+      const d = snap.docs[0];
+      const novo = d.data().quantidade - parseFloat(q);
+      if(novo < 0) return alert("Saldo insuficiente!");
+      await db.collection('estoque').doc(d.id).update({ quantidade: novo });
       registrarLog("SAÍDA QR", nome, q);
-      alert("Baixa confirmada!");
     }
 
-    // --- RENDERIZAÇÃO E TABELAS ---
+    // --- LOGICA DE DADOS ---
     function renderEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
         const tb = document.querySelector('#tabelaEstoque tbody');
@@ -244,7 +273,7 @@
         const sels = [document.getElementById('avulsaProdSelect'), document.getElementById('entProdSelect')];
         
         tb.innerHTML = ''; inv.innerHTML = '';
-        sels.forEach(s => s.innerHTML = '<option value="">Selecione um item...</option>');
+        sels.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
 
         snap.forEach(doc => {
           const p = doc.data();
@@ -259,86 +288,66 @@
           </tr>`;
 
           inv.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td><input type="number" id="i-${doc.id}" style="width:60px;margin:0"></td><td><button onclick="ajustar('${doc.id}', '${p.nome}')" class="btn btn-primary">OK</button></td></tr>`;
-          
           sels.forEach(s => s.innerHTML += `<option value="${doc.id}|${p.nome}">${p.nome}</option>`);
         });
       });
     }
 
-    // --- SAÍDA AVULSA ---
     document.getElementById('formSaidaAvulsa').onsubmit = async (e) => {
       e.preventDefault();
       const [id, nome] = document.getElementById('avulsaProdSelect').value.split('|');
-      const qtd = parseFloat(document.getElementById('avulsaQtd').value);
-      const motivo = document.getElementById('avulsaMotivo').value;
+      const q = parseFloat(document.getElementById('avulsaQtd').value);
+      const m = document.getElementById('avulsaMotivo').value;
 
-      const docRef = db.collection('estoque').doc(id);
-      const saldo = (await docRef.get()).data().quantidade;
+      const ref = db.collection('estoque').doc(id);
+      const s = (await ref.get()).data().quantidade;
+      if(s < q) return alert("Estoque insuficiente!");
 
-      if(saldo < qtd) return alert("Erro: Saldo insuficiente para esta saída!");
-
-      await docRef.update({ quantidade: saldo - qtd });
-      await registrarLog(`SAÍDA AVULSA (${motivo})`, nome, qtd);
-      
-      alert("Saída registrada com sucesso!");
-      e.target.reset();
+      await ref.update({ quantidade: s - q });
+      await registrarLog(`AVULSA (${m})`, nome, q);
+      alert("Saída confirmada!"); e.target.reset();
     };
 
-    // --- CARGAS NUTRIÇÃO ---
     function monitorarCargas() {
       const hoje = new Date().toISOString().split('T')[0];
       db.collection('requisicoes').where('dataUso', '==', hoje).where('status', '==', 'pendente').onSnapshot(snap => {
         const cont = document.getElementById('listaRequisicoes');
         cont.innerHTML = '';
-        if(snap.empty) { cont.innerHTML = '<p style="text-align:center; padding:15px; color:#999;">Sem pedidos pendentes.</p>'; return; }
-
+        if(snap.empty) { cont.innerHTML = '<p style="text-align:center; padding:15px; color:#999;">Sem pedidos.</p>'; return; }
         snap.forEach(doc => {
           const r = doc.data();
           const tCls = r.detalhe.includes('Café') ? 'header-cafe' : r.detalhe.includes('Almoço') ? 'header-almoco' : 'header-janta';
-          cont.innerHTML += `
-            <div class="req-group">
-              <div class="req-header ${tCls}">${r.detalhe}</div>
-              <div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#fff;">
-                <span style="font-size:0.8rem;">${r.item} (<b>${r.quantidade}</b>)</span>
-                <div style="display:flex; gap:5px;">
-                  <button onclick="entregar('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success" style="padding:5px 8px;"><i class="fas fa-check"></i></button>
-                  <button onclick="cancelar('${doc.id}', '${r.item}')" class="btn btn-danger" style="padding:5px 8px;"><i class="fas fa-ban"></i></button>
-                </div>
-              </div>
-            </div>`;
+          cont.innerHTML += `<div class="req-group"><div class="req-header ${tCls}">${r.detalhe}</div><div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#fff;"><span style="font-size:0.75rem;">${r.item} (<b>${r.quantidade}</b>)</span><div style="display:flex; gap:5px;"><button onclick="entregar('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success" style="padding:5px 8px;">V</button><button onclick="cancelar('${doc.id}', '${r.item}')" class="btn btn-danger" style="padding:5px 8px;">X</button></div></div></div>`;
         });
       });
     }
 
     async function entregar(id, item, qtd) {
       const snap = await db.collection('estoque').where('nome', '==', item).get();
-      if(snap.empty) return alert("Erro catálogo!");
+      if(snap.empty) return alert("Item não no catálogo!");
       const d = snap.docs[0];
       const s = d.data().quantidade;
-      if(s < qtd) return alert("Estoque insuficiente!");
-
+      if(s < qtd) return alert("Sem estoque!");
       const b = db.batch();
       b.update(db.collection('estoque').doc(d.id), { quantidade: s - qtd });
       b.update(db.collection('requisicoes').doc(id), { status: 'entregue' });
-      await b.commit();
-      registrarLog("BAIXA CARGA", item, qtd);
+      await b.commit(); registrarLog("BAIXA CARGA", item, qtd);
     }
 
     async function cancelar(id, item) {
-      const m = prompt("Motivo da recusa:");
+      const m = prompt("Motivo:");
       if(m) await db.collection('requisicoes').doc(id).update({ status: 'cancelado', motivoCancelamento: m });
     }
 
-    // --- CADASTRO E ENTRADA ---
     document.getElementById('formCadastro').onsubmit = async (e) => {
       e.preventDefault();
-      const n = document.getElementById('cadNome').value;
       await db.collection('estoque').add({
-        nome: n, unidade: document.getElementById('cadUnidade').value, 
+        nome: document.getElementById('cadNome').value, 
+        unidade: document.getElementById('cadUnidade').value, 
         estoqueMinimo: parseFloat(document.getElementById('cadMin').value), 
         quantidade: 0, validade: '--'
       });
-      alert("Item cadastrado!"); e.target.reset();
+      alert("Salvo!"); e.target.reset();
     };
 
     document.getElementById('formEntrada').onsubmit = async (e) => {
@@ -347,30 +356,21 @@
       const q = parseFloat(document.getElementById('entQtd').value);
       const v = document.getElementById('entVal').value;
       const ref = db.collection('estoque').doc(id);
-      const atual = (await ref.get()).data().quantidade;
-      await ref.update({ quantidade: atual + q, validade: v });
-      alert("Entrada registrada!"); e.target.reset();
-      registrarLog("ENTRADA", nome, q);
+      const s = (await ref.get()).data().quantidade;
+      await ref.update({ quantidade: s + q, validade: v });
+      alert("Entrada registrada!"); e.target.reset(); registrarLog("ENTRADA", nome, q);
     };
 
-    // --- UTILITÁRIOS ---
+    // --- UI/UTILS ---
     function gerarQR(nome) {
       document.getElementById('qrModal').classList.remove('hidden');
       document.getElementById('qrTitle').innerText = nome;
-      new QRious({ element: document.getElementById('qrCanvas'), value: nome, size: 200 });
-    }
-
-    async function registrarLog(tipo, prod, q) {
-      await db.collection('historico').add({ data: new Date(), tipo, produto: prod, quantidade: q, user: auth.currentUser.email });
+      new QRious({ element: document.getElementById('qrCanvas'), value: nome, size: 220 });
     }
 
     async function ajustar(id, nome) {
       const v = parseFloat(document.getElementById(`i-${id}`).value);
-      if(!isNaN(v)) {
-        await db.collection('estoque').doc(id).update({ quantidade: v });
-        registrarLog("AJUSTE INV", nome, v);
-        document.getElementById(`i-${id}`).value = '';
-      }
+      if(!isNaN(v)) { await db.collection('estoque').doc(id).update({ quantidade: v }); registrarLog("AJUSTE", nome, v); }
     }
 
     function switchTab(e, id) {
@@ -378,12 +378,25 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.remove('hidden');
       e.currentTarget.classList.add('active');
-      if(id === 'tab-saidas') iniciarScanner(); else if(html5QrCode) html5QrCode.stop();
+      
+      // Gerenciar Câmeras para não conflitar
+      if(id === 'tab-saidas') iniciarScannerGlobal();
+      else if(scannerGlobal) scannerGlobal.stop();
+      
+      if(id !== 'tab-avulsa' && scannerAvulso) {
+          document.getElementById('readerAvulso').classList.add('hidden');
+          document.getElementById('btnScanAvulso').innerHTML = '<i class="fas fa-qrcode"></i> USAR SCANNER PARA IDENTIFICAR';
+          scannerAvulso.stop();
+      }
     }
 
     function filtrarEstoque() {
       const b = document.getElementById('buscaEstoque').value.toLowerCase();
       document.querySelectorAll('#tabelaEstoque tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none');
+    }
+
+    async function registrarLog(tipo, prod, q) {
+      await db.collection('historico').add({ data: new Date(), tipo, produto: prod, quantidade: q, user: auth.currentUser.email });
     }
 
     document.getElementById('logoutBtn').onclick = () => auth.signOut();
