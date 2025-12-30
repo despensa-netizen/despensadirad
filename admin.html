@@ -22,14 +22,12 @@
         }
         body{ font-family: 'Inter', sans-serif; background-color: var(--bg); margin:0; color:#334155; }
         
-        /* Navbar Superior */
         .admin-nav {
             background: var(--primary); color: white; padding: 0.8rem 2rem;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 4px solid var(--accent); position: sticky; top: 0; z-index: 1000;
         }
 
-        /* Barra de Navegação Interna (Mesma Aba) */
         .quick-access {
             background: #1e293b; padding: 10px 2rem; display: flex; gap: 15px; overflow-x: auto;
             border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -44,7 +42,6 @@
 
         .container { max-width: 1600px; margin: 2rem auto; padding: 0 1.5rem; }
         
-        /* Dashboard Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
         .stat-card { background: var(--card); padding: 1.5rem; border-radius: 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 1.5rem; border: 1px solid #e2e8f0; }
         .stat-icon { width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; }
@@ -68,6 +65,16 @@
         .bg-cozinha { background: #dbeafe; color: #1e40af; }
         .bg-nutri { background: #dcfce7; color: #15803d; }
         .bg-estoque { background: #fef3c7; color: #92400e; }
+        .bg-admin { background: #f1f5f9; color: var(--primary); }
+
+        /* Estilo Histórico Movimentação */
+        .log-entry { font-size: 0.8rem; padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .log-date { color: #94a3b8; font-size: 0.7rem; font-weight: 600; }
+
+        /* Botão de Reset Oculto */
+        footer { margin-top: 50px; padding: 20px; display: flex; justify-content: center; opacity: 0.1; transition: 0.5s; }
+        footer:hover { opacity: 0.5; }
+        .btn-reset-oculto { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
     </style>
 </head>
 <body>
@@ -124,6 +131,13 @@
                 </div>
 
                 <div class="card">
+                    <h2><i class="fas fa-clock-rotate-left"></i> Histórico de Movimentação</h2>
+                    <div id="movimentacaoLog" style="max-height: 400px; overflow-y: auto;">
+                        <p style="font-size: 0.8rem; color: #94a3b8;">Carregando logs...</p>
+                    </div>
+                </div>
+
+                <div class="card">
                     <h2><i class="fas fa-user-plus"></i> Registrar Acesso no Sistema</h2>
                     <form id="formNovoUsuario" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:15px;">
                         <input type="email" id="newEmail" placeholder="e-mail militar" required>
@@ -155,6 +169,12 @@
         </div>
     </div>
 
+    <footer>
+        <button class="btn-reset-oculto" onclick="resetSistemaTotal()" title="Configurações Avançadas">
+            <i class="fas fa-gear"></i>
+        </button>
+    </footer>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
@@ -167,7 +187,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // SEGURANÇA MASTER: Apenas Admin entra aqui
         firebase.auth().onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
             const doc = await db.collection('usuarios').doc(user.uid).get();
@@ -184,9 +203,9 @@
             renderUsers();
             renderStats();
             renderChart();
+            renderMovimentacoes();
         }
 
-        // Funções de Renderização
         function renderStock() {
             db.collection('estoque').orderBy('nome').onSnapshot(snap => {
                 const tbody = document.getElementById('stockBody');
@@ -205,9 +224,29 @@
                             <td><span class="badge" style="background:#f1f5f9; color:#475569">${p.categoria}</span></td>
                             <td style="color:${low?'red':'inherit'}; font-weight:bold">${p.quantidade}</td>
                             <td>
-                                <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade})" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-edit"></i></button>
+                                <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade}, '${p.nome}')" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-edit"></i></button>
                             </td>
                         </tr>`;
+                });
+            });
+        }
+
+        // Função para monitorar movimentações
+        function renderMovimentacoes() {
+            db.collection('movimentacoes').orderBy('data', 'desc').limit(50).onSnapshot(snap => {
+                const logDiv = document.getElementById('movimentacaoLog');
+                logDiv.innerHTML = '';
+                if(snap.empty) logDiv.innerHTML = '<p style="font-size:0.8rem">Sem registros.</p>';
+
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    const dataFormatada = m.data?.toDate().toLocaleString('pt-BR') || '---';
+                    logDiv.innerHTML += `
+                        <div class="log-entry">
+                            <span class="log-date">${dataFormatada}</span><br>
+                            <strong>${m.usuario}</strong> ${m.tipo === 'ajuste' ? 'ajustou' : 'moveu'} 
+                            <strong>${m.item}</strong> para ${m.novaQtd}
+                        </div>`;
                 });
             });
         }
@@ -219,8 +258,8 @@
                 list.innerHTML = '';
                 snap.forEach(doc => {
                     const u = doc.data();
-                    list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
-                        <span>${u.email}</span> <span class="badge bg-${u.role}">${u.role}</span>
+                    list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.75rem">${u.email}</span> <span class="badge bg-${u.role}">${u.role}</span>
                     </div>`;
                 });
             });
@@ -234,8 +273,8 @@
                 if(window.mChart) window.mChart.destroy();
                 window.mChart = new Chart(ctx, {
                     type: 'doughnut',
-                    data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#0f172a','#2563eb','#10b981','#f59e0b'] }] },
-                    options: { plugins: { legend: { position: 'bottom' } } }
+                    data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#0f172a','#2563eb','#10b981','#f59e0b','#ef4444'] }] },
+                    options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
                 });
             });
         }
@@ -244,9 +283,51 @@
             db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(s => document.getElementById('countPendentes').innerText = s.size);
         }
 
-        async function ajustarEstoque(id, q) {
-            const n = prompt("Novo saldo:", q);
-            if(n) await db.collection('estoque').doc(id).update({ quantidade: parseFloat(n) });
+        async function ajustarEstoque(id, q, nome) {
+            const n = prompt(`Ajustar saldo de ${nome}:`, q);
+            if(n !== null && n !== "") {
+                const novaQtd = parseFloat(n);
+                await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
+                
+                // Registrar log de ajuste
+                await db.collection('movimentacoes').add({
+                    data: new Date(),
+                    usuario: firebase.auth().currentUser.email,
+                    item: nome,
+                    novaQtd: novaQtd,
+                    tipo: 'ajuste'
+                });
+            }
+        }
+
+        // Função de Reset do Sistema (OCULTA)
+        async function resetSistemaTotal() {
+            const confirm1 = confirm("⚠️ ATENÇÃO: Você está prestes a resetar os dados de estoque e requisições. Deseja continuar?");
+            if(!confirm1) return;
+
+            const confirm2 = prompt("Para confirmar o RESET TOTAL, digite 'EXECUTAR':");
+            if(confirm2 !== 'EXECUTAR') {
+                alert("Operação cancelada.");
+                return;
+            }
+
+            try {
+                // Limpar Estoque
+                const stockSnap = await db.collection('estoque').get();
+                stockSnap.forEach(doc => doc.ref.delete());
+
+                // Limpar Requisições
+                const reqSnap = await db.collection('requisicoes').get();
+                reqSnap.forEach(doc => doc.ref.delete());
+
+                // Limpar Movimentações
+                const movSnap = await db.collection('movimentacoes').get();
+                movSnap.forEach(doc => doc.ref.delete());
+
+                alert("SISTEMA RESETADO COM SUCESSO.");
+            } catch (e) {
+                alert("Erro ao resetar: " + e.message);
+            }
         }
 
         function logout() { firebase.auth().signOut().then(() => window.location.href = 'index.html'); }
@@ -256,7 +337,7 @@
             const email = document.getElementById('newEmail').value.trim().toLowerCase();
             const role = document.getElementById('newRole').value;
             await db.collection('usuarios_autorizados').doc(email).set({ role, approved: true });
-            alert("Autorizado!"); e.target.reset();
+            alert("Militar autorizado com sucesso!"); e.target.reset();
         };
     </script>
 </body>
