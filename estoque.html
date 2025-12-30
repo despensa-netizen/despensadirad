@@ -3,10 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Estoque — EstoqueSync</title>
+  <title>EstoqueSync Pro — Gestão Completa</title>
   
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -16,132 +14,152 @@
   
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --primary: #2f75b5; --accent: #4f81bd; --bg: #f8fbff; --card: #ffffff;
-      --danger: #e74c3c; --success: #2ecc71; --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-      --border-radius: 16px;
+      --primary: #1e3a8a; --accent: #3b82f6; --bg: #f8fafc; --card: #ffffff;
+      --text: #0f172a; --danger: #ef4444; --success: #22c55e; --warning: #f59e0b;
+      --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     }
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #333; }
-    header { background: linear-gradient(135deg, #2f75b5 0%, #4f81bd 100%); padding: 20px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md); }
-    .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-    .card { background: var(--card); border-radius: var(--border-radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow-md); }
-    .grid-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-    
-    input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
-    .btn { cursor: pointer; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; width: 100%; }
-    .btn-primary { background: var(--primary); }
-    .btn-success { background: var(--success); }
-    .btn-danger { background: var(--danger); }
-    .btn-dark { background: #333; }
-    
-    .hidden { display: none !important; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; padding: 12px; border-bottom: 2px solid #eee; color: #888; font-size: 13px; text-transform: uppercase; }
-    td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-    
-    #reader { width: 280px; margin: 0 auto; border-radius: 12px; overflow: hidden; border: 2px solid var(--primary); background: #000; }
-    
-    /* Modal de Etiqueta */
-    #modalEtiqueta {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;
-    }
-    .label-preview { 
-        text-align: center; padding: 30px; background: #fff; 
-        border-radius: 16px; min-width: 250px;
-    }
-    
-    .btn-icon { background: none; border: none; cursor: pointer; font-size: 16px; margin: 0 5px; color: #666; }
-    .btn-icon:hover { color: var(--primary); }
 
-    @media print {
-        body * { visibility: hidden; }
-        #modalEtiqueta, #modalEtiqueta * { visibility: visible; }
-        #modalEtiqueta { position: absolute; left: 0; top: 0; background: white; }
-        .btn, .btn-close { display: none; }
-    }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    nav { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+    
+    .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); overflow-x: auto; }
+    .tab-btn { padding: 0.75rem 1.5rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .grid-layout { display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; }
+    @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .card h3 { margin-top: 0; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary); }
+
+    input, select { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
+    .btn { cursor: pointer; border: none; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: 0.2s; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 0.75rem; background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; color: #64748b; }
+    td { padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+
+    .badge { padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
+    .badge-entrada { background: #dcfce7; color: #166534; }
+    .badge-saida { background: #fee2e2; color: #991b1b; }
+    .badge-alerta { background: #fef3c7; color: #92400e; }
+
+    #reader { width: 100%; border-radius: 12px; background: #000; overflow: hidden; }
+    .hidden { display: none !important; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+    .modal-content { background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 450px; text-align: center; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1><i class="fas fa-boxes"></i> EstoqueSync</h1>
-    <button id="logoutBtn" class="btn" style="width:auto; background:rgba(255,255,255,0.2);">Sair</button>
-  </header>
+  <nav>
+    <h2 style="margin:0"><i class="fas fa-sync"></i> EstoqueSync <span style="font-weight:300; font-size: 0.8rem;">PRO</span></h2>
+    <div style="display:flex; align-items:center; gap:15px;">
+      <span id="userDisplay" style="font-size: 0.8rem; opacity: 0.9;"></span>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white; padding:5px 10px;">Sair</button>
+    </div>
+  </nav>
 
   <div class="container">
-    <div id="mainContent" class="hidden">
-      
-      <div class="grid-forms">
-        <div class="card">
-          <h3><i class="fas fa-plus-circle"></i> Entrada / Cadastro</h3>
-          <form id="formEntrada">
-            <input type="text" id="prodNome" placeholder="Nome do Produto" required>
-            <div style="display:flex; gap:10px;">
-                <input type="number" id="prodQtd" placeholder="Qtd" step="0.01" required>
-                <select id="prodUnidade">
-                    <option value="un">un</option><option value="kg">kg</option><option value="lt">lt</option>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-operacao')">Operação</button>
+      <button class="tab-btn" onclick="switchTab('tab-inventario')">Inventário Cego</button>
+      <button class="tab-btn" onclick="switchTab('tab-relatorios')">BI & Relatórios</button>
+    </div>
+
+    <div id="tab-operacao" class="tab-content">
+      <div class="grid-layout">
+        <aside>
+          <div class="card">
+            <h3><i class="fas fa-plus-circle"></i> Entrada de Produto</h3>
+            <form id="formEntrada">
+              <input type="text" id="prodNome" placeholder="Nome do Produto" required>
+              <div style="display:flex; gap:10px;">
+                <input type="number" id="prodQtd" placeholder="Quantidade" required>
+                <select id="prodUnidade" style="flex:0.5">
+                  <option value="un">un</option><option value="kg">kg</option><option value="lt">lt</option>
                 </select>
-            </div>
-            <div style="display:flex; gap:10px;">
-                <input type="date" id="prodValidade" required>
-                <input type="number" id="prodMinimo" placeholder="Mínimo" value="5">
-            </div>
-            <button type="submit" class="btn btn-primary">Salvar Produto</button>
-          </form>
-        </div>
+              </div>
+              <input type="date" id="prodValidade" required>
+              <button type="submit" class="btn btn-primary" style="width:100%">Salvar no Sistema</button>
+            </form>
+          </div>
 
-        <div class="card" style="border: 2px solid var(--primary); text-align: center;">
-            <h3><i class="fas fa-qrcode"></i> Baixa Rápida</h3>
+          <div class="card" style="border: 2px solid var(--accent)">
+            <h3><i class="fas fa-qrcode"></i> Baixa Rápida (QR)</h3>
             <div id="reader" class="hidden"></div>
-            
             <div id="qrForm" class="hidden">
-                <div style="background: #f0f4ff; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-                    <strong id="qrProdNome" style="color: var(--primary);"></strong>
-                </div>
-                <input type="number" id="qrQtdBaixa" placeholder="Qtd. Saída" step="0.01">
-                <input type="text" id="qrMotivo" placeholder="Motivo (Opcional)">
-                <button onclick="confirmarBaixaQR()" class="btn btn-danger">Confirmar Saída</button>
-                <button onclick="cancelarScanner()" class="btn" style="background:#999; margin-top:5px;">Cancelar</button>
+              <div style="background:#f0f7ff; padding:10px; border-radius:8px; margin-bottom:1rem;">
+                <small>Identificado:</small><br><strong id="qrProdNome"></strong>
+              </div>
+              <input type="number" id="qrQtdBaixa" placeholder="Qtd Saída">
+              <button onclick="confirmarBaixaQR()" class="btn btn-danger" style="width:100%">Confirmar Saída</button>
+              <button onclick="cancelarScanner()" class="btn" style="width:100%; margin-top:5px;">Cancelar</button>
             </div>
+            <button id="btnScan" onclick="iniciarScanner()" class="btn btn-primary" style="width:100%; background:#334155"><i class="fas fa-camera"></i> Abrir Scanner</button>
+          </div>
+        </aside>
 
-            <button id="btnIniciarScan" onclick="iniciarScanner()" class="btn btn-dark">
-                <i class="fas fa-camera"></i> Abrir Scanner
-            </button>
-        </div>
-
-        <div class="card">
-          <h3><i class="fas fa-bell"></i> Requisições</h3>
-          <div id="listaRequisicoes" style="max-height: 250px; overflow-y: auto;"></div>
-        </div>
+        <section>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <h3><i class="fas fa-list"></i> Itens em Estoque</h3>
+              <input type="text" id="inputBusca" placeholder="Filtrar..." style="width:200px; margin:0" onkeyup="filtrarTabela()">
+            </div>
+            <table id="tabelaEstoque">
+              <thead><tr><th>Produto</th><th>Saldo</th><th>Un</th><th>Ações</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
       </div>
+    </div>
 
+    <div id="tab-inventario" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-clipboard-check"></i> Auditoria de Estoque (Contagem Cega)</h3>
+        <p style="color:#64748b; font-size:0.9rem;">Conte os itens na prateleira e insira o valor abaixo. O sistema verificará divergências.</p>
+        <table id="tabelaCega">
+          <thead><tr><th>Produto</th><th>Sua Contagem</th><th>Ação</th></tr></thead>
+          <tbody id="corpoCego"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-relatorios" class="tab-content hidden">
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3><i class="fas fa-list"></i> Inventário</h3>
-            <input type="text" id="inputBusca" placeholder="Buscar..." style="max-width:200px;" onkeyup="filtrarTabela()">
+          <h3><i class="fas fa-history"></i> Log de Movimentações</h3>
+          <button onclick="exportarCSV()" class="btn" style="background:var(--success); color:white; font-size:0.8rem;"><i class="fas fa-file-excel"></i> Exportar CSV</button>
         </div>
-        <table>
-          <thead>
-            <tr><th>Produto</th><th>Saldo</th><th>Un.</th><th>Ações</th></tr>
-          </thead>
-          <tbody id="tabelaEstoque"></tbody>
+        <table id="tabelaLogs">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+          <tbody></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <div id="modalEtiqueta" class="hidden">
-      <div class="label-preview">
-          <canvas id="qrCanvas"></canvas>
-          <p id="labelNome" style="font-weight:bold; margin: 15px 0; font-size: 18px; color: #000;"></p>
-          <div style="display: flex; gap: 10px; justify-content: center;">
-            <button onclick="window.print()" class="btn btn-dark" style="width: auto;">Imprimir</button>
-            <button onclick="fecharModal()" class="btn" style="background: #999; width: auto;">Fechar</button>
-          </div>
+  <div id="modalEtiqueta" class="modal-overlay hidden">
+    <div class="modal-content">
+      <canvas id="qrCanvas"></canvas>
+      <h2 id="labelNome" style="margin:1rem 0"></h2>
+      <div style="display:flex; gap:10px">
+        <button onclick="window.print()" class="btn btn-primary" style="flex:1">Imprimir</button>
+        <button onclick="fecharModal()" class="btn" style="background:#e2e8f0; flex:1">Fechar</button>
       </div>
+    </div>
   </div>
 
   <script>
@@ -157,135 +175,165 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // AJUSTE: Busca na coleção "usuarios_autorizados" conforme sua imagem
+    // Proteção de Rota Unificada
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
       const doc = await db.collection('usuarios_autorizados').doc(user.email).get();
       if (doc.exists && doc.data().role === 'estoque') {
-        document.getElementById('mainContent').classList.remove('hidden');
+        document.getElementById('userDisplay').innerText = user.email;
         initApp();
-      } else {
-        alert("Acesso negado para este cargo.");
-        auth.signOut();
-      }
+      } else { auth.signOut(); }
     });
 
-    function initApp() {
-      renderEstoque();
-      renderPedidos();
-      document.getElementById('logoutBtn').onclick = () => auth.signOut();
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
     }
 
-    document.getElementById('formEntrada').onsubmit = async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('prodNome').value;
-      await db.collection('estoque').add({
-        nome: nome,
-        quantidade: parseFloat(document.getElementById('prodQtd').value),
-        unidade: document.getElementById('prodUnidade').value,
-        validade: document.getElementById('prodValidade').value,
-        estoqueMinimo: parseFloat(document.getElementById('prodMinimo').value)
+    async function registrarLog(tipo, prod, qtd) {
+      await db.collection('historico').add({
+        data: new Date(), tipo: tipo, produto: prod, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
       });
-      alert("Produto salvo!");
-      e.target.reset();
-    };
-
-    function mostrarEtiqueta(nome) {
-        document.getElementById('modalEtiqueta').classList.remove('hidden');
-        setTimeout(() => {
-            new QRious({
-                element: document.getElementById('qrCanvas'),
-                value: nome,
-                size: 200
-            });
-            document.getElementById('labelNome').innerText = nome;
-        }, 100);
     }
 
-    function fecharModal() { document.getElementById('modalEtiqueta').classList.add('hidden'); }
-
-    let scanner;
-    async function iniciarScanner() {
-        document.getElementById('reader').classList.remove('hidden');
-        document.getElementById('btnIniciarScan').classList.add('hidden');
-        scanner = new Html5Qrcode("reader");
-        await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (text) => {
-            scanner.stop();
-            document.getElementById('reader').classList.add('hidden');
-            document.getElementById('qrForm').classList.remove('hidden');
-            document.getElementById('qrProdNome').innerText = text;
-            window.tempProd = text;
-        });
-    }
-
-    function cancelarScanner() {
-        if(scanner) scanner.stop().catch(() => {});
-        document.getElementById('reader').classList.add('hidden');
-        document.getElementById('qrForm').classList.add('hidden');
-        document.getElementById('btnIniciarScan').classList.remove('hidden');
-        document.getElementById('qrQtdBaixa').value = '';
-    }
-
-    async function confirmarBaixaQR() {
-        const qtd = parseFloat(document.getElementById('qrQtdBaixa').value);
-        if(!qtd) return alert("Insira a quantidade");
-        const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
-        if(snap.empty) return alert("Produto não encontrado");
-        
-        const doc = snap.docs[0];
-        await db.collection('estoque').doc(doc.id).update({ quantidade: doc.data().quantidade - qtd });
-        alert("Baixa confirmada!");
-        cancelarScanner();
-    }
-
-    function renderEstoque() {
+    function initApp() {
+      // Monitorar Estoque
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-        const tbody = document.getElementById('tabelaEstoque');
-        tbody.innerHTML = '';
+        const tbody = document.querySelector('#tabelaEstoque tbody');
+        const tCego = document.querySelector('#corpoCego');
+        tbody.innerHTML = ''; tCego.innerHTML = '';
+        
         snap.forEach(doc => {
           const p = doc.data();
+          // Tabela Normal
           tbody.innerHTML += `<tr>
-              <td>${p.nome}</td>
-              <td>${p.quantidade}</td>
-              <td>${p.unidade}</td>
-              <td>
-                <button onclick="mostrarEtiqueta('${p.nome}')" class="btn-icon"><i class="fas fa-qrcode"></i></button>
-                <button onclick="deletar('${doc.id}')" class="btn-icon" style="color:red;"><i class="fas fa-trash"></i></button>
-              </td>
+            <td><strong>${p.nome}</strong></td>
+            <td>${p.quantidade}</td>
+            <td>${p.unidade}</td>
+            <td>
+              <button onclick="mostrarEtiqueta('${p.nome}')" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-qrcode"></i></button>
+              <button onclick="deletar('${doc.id}')" style="border:none; background:none; color:var(--danger); cursor:pointer; margin-left:10px;"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`;
+          // Tabela Inventário Cego
+          tCego.innerHTML += `<tr>
+            <td>${p.nome}</td>
+            <td><input type="number" id="cego-${doc.id}" style="margin:0; padding:5px; width:80px;" placeholder="0"></td>
+            <td><button onclick="validarCego('${doc.id}', '${p.nome}', ${p.quantidade})" class="btn btn-primary" style="padding:5px 10px; font-size:0.7rem;">Validar</button></td>
           </tr>`;
         });
       });
+
+      // Monitorar Histórico
+      db.collection('historico').orderBy('data', 'desc').limit(20).onSnapshot(snap => {
+        const tbody = document.querySelector('#tabelaLogs tbody');
+        tbody.innerHTML = '';
+        snap.forEach(doc => {
+          const l = doc.data();
+          const badge = l.tipo.includes('Entrada') ? 'badge-entrada' : 'badge-saida';
+          tbody.innerHTML += `<tr>
+            <td>${l.data.toDate().toLocaleDateString()}</td>
+            <td><span class="badge ${badge}">${l.tipo}</span></td>
+            <td>${l.produto}</td>
+            <td>${l.quantidade}</td>
+            <td><small>${l.usuario}</small></td>
+          </tr>`;
+        });
+      });
+      document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    async function deletar(id) { if(confirm("Excluir?")) await db.collection('estoque').doc(id).delete(); }
+    // Lógica Inventário Cego
+    async function validarCego(id, nome, saldoReal) {
+      const input = document.getElementById(`cego-${id}`);
+      const contagem = parseFloat(input.value);
+      if (isNaN(contagem)) return alert("Insira um valor");
+      
+      const dif = contagem - saldoReal;
+      if (dif === 0) {
+        alert(`✅ Sucesso! O estoque de ${nome} está correto.`);
+      } else {
+        const msg = dif > 0 ? `Sobra de ${dif}` : `Falta de ${Math.abs(dif)}`;
+        if (confirm(`⚠️ Divergência detectada: ${msg}. Deseja ajustar o sistema para o valor contado (${contagem})?`)) {
+          await db.collection('estoque').doc(id).update({ quantidade: contagem });
+          await registrarLog(`Ajuste Inventário (${msg})`, nome, contagem);
+        }
+      }
+      input.value = '';
+    }
 
-    function renderPedidos() {
-      db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
-        const div = document.getElementById('listaRequisicoes');
-        div.innerHTML = snap.empty ? '<p style="text-align:center; color:#999;">Sem pedidos</p>' : '';
-        snap.forEach(doc => {
-          const r = doc.data();
-          div.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
-              <span>${r.item} (${r.quantidade})</span>
-              <button onclick="finalizarReq('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success" style="width:auto; padding:5px 10px;">OK</button>
-          </div>`;
-        });
+    // Scanner e Funções QR
+    let scanner;
+    async function iniciarScanner() {
+      document.getElementById('reader').classList.remove('hidden');
+      document.getElementById('btnScan').classList.add('hidden');
+      scanner = new Html5Qrcode("reader");
+      await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+        scanner.stop();
+        document.getElementById('reader').classList.add('hidden');
+        document.getElementById('qrForm').classList.remove('hidden');
+        document.getElementById('qrProdNome').innerText = text;
+        window.tempProd = text;
       });
     }
 
-    async function finalizarReq(id, item, qtd) {
-        const snap = await db.collection('estoque').where('nome', '==', item).get();
-        if(!snap.empty) {
-            await db.collection('estoque').doc(snap.docs[0].id).update({ quantidade: snap.docs[0].data().quantidade - qtd });
-        }
-        await db.collection('requisicoes').doc(id).update({ status: 'entregue' });
+    async function confirmarBaixaQR() {
+      const qtd = parseFloat(document.getElementById('qrQtdBaixa').value);
+      const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
+      if(!snap.empty) {
+        const doc = snap.docs[0];
+        await db.collection('estoque').doc(doc.id).update({ quantidade: doc.data().quantidade - qtd });
+        await registrarLog('Saída QR', window.tempProd, qtd);
+        alert("Baixa realizada!");
+        cancelarScanner();
+      }
+    }
+
+    function cancelarScanner() { 
+      if(scanner) scanner.stop().catch(()=>{}); 
+      document.getElementById('reader').classList.add('hidden'); 
+      document.getElementById('qrForm').classList.add('hidden'); 
+      document.getElementById('btnScan').classList.remove('hidden'); 
+    }
+
+    function mostrarEtiqueta(nome) {
+      document.getElementById('modalEtiqueta').classList.remove('hidden');
+      new QRious({ element: document.getElementById('qrCanvas'), value: nome, size: 200 });
+      document.getElementById('labelNome').innerText = nome;
+    }
+    function fecharModal() { document.getElementById('modalEtiqueta').classList.add('hidden'); }
+
+    document.getElementById('formEntrada').onsubmit = async (e) => {
+      e.preventDefault();
+      const n = document.getElementById('prodNome').value;
+      const q = parseFloat(document.getElementById('prodQtd').value);
+      await db.collection('estoque').add({ nome: n, quantidade: q, unidade: document.getElementById('prodUnidade').value, validade: document.getElementById('prodValidade').value });
+      await registrarLog('Entrada', n, q);
+      e.target.reset();
+    };
+
+    async function exportarCSV() {
+      const snap = await db.collection('historico').orderBy('data', 'desc').get();
+      let csv = 'Data,Tipo,Produto,Quantidade,Usuario\n';
+      snap.forEach(doc => {
+        const l = doc.data();
+        csv += `${l.data.toDate().toLocaleDateString()},${l.tipo},${l.produto},${l.quantidade},${l.usuario}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'historico_estoque.csv'; a.click();
     }
 
     function filtrarTabela() {
       const b = document.getElementById('inputBusca').value.toLowerCase();
-      const rows = document.getElementById('tabelaEstoque').getElementsByTagName('tr');
-      for (let r of rows) { r.style.display = r.innerText.toLowerCase().includes(b) ? '' : 'none'; }
+      const rows = document.getElementById('tabelaEstoque').querySelectorAll('tr');
+      rows.forEach(r => { if(r.querySelector('td')) r.style.display = r.innerText.toLowerCase().includes(b) ? '' : 'none'; });
     }
+
+    async function deletar(id) { if(confirm("Remover item?")) await db.collection('estoque').doc(id).delete(); }
   </script>
 </body>
 </html>
