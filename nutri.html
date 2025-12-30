@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Nutrição Militar</title>
+  <title>EstoqueSync Nutrição — Painel de Controle</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,141 +16,165 @@
     :root {
       --primary: #1e3a8a; --accent: #2563eb; --bg: #f8fafc; --card: #ffffff;
       --text: #0f172a; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-      --military: #374151;
+      --military: #374151; --recipe: #0891b2; --success: #10b981;
     }
 
     body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
     
-    .container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+    .container { max-width: 1450px; margin: 1.5rem auto; padding: 0 1rem; }
     
-    .grid-main { display: grid; grid-template-columns: 400px 1fr; gap: 2rem; }
+    /* Tabs */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); overflow-x: auto; }
+    .tab-btn { padding: 0.8rem 1.2rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .grid-main { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; }
     @media (max-width: 1100px) { .grid-main { grid-template-columns: 1fr; } }
 
     .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
-    .card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; color: var(--military); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+    .card h3 { margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; color: var(--military); border-bottom: 1px solid var(--bg); padding-bottom: 10px; font-size: 1.1rem; }
 
-    label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: #64748b; }
-    input, select, textarea { width: 100%; padding: 0.7rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-family: inherit; box-sizing: border-box; }
+    label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 5px; color: #475569; text-transform: uppercase; }
+    input, select, textarea { width: 100%; padding: 0.7rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; box-sizing: border-box; font-size: 0.9rem; }
     
-    .btn { cursor: pointer; border: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 600; transition: 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn { cursor: pointer; border: none; padding: 0.8rem 1rem; border-radius: 8px; font-weight: 600; transition: 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
     .btn-primary { background: var(--primary); color: white; }
-    .btn-accent { background: var(--accent); color: white; }
+    .btn-recipe { background: var(--recipe); color: white; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: #64748b; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 12px; background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; }
+    th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid var(--border); }
     td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
-    .section-title { font-size: 0.9rem; font-weight: 700; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
-    .hidden { display: none; }
+    .ing-row { display: grid; grid-template-columns: 1fr 100px; gap: 8px; margin-bottom: 8px; }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
+    .badge-pendente { background: #fef3c7; color: #92400e; }
+    .badge-entregue { background: #dcfce7; color: #166534; }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
   <nav>
-    <h2><i class="fas fa-user-md"></i> EstoqueSync Nutrição <span style="font-weight:300; font-size: 0.8rem;">CONTROLE DE RANCHO</span></h2>
-    <button id="logoutBtn" style="background:none; border:1px solid white; color:white; padding:5px 15px; border-radius:8px; cursor:pointer;">Sair</button>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <i class="fas fa-file-medical-alt fa-lg"></i>
+      <h2 style="margin:0; font-size: 1.2rem;">EstoqueSync Nutrição <span style="font-weight:300; font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px;">PME</span></h2>
+    </div>
+    <div style="display:flex; align-items:center; gap:20px;">
+      <span id="userDisplay" style="font-size: 0.8rem; font-weight: 500;"></span>
+      <button id="logoutBtn" class="btn-outline" style="color:white; border-color:white; padding: 5px 15px; width: auto;">SAIR</button>
+    </div>
   </nav>
 
   <div class="container">
-    <div class="grid-main">
-      <aside>
-        <div class="card">
-          <h3><i class="fas fa-utensils"></i> Lançar Cardápio</h3>
-          <form id="formCardapio">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-requisicao')"><i class="fas fa-paper-plane"></i> Requisições & Cardápio</button>
+      <button class="tab-btn" onclick="switchTab('tab-cardapios-salvos')"><i class="fas fa-calendar-check"></i> Cardápios Salvos</button>
+      <button class="tab-btn" onclick="switchTab('tab-receitas')"><i class="fas fa-book-journal-whills"></i> Fichas Técnicas (Receitas)</button>
+    </div>
+
+    <div id="tab-requisicao" class="tab-content">
+      <div class="grid-main">
+        <aside>
+          <div class="card" style="border-top: 4px solid var(--primary);">
+            <h3><i class="fas fa-calendar-plus"></i> Publicar Cardápio</h3>
+            <form id="formCardapio">
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div><label>Data</label><input type="date" id="cardData" required></div>
                 <div>
-                    <label>Data</label>
-                    <input type="date" id="cardData" required>
+                  <label>Dia</label>
+                  <select id="cardDiaSemana">
+                    <option>Segunda</option><option>Terça</option><option>Quarta</option>
+                    <option>Quinta</option><option>Sexta</option><option>Sábado</option><option>Domingo</option>
+                  </select>
                 </div>
-                <div>
-                    <label>Dia da Semana</label>
-                    <select id="cardDiaSemana" required>
-                        <option value="Segunda">Segunda</option>
-                        <option value="Terça">Terça</option>
-                        <option value="Quarta">Quarta</option>
-                        <option value="Quinta">Quinta</option>
-                        <option value="Sexta">Sexta</option>
-                        <option value="Sábado">Sábado</option>
-                        <option value="Domingo">Domingo</option>
-                    </select>
+              </div>
+              <label>Prato Principal</label>
+              <input type="text" id="cardPrincipal" placeholder="Ex: Carne de Panela" required>
+              <label>Acompanhamentos</label>
+              <textarea id="cardAcomp" placeholder="Ex: Arroz, Feijão Preto, Salada de Alface" rows="2"></textarea>
+              <button type="submit" class="btn btn-primary">Publicar para Cozinha</button>
+            </form>
+          </div>
+
+          <div class="card" style="border-top: 4px solid var(--recipe);">
+            <h3><i class="fas fa-cart-arrow-down"></i> Pedir Insumos (Despensa)</h3>
+            <form id="formRequisicao">
+              <label>Data Prevista de Uso</label>
+              <input type="date" id="reqDataUso" required>
+              <label>Material</label>
+              <select id="reqItem" required><option value="">Carregando estoque...</option></select>
+              <label>Quantidade Total</label>
+              <input type="number" id="reqQtd" step="0.01" placeholder="0.00" required>
+              <button type="submit" class="btn btn-recipe">Enviar Requisição</button>
+            </form>
+          </div>
+        </aside>
+
+        <section>
+          <div class="card">
+            <h3><i class="fas fa-tasks"></i> Status das Requisições</h3>
+            <table id="tabelaReq">
+              <thead><tr><th>Uso</th><th>Material</th><th>Qtd</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="tab-cardapios-salvos" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-history"></i> Planejamento Histórico</h3>
+        <table id="tabelaHistoricoCardapio">
+          <thead><tr><th>Data</th><th>Dia</th><th>Prato Principal</th><th>Acompanhamentos</th><th>Ações</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-receitas" class="tab-content hidden">
+      <div class="grid-main">
+        <aside>
+          <div class="card" style="border-top: 4px solid var(--success);">
+            <h3><i class="fas fa-mortar-pestle"></i> Nova Receita Padrão</h3>
+            <form id="formNovaReceita">
+              <label>Nome da Preparação</label>
+              <input type="text" id="recNome" placeholder="Ex: Feijoada de Sexta" required>
+              <label>Instruções de Preparo</label>
+              <textarea id="recPreparo" placeholder="Passo a passo..." rows="4"></textarea>
+              
+              <div id="ingredientesLista">
+                <label>Ingredientes (Percapita/Base)</label>
+                <div class="ing-row">
+                  <input type="text" placeholder="Ingrediente" class="ing-nome">
+                  <input type="text" placeholder="Qtd/Base" class="ing-qtd">
                 </div>
-            </div>
-            
-            <label>Refeição</label>
-            <select id="cardRefeicao">
-                <option value="Café da Manhã">Café da Manhã</option>
-                <option value="Almoço" selected>Almoço</option>
-                <option value="Jantar">Jantar</option>
-                <option value="Ceia">Ceia</option>
-            </select>
-
-            <label>Prato Principal</label>
-            <input type="text" id="cardPrincipal" placeholder="Ex: Carne Assada" required>
-            
-            <label>Guarnição / Acompanhamentos</label>
-            <textarea id="cardAcomp" placeholder="Ex: Arroz, Feijão, Farofa" rows="2"></textarea>
-            
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Publicar Cardápio</button>
-          </form>
-        </div>
-
-        <div class="card">
-          <h3><i class="fas fa-truck-loading"></i> Requisição de Material</h3>
-          <form id="formRequisicao">
-            <label>Data para Uso</label>
-            <input type="date" id="reqDataUso" required>
-            
-            <label>Item do Estoque</label>
-            <select id="reqItem" required>
-              <option value="">Carregando produtos...</option>
-            </select>
-            
-            <label>Quantidade</label>
-            <input type="number" id="reqQtd" step="0.01" required>
-            
-            <button type="submit" class="btn btn-accent"><i class="fas fa-paper-plane"></i> Enviar Pedido</button>
-          </form>
-        </div>
-      </aside>
-
-      <section>
-        <div class="card">
-          <div class="section-title"><i class="fas fa-calendar-alt"></i> Planejamento da Semana</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Dia</th>
-                <th>Refeição</th>
-                <th>Prato Principal</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="listaCardapios"></tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <div class="section-title"><i class="fas fa-list-check"></i> Status das Requisições (Despensa)</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Uso em</th>
-                <th>Item</th>
-                <th>Qtd</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="listaReqStatus"></tbody>
-          </table>
-        </div>
-      </section>
+              </div>
+              <button type="button" onclick="addIngrediente()" class="btn-outline" style="width:100%; padding:5px; margin-bottom:15px; border-style: dashed;">+ Ingrediente</button>
+              
+              <button type="submit" class="btn btn-primary" style="background:var(--success)">Salvar no Banco</button>
+            </form>
+          </div>
+        </aside>
+        <section>
+          <div class="card">
+            <h3><i class="fas fa-archive"></i> Banco de Receitas</h3>
+            <table id="tabelaReceitas">
+              <thead><tr><th>Nome</th><th>Ingredientes</th><th>Ações</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 
   <script>
-    // Configurações do Firebase
+    // FIREBASE CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -163,46 +187,107 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
+    // AUTH & INIT
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
-      initNutri();
+      document.getElementById('userDisplay').innerText = user.email;
+      initApp();
     });
 
-    function initNutri() {
+    function initApp() {
       carregarEstoque();
-      monitorarCardapios();
-      monitorarRequisicoes();
+      monitorarTabelas();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // Carrega itens da despensa para o SELECT
+    // NAVEGAÇÃO
+    function switchTab(id) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
+    }
+
+    // GERENCIAMENTO DE INGREDIENTES NO FORM
+    function addIngrediente() {
+      const div = document.createElement('div');
+      div.className = 'ing-row';
+      div.innerHTML = '<input type="text" placeholder="Ingrediente" class="ing-nome"><input type="text" placeholder="Qtd/Base" class="ing-qtd">';
+      document.getElementById('ingredientesLista').appendChild(div);
+    }
+
+    // CARREGAR ESTOQUE PARA O SELECT
     function carregarEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-        const select = document.getElementById('reqItem');
-        select.innerHTML = '<option value="">Selecione o material...</option>';
+        const sel = document.getElementById('reqItem');
+        sel.innerHTML = '<option value="">Selecione o material...</option>';
+        snap.forEach(doc => { sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`; });
+      });
+    }
+
+    // MONITORAMENTO EM TEMPO REAL
+    function monitorarTabelas() {
+      // 1. Requisições
+      db.collection('requisicoes').orderBy('dataUso', 'asc').onSnapshot(snap => {
+        const tb = document.querySelector('#tabelaReq tbody');
+        tb.innerHTML = '';
         snap.forEach(doc => {
-          const p = doc.data();
-          select.innerHTML += `<option value="${p.nome}">${p.nome} (Saldo: ${p.quantidade})</option>`;
+          const r = doc.data();
+          const bCls = r.status === 'pendente' ? 'badge-pendente' : 'badge-entregue';
+          tb.innerHTML += `<tr>
+            <td>${r.dataUso}</td>
+            <td><strong>${r.item}</strong></td>
+            <td>${r.quantidade}</td>
+            <td><span class="badge ${bCls}">${r.status.toUpperCase()}</span></td>
+          </tr>`;
+        });
+      });
+
+      // 2. Cardápios Salvos
+      db.collection('cardapios').orderBy('data', 'desc').onSnapshot(snap => {
+        const tb = document.querySelector('#tabelaHistoricoCardapio tbody');
+        tb.innerHTML = '';
+        snap.forEach(doc => {
+          const c = doc.data();
+          tb.innerHTML += `<tr>
+            <td>${c.data}</td>
+            <td>${c.diaSemana}</td>
+            <td><strong>${c.pratoPrincipal}</strong></td>
+            <td style="font-size:0.75rem">${c.acompanhamentos}</td>
+            <td><button onclick="deletarDoc('cardapios','${doc.id}')" style="border:none; background:none; color:red; cursor:pointer"><i class="fas fa-trash"></i></button></td>
+          </tr>`;
+        });
+      });
+
+      // 3. Receitas
+      db.collection('receitas').orderBy('nome').onSnapshot(snap => {
+        const tb = document.querySelector('#tabelaReceitas tbody');
+        tb.innerHTML = '';
+        snap.forEach(doc => {
+          const r = doc.data();
+          const ings = r.ingredientes.map(i => i.nome).join(', ');
+          tb.innerHTML += `<tr>
+            <td><strong>${r.nome}</strong></td>
+            <td style="font-size:0.75rem">${ings}</td>
+            <td><button onclick="deletarDoc('receitas','${doc.id}')" style="border:none; background:none; color:red; cursor:pointer"><i class="fas fa-trash"></i></button></td>
+          </tr>`;
         });
       });
     }
 
-    // Lançar Cardápio
+    // SUBMISSÕES
     document.getElementById('formCardapio').onsubmit = async (e) => {
       e.preventDefault();
       await db.collection('cardapios').add({
         data: document.getElementById('cardData').value,
         diaSemana: document.getElementById('cardDiaSemana').value,
-        refeicao: document.getElementById('cardRefeicao').value,
         pratoPrincipal: document.getElementById('cardPrincipal').value,
         acompanhamentos: document.getElementById('cardAcomp').value,
         timestamp: new Date()
       });
-      alert("Cardápio publicado!");
-      e.target.reset();
+      alert("Cardápio publicado!"); e.target.reset();
     };
 
-    // Lançar Requisição
     document.getElementById('formRequisicao').onsubmit = async (e) => {
       e.preventDefault();
       await db.collection('requisicoes').add({
@@ -213,46 +298,32 @@
         dataSolicitacao: new Date(),
         solicitante: auth.currentUser.email
       });
-      alert("Requisição enviada à despensa!");
-      e.target.reset();
+      alert("Pedido enviado à despensa!"); e.target.reset();
     };
 
-    function monitorarCardapios() {
-      db.collection('cardapios').orderBy('data', 'asc').onSnapshot(snap => {
-        const tbody = document.getElementById('listaCardapios');
-        tbody.innerHTML = '';
-        snap.forEach(doc => {
-          const c = doc.data();
-          tbody.innerHTML += `<tr>
-            <td>${c.data}</td>
-            <td>${c.diaSemana}</td>
-            <td>${c.refeicao}</td>
-            <td><strong>${c.pratoPrincipal}</strong></td>
-            <td><button onclick="deletarDoc('cardapios','${doc.id}')" style="color:red; border:none; background:none; cursor:pointer"><i class="fas fa-trash"></i></button></td>
-          </tr>`;
-        });
+    document.getElementById('formNovaReceita').onsubmit = async (e) => {
+      e.preventDefault();
+      const ingredientes = [];
+      document.querySelectorAll('.ing-row').forEach(row => {
+        const n = row.querySelector('.ing-nome').value;
+        const q = row.querySelector('.ing-qtd').value;
+        if(n) ingredientes.push({ nome: n, qtd: q });
       });
-    }
 
-    function monitorarRequisicoes() {
-      db.collection('requisicoes').orderBy('dataUso', 'asc').onSnapshot(snap => {
-        const tbody = document.getElementById('listaReqStatus');
-        tbody.innerHTML = '';
-        snap.forEach(doc => {
-          const r = doc.data();
-          const cor = r.status === 'pendente' ? '#f59e0b' : '#10b981';
-          tbody.innerHTML += `<tr>
-            <td>${r.dataUso}</td>
-            <td>${r.item}</td>
-            <td>${r.quantidade}</td>
-            <td style="color:${cor}; font-weight:bold">${r.status.toUpperCase()}</td>
-          </tr>`;
-        });
+      await db.collection('receitas').add({
+        nome: document.getElementById('recNome').value,
+        preparo: document.getElementById('recPreparo').value,
+        ingredientes: ingredientes
       });
-    }
+      alert("Ficha Técnica salva!");
+      e.target.reset();
+      document.getElementById('ingredientesLista').innerHTML = '<label>Ingredientes (Percapita/Base)</label><div class="ing-row"><input type="text" placeholder="Ingrediente" class="ing-nome"><input type="text" placeholder="Qtd/Base" class="ing-qtd"></div>';
+    };
 
     async function deletarDoc(col, id) {
-      if(confirm("Deseja excluir este registro?")) await db.collection(col).doc(id).delete();
+      if(confirm("Deseja remover este registro permanentemente?")) {
+        await db.collection(col).doc(id).delete();
+      }
     }
   </script>
 </body>
