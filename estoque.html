@@ -31,74 +31,71 @@
     .tab-btn { padding: 0.75rem 1.5rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-    .grid-layout { display: grid; grid-template-columns: 400px 1fr; gap: 1.5rem; }
+    .grid-layout { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; }
     @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
 
     .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
     .card h3 { margin-top: 0; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; text-transform: uppercase; }
 
-    /* Estilo Requisições Nutrição */
-    .req-group { margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+    .req-group { margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: white; }
     .req-header { padding: 8px 12px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: flex; justify-content: space-between; }
     .header-cafe { background: #fef3c7; color: #92400e; }
     .header-almoco { background: #dcfce7; color: #166534; }
     .header-janta { background: #e0e7ff; color: #3730a3; }
     .header-urgente { background: #fee2e2; color: #991b1b; }
 
-    .req-item { background: white; padding: 10px 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+    .req-item { padding: 12px; border-bottom: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 8px; }
     .req-item:last-child { border-bottom: none; }
+    .req-info { display: flex; justify-content: space-between; align-items: center; }
+    .req-actions { display: flex; gap: 5px; }
     
-    .btn { cursor: pointer; border: none; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: 0.2s; }
-    .btn-primary { background: var(--primary); color: white; }
+    .btn { cursor: pointer; border: none; padding: 0.6rem 0.8rem; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; font-size: 0.75rem; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
+    .btn-primary { background: var(--primary); color: white; }
 
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 0.75rem; background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; color: #64748b; }
+    th { text-align: left; padding: 0.75rem; background: #f1f5f9; font-size: 0.75rem; color: #64748b; }
     td { padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
 
     .badge { padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
     .badge-entrada { background: #dcfce7; color: #166534; }
     .badge-saida { background: #fee2e2; color: #991b1b; }
+    .badge-cancelado { background: #f1f5f9; color: #64748b; text-decoration: line-through; }
 
     #reader { width: 100%; border-radius: 12px; background: #000; overflow: hidden; margin-bottom: 10px; }
     .hidden { display: none !important; }
 
-    /* Modal */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
     .modal-content { background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; }
 
-    @media print {
-      body * { visibility: hidden; }
-      #modalEtiqueta, #modalEtiqueta * { visibility: visible; }
-      #modalEtiqueta { position: absolute; left: 0; top: 0; width: 100%; }
-    }
+    input, select { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; }
   </style>
 </head>
 <body>
 
   <nav>
-    <h2 style="margin:0"><i class="fas fa-warehouse"></i> EstoqueSync <span style="font-weight:300; font-size: 0.8rem;">DESPENSA / RANCHO</span></h2>
+    <h2 style="margin:0"><i class="fas fa-warehouse"></i> EstoqueSync <span style="font-weight:300; font-size: 0.8rem;">DESPENSA</span></h2>
     <div style="display:flex; align-items:center; gap:15px;">
       <span id="userDisplay" style="font-size: 0.8rem; opacity: 0.9;"></span>
-      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white; padding:5px 10px; font-size: 0.7rem;">SAIR</button>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tab-operacao')"><i class="fas fa-truck-loading"></i> Distribuição e Cargas</button>
+      <button class="tab-btn active" onclick="switchTab('tab-operacao')"><i class="fas fa-truck-loading"></i> Operações Diárias</button>
       <button class="tab-btn" onclick="switchTab('tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário Cego</button>
-      <button class="tab-btn" onclick="switchTab('tab-relatorios')"><i class="fas fa-history"></i> Histórico Movimentação</button>
+      <button class="tab-btn" onclick="switchTab('tab-relatorios')"><i class="fas fa-history"></i> Histórico</button>
     </div>
 
     <div id="tab-operacao" class="tab-content">
       <div class="grid-layout">
         <aside>
           <div class="card" style="border-top: 4px solid var(--warning)">
-            <h3><i class="fas fa-bell"></i> Cargas Programadas (Hoje)</h3>
+            <h3><i class="fas fa-clipboard-list"></i> Cargas Pendentes (Nutrição)</h3>
             <div id="listaRequisicoesAgrupadas">
-               <p style="text-align:center; color:#999; font-size:0.8rem;">Carregando pedidos do rancho...</p>
+               <p style="text-align:center; color:#999; font-size:0.8rem;">Carregando...</p>
             </div>
           </div>
 
@@ -111,30 +108,16 @@
                 <select id="prodUnidade" style="flex:0.5"><option value="un">un</option><option value="kg">kg</option><option value="lt">lt</option></select>
               </div>
               <input type="date" id="prodValidade" required>
-              <button type="submit" class="btn btn-primary" style="width:100%">Adicionar ao Estoque</button>
+              <button type="submit" class="btn btn-primary" style="width:100%">Salvar Entrada</button>
             </form>
-          </div>
-
-          <div class="card" style="border: 2px solid var(--accent)">
-            <h3><i class="fas fa-qrcode"></i> Saída Rápida QR Code</h3>
-            <div id="reader" class="hidden"></div>
-            <div id="qrForm" class="hidden">
-              <div style="background:#f0f7ff; padding:10px; border-radius:8px; margin-bottom:1rem; border-left: 4px solid var(--accent);">
-                <small>Item Escaneado:</small><br><strong id="qrProdNome" style="color:var(--primary)"></strong>
-              </div>
-              <input type="number" id="qrQtdBaixa" placeholder="Quantidade Saída" step="0.01">
-              <button onclick="confirmarBaixaQR()" class="btn btn-danger" style="width:100%">Confirmar Baixa</button>
-              <button onclick="cancelarScanner()" class="btn" style="width:100%; margin-top:5px; background:#e2e8f0">Sair</button>
-            </div>
-            <button id="btnScan" onclick="iniciarScanner()" class="btn btn-primary" style="width:100%; background:#334155"><i class="fas fa-camera"></i> Abrir Scanner</button>
           </div>
         </aside>
 
         <section>
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3><i class="fas fa-boxes-stacked"></i> Itens em Prateleira</h3>
-              <input type="text" id="inputBusca" placeholder="Pesquisar item..." style="width:200px; margin:0" onkeyup="filtrarTabela()">
+              <h3><i class="fas fa-boxes-stacked"></i> Saldo em Prateleira</h3>
+              <input type="text" id="inputBusca" placeholder="Filtrar estoque..." style="width:200px; margin:0" onkeyup="filtrarTabela()">
             </div>
             <table id="tabelaEstoque">
               <thead><tr><th>Produto</th><th>Saldo</th><th>Un</th><th>Validade</th><th>Ações</th></tr></thead>
@@ -146,37 +129,23 @@
     </div>
 
     <div id="tab-inventario" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-eye-slash"></i> Auditoria de Prateleira</h3>
-        <table>
-          <thead><tr><th>Produto</th><th>Saldo Sistema</th><th>Contagem Real</th><th>Ação</th></tr></thead>
-          <tbody id="corpoCego"></tbody>
-        </table>
-      </div>
+        <div class="card">
+            <h3>Inventário Cego</h3>
+            <table id="tabelaCego">
+                <thead><tr><th>Produto</th><th>Saldo Sistema</th><th>Contagem Real</th><th>Ação</th></tr></thead>
+                <tbody id="corpoCego"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="tab-relatorios" class="tab-content hidden">
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3><i class="fas fa-history"></i> Log Completo</h3>
-          <button onclick="exportarCSV()" class="btn btn-success" style="font-size:0.8rem;"><i class="fas fa-file-csv"></i> Baixar Relatório</button>
+        <div class="card">
+            <h3>Histórico de Movimentação</h3>
+            <table id="tabelaLogs">
+                <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
-        <table id="tabelaLogs">
-          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalEtiqueta" class="modal-overlay hidden">
-    <div class="modal-content">
-      <canvas id="qrCanvas"></canvas>
-      <h2 id="labelNome" style="margin:1rem 0; color: var(--primary);"></h2>
-      <div style="display:flex; gap:10px">
-        <button onclick="window.print()" class="btn btn-primary" style="flex:1">Imprimir</button>
-        <button onclick="fecharModal()" class="btn" style="background:#e2e8f0; flex:1">Fechar</button>
-      </div>
     </div>
   </div>
 
@@ -195,7 +164,7 @@
 
     const hojeIso = new Date().toISOString().split('T')[0];
 
-    auth.onAuthStateChanged(async user => {
+    auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
       document.getElementById('userDisplay').innerText = user.email;
       initModulo();
@@ -208,7 +177,7 @@
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // --- INTEGRAÇÃO COM NUTRIÇÃO: MONITORAR CARGAS ---
+    // MONITORAMENTO DE REQUISIÇÕES (COM BOTÃO DE CANCELAR)
     function monitorarCargasDoDia() {
       db.collection('requisicoes')
         .where('dataUso', '==', hojeIso)
@@ -218,11 +187,10 @@
           container.innerHTML = '';
           
           if(snap.empty) {
-            container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Nenhuma carga para hoje.</p>';
+            container.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Nenhuma carga pendente.</p>';
             return;
           }
 
-          // Agrupar por Turno/Tipo
           const grupos = { 'Cafe': [], 'Almoco': [], 'Janta': [], 'Outros': [] };
           snap.forEach(doc => {
             const data = { id: doc.id, ...doc.data() };
@@ -232,21 +200,29 @@
             else grupos.Outros.push(data);
           });
 
-          // Renderizar Grupos
           Object.keys(grupos).forEach(key => {
             if(grupos[key].length > 0) {
               const divGrupo = document.createElement('div');
               divGrupo.className = 'req-group';
-              const label = key === 'Outros' ? 'Urgências/Avulsos' : key;
+              const label = key === 'Outros' ? 'Urgências' : key;
               const headerCls = `header-${key.toLowerCase()}`;
               
-              divGrupo.innerHTML = `<div class="req-header ${headerCls}"><span>${label}</span> <i class="fas fa-clock"></i></div>`;
+              divGrupo.innerHTML = `<div class="req-header ${headerCls}"><span>${label}</span></div>`;
               
               grupos[key].forEach(req => {
                 divGrupo.innerHTML += `
                   <div class="req-item">
-                    <span><strong>${req.item}</strong><br><small>${req.quantidade} un</small></span>
-                    <button onclick="entregarMaterial('${req.id}', '${req.item}', ${req.quantidade}, '${key}')" class="btn btn-success" style="padding:5px 10px; font-size:0.7rem;">DAR BAIXA</button>
+                    <div class="req-info">
+                        <span><strong>${req.item}</strong> (${req.quantidade})</span>
+                    </div>
+                    <div class="req-actions">
+                        <button onclick="entregarMaterial('${req.id}', '${req.item}', ${req.quantidade}, '${key}')" class="btn btn-success" style="flex:2">
+                            <i class="fas fa-check"></i> ENTREGAR
+                        </button>
+                        <button onclick="cancelarRequisicao('${req.id}', '${req.item}')" class="btn btn-danger" style="flex:1">
+                            <i class="fas fa-ban"></i> RECUSAR
+                        </button>
+                    </div>
                   </div>`;
               });
               container.appendChild(divGrupo);
@@ -255,14 +231,13 @@
         });
     }
 
+    // AÇÃO DE ENTREGAR (BAIXA NO ESTOQUE)
     async function entregarMaterial(reqId, itemNome, qtd, turno) {
       const snapEst = await db.collection('estoque').where('nome', '==', itemNome).get();
-      if(snapEst.empty) return alert("Item não encontrado no estoque para dar baixa!");
+      if(snapEst.empty) return alert("Erro: Produto não existe no estoque.");
 
       const docEst = snapEst.docs[0];
       const novoSaldo = docEst.data().quantidade - qtd;
-
-      if(novoSaldo < 0 && !confirm("Estoque insuficiente. Deseja negativar o saldo?")) return;
 
       const batch = db.batch();
       batch.update(db.collection('estoque').doc(docEst.id), { quantidade: novoSaldo });
@@ -272,7 +247,24 @@
       await registrarLog(`Saída Rancho (${turno})`, itemNome, qtd);
     }
 
-    // --- FUNÇÕES ORIGINAIS DE ESTOQUE (QR, LOGS, ETC) ---
+    // NOVA FUNÇÃO: CANCELAR / NÃO ENTREGUE
+    async function cancelarRequisicao(reqId, itemNome) {
+        const motivo = prompt(`Por que o item "${itemNome}" não será entregue? (Ex: Falta no estoque, Produto avariado)`);
+        
+        if (motivo !== null) {
+            await db.collection('requisicoes').doc(reqId).update({
+                status: 'cancelado',
+                motivoCancelamento: motivo || 'Não especificado',
+                dataCancelamento: new Date(),
+                canceladoPor: auth.currentUser.email
+            });
+            
+            await registrarLog(`RECUSADO: ${itemNome}`, motivo || 'Sem motivo', 0);
+            alert("Requisição cancelada. A Nutrição/Cozinha será notificada pelo status.");
+        }
+    }
+
+    // AUXILIARES (LOGS E TABELAS)
     async function registrarLog(tipo, prod, qtd) {
       await db.collection('historico').add({
         data: new Date(), tipo: tipo, produto: prod, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
@@ -290,32 +282,29 @@
             <td><strong>${p.nome}</strong></td>
             <td>${p.quantidade}</td>
             <td>${p.unidade}</td>
-            <td><small>${p.validade || '-'}</small></td>
-            <td>
-              <button onclick="mostrarEtiqueta('${p.nome}')" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-qrcode"></i></button>
-              <button onclick="deletar('${doc.id}')" style="border:none; background:none; color:var(--danger); cursor:pointer; margin-left:10px;"><i class="fas fa-trash"></i></button>
-            </td>
+            <td>${p.validade || '-'}</td>
+            <td><button onclick="deletar('${doc.id}')" style="border:none; background:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button></td>
           </tr>`;
           tCego.innerHTML += `<tr>
             <td>${p.nome}</td>
-            <td><strong>${p.quantidade}</strong></td>
-            <td><input type="number" id="cego-${doc.id}" style="width:70px; margin:0"></td>
-            <td><button onclick="validarCego('${doc.id}', '${p.nome}', ${p.quantidade})" class="btn btn-primary" style="padding:4px">Validar</button></td>
+            <td>${p.quantidade}</td>
+            <td><input type="number" id="cego-${doc.id}" style="width:60px; margin:0"></td>
+            <td><button onclick="validarCego('${doc.id}', '${p.nome}', ${p.quantidade})" class="btn btn-primary">OK</button></td>
           </tr>`;
         });
       });
     }
 
     function renderLogs() {
-      db.collection('historico').orderBy('data', 'desc').limit(30).onSnapshot(snap => {
+      db.collection('historico').orderBy('data', 'desc').limit(20).onSnapshot(snap => {
         const tb = document.querySelector('#tabelaLogs tbody');
         tb.innerHTML = '';
         snap.forEach(doc => {
           const l = doc.data();
-          const badge = l.tipo.includes('Entrada') ? 'badge-entrada' : 'badge-saida';
+          const cls = l.tipo.includes('RECUSADO') ? 'badge-cancelado' : (l.tipo.includes('Entrada') ? 'badge-entrada' : 'badge-saida');
           tb.innerHTML += `<tr>
-            <td>${l.data.toDate().toLocaleString()}</td>
-            <td><span class="badge ${badge}">${l.tipo}</span></td>
+            <td>${l.data.toDate().toLocaleDateString()}</td>
+            <td><span class="badge ${cls}">${l.tipo}</span></td>
             <td>${l.produto}</td>
             <td>${l.quantidade}</td>
             <td><small>${l.usuario}</small></td>
@@ -324,52 +313,6 @@
       });
     }
 
-    // LOGICA QR CODE E SCANNER
-    let scanner;
-    async function iniciarScanner() {
-      document.getElementById('reader').classList.remove('hidden');
-      document.getElementById('btnScan').classList.add('hidden');
-      scanner = new Html5Qrcode("reader");
-      await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-        scanner.stop();
-        document.getElementById('reader').classList.add('hidden');
-        document.getElementById('qrForm').classList.remove('hidden');
-        document.getElementById('qrProdNome').innerText = text;
-        window.tempProd = text;
-      });
-    }
-
-    async function confirmarBaixaQR() {
-      const q = parseFloat(document.getElementById('qrQtdBaixa').value);
-      if(!q) return alert("Digite a quantidade");
-      const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
-      if(!snap.empty) {
-        const doc = snap.docs[0];
-        await db.collection('estoque').doc(doc.id).update({ quantidade: doc.data().quantidade - q });
-        await registrarLog('Saída QR', window.tempProd, q);
-        alert("Baixa realizada!");
-        cancelarScanner();
-      }
-    }
-
-    function cancelarScanner() { 
-        if(scanner) scanner.stop().catch(()=>{});
-        document.getElementById('reader').classList.add('hidden');
-        document.getElementById('qrForm').classList.add('hidden');
-        document.getElementById('btnScan').classList.remove('hidden');
-    }
-
-    function mostrarEtiqueta(nome) {
-      document.getElementById('modalEtiqueta').classList.remove('hidden');
-      setTimeout(() => {
-        new QRious({ element: document.getElementById('qrCanvas'), value: nome, size: 180 });
-        document.getElementById('labelNome').innerText = nome;
-      }, 100);
-    }
-
-    function fecharModal() { document.getElementById('modalEtiqueta').classList.add('hidden'); }
-
-    // UTILITÁRIOS
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -384,7 +327,7 @@
       await db.collection('estoque').add({
         nome: n, quantidade: q, unidade: document.getElementById('prodUnidade').value, validade: document.getElementById('prodValidade').value
       });
-      await registrarLog('Entrada', n, q);
+      await registrarLog('Entrada Manual', n, q);
       e.target.reset();
     };
 
@@ -395,32 +338,16 @@
       });
     }
 
-    async function deletar(id) { if(confirm("Excluir item permanentemente?")) await db.collection('estoque').doc(id).delete(); }
+    async function deletar(id) { if(confirm("Remover item?")) await db.collection('estoque').doc(id).delete(); }
 
     async function validarCego(id, nome, saldo) {
-      const input = document.getElementById(`cego-${id}`);
-      const contado = parseFloat(input.value);
-      if(isNaN(contado)) return;
-      if(contado === saldo) alert("Conferência OK!");
-      else if(confirm(`Divergência! Sistema: ${saldo} | Real: ${contado}. Ajustar estoque?`)) {
-        await db.collection('estoque').doc(id).update({ quantidade: contado });
-        await registrarLog('Ajuste Inventário', nome, contado);
-      }
-      input.value = "";
-    }
-
-    async function exportarCSV() {
-      const snap = await db.collection('historico').orderBy('data', 'desc').get();
-      let csv = 'Data,Tipo,Produto,Quantidade,Usuario\n';
-      snap.forEach(doc => {
-        const l = doc.data();
-        csv += `${l.data.toDate().toLocaleString()},${l.tipo},${l.produto},${l.quantidade},${l.usuario}\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = window.URL.createObjectURL(blob);
-      a.download = `rancho_estoque_${hojeIso}.csv`;
-      a.click();
+      const v = parseFloat(document.getElementById(`cego-${id}`).value);
+      if(isNaN(v)) return;
+      if(v !== saldo && confirm(`Ajustar de ${saldo} para ${v}?`)) {
+          await db.collection('estoque').doc(id).update({ quantidade: v });
+          await registrarLog('Ajuste Inventário', nome, v);
+      } else if (v === saldo) { alert("Saldo correto!"); }
+      document.getElementById(`cego-${id}`).value = '';
     }
   </script>
 </body>
