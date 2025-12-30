@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-pt">
+<html lang="pt-br">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync Pro — Gestão Completa</title>
+  <title>EstoqueSync Pro — Sistema Integrado</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,7 +11,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
@@ -22,14 +21,14 @@
       --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     }
 
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-    nav { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    nav { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow); }
     
     .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
 
-    /* Tabs */
+    /* Navegação por Abas */
     .tabs { display: flex; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); overflow-x: auto; }
-    .tab-btn { padding: 0.75rem 1.5rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; }
+    .tab-btn { padding: 0.75rem 1.5rem; cursor: pointer; border: none; background: none; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; }
     .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
     .grid-layout { display: grid; grid-template-columns: 350px 1fr; gap: 1.5rem; }
@@ -38,10 +37,11 @@
     .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
     .card h3 { margin-top: 0; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; }
 
-    input, select { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
+    input, select { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; box-sizing: border-box; }
     .btn { cursor: pointer; border: none; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; transition: 0.2s; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
     
     table { width: 100%; border-collapse: collapse; }
     th { text-align: left; padding: 0.75rem; background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; color: #64748b; }
@@ -53,68 +53,85 @@
 
     .req-item { background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-    #reader { width: 100%; border-radius: 12px; background: #000; overflow: hidden; }
+    #reader { width: 100%; border-radius: 12px; background: #000; overflow: hidden; margin-bottom: 10px; }
     .hidden { display: none !important; }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
-    .modal-content { background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; }
+    /* Modal Estilizado */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
+    .modal-content { background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+    
+    @media print {
+      body * { visibility: hidden; }
+      #modalEtiqueta, #modalEtiqueta * { visibility: visible; }
+      #modalEtiqueta { position: absolute; left: 0; top: 0; width: 100%; background: white; }
+      .btn-modal-close, nav, .tabs { display: none !important; }
+    }
   </style>
 </head>
 <body>
 
   <nav>
-    <h2 style="margin:0"><i class="fas fa-sync"></i> EstoqueSync <span style="font-weight:300; font-size: 0.8rem;">PRO</span></h2>
+    <h2 style="margin:0"><i class="fas fa-box-open"></i> EstoqueSync <span style="font-weight:300; font-size: 0.8rem;">SISTEMA GESTÃO</span></h2>
     <div style="display:flex; align-items:center; gap:15px;">
       <span id="userDisplay" style="font-size: 0.8rem; opacity: 0.9;"></span>
-      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white; padding:5px 10px;">Sair</button>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white; padding:5px 10px; font-size: 0.7rem;">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tab-operacao')">Operação Diária</button>
-      <button class="tab-btn" onclick="switchTab('tab-inventario')">Inventário Cego</button>
-      <button class="tab-btn" onclick="switchTab('tab-relatorios')">Histórico & BI</button>
+      <button class="tab-btn active" onclick="switchTab('tab-operacao')"><i class="fas fa-tasks"></i> Operação</button>
+      <button class="tab-btn" onclick="switchTab('tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário Cego</button>
+      <button class="tab-btn" onclick="switchTab('tab-relatorios')"><i class="fas fa-file-invoice"></i> Histórico</button>
     </div>
 
     <div id="tab-operacao" class="tab-content">
       <div class="grid-layout">
         <aside>
           <div class="card">
-            <h3><i class="fas fa-plus-circle"></i> Novo Cadastro</h3>
+            <h3><i class="fas fa-plus-circle"></i> Entrada de Produto</h3>
             <form id="formEntrada">
-              <input type="text" id="prodNome" placeholder="Produto" required>
-              <input type="number" id="prodQtd" placeholder="Qtd Inicial" required>
-              <button type="submit" class="btn btn-primary" style="width:100%">Registar Entrada</button>
+              <input type="text" id="prodNome" placeholder="Nome do Produto" required>
+              <div style="display:flex; gap:10px;">
+                <input type="number" id="prodQtd" placeholder="Quantidade" step="0.01" required>
+                <select id="prodUnidade" style="flex:0.5">
+                  <option value="un">un</option><option value="kg">kg</option><option value="lt">lt</option>
+                </select>
+              </div>
+              <input type="date" id="prodValidade" required>
+              <button type="submit" class="btn btn-primary" style="width:100%">Salvar no Estoque</button>
             </form>
           </div>
 
-          <div class="card" style="border: 1px solid var(--accent)">
-            <h3><i class="fas fa-qrcode"></i> Baixa QR</h3>
+          <div class="card" style="border: 2px solid var(--accent)">
+            <h3><i class="fas fa-qrcode"></i> Baixa Via QR Code</h3>
             <div id="reader" class="hidden"></div>
             <div id="qrForm" class="hidden">
-              <p>Produto: <strong id="qrProdNome"></strong></p>
-              <input type="number" id="qrQtdBaixa" placeholder="Qtd Saída">
-              <button onclick="confirmarBaixaQR()" class="btn" style="width:100%; background:var(--danger); color:white;">Baixa QR</button>
+              <div style="background:#f0f7ff; padding:10px; border-radius:8px; margin-bottom:1rem; border-left: 4px solid var(--accent);">
+                <small>Produto Identificado:</small><br><strong id="qrProdNome" style="color:var(--primary)"></strong>
+              </div>
+              <input type="number" id="qrQtdBaixa" placeholder="Qtd para Retirar" step="0.01">
+              <button onclick="confirmarBaixaQR()" class="btn btn-danger" style="width:100%">Confirmar Saída</button>
+              <button onclick="cancelarScanner()" class="btn" style="width:100%; margin-top:5px; background:#e2e8f0">Cancelar</button>
             </div>
-            <button id="btnScan" onclick="iniciarScanner()" class="btn btn-primary" style="width:100%; background:#334155">Abrir Scanner</button>
+            <button id="btnScan" onclick="iniciarScanner()" class="btn btn-primary" style="width:100%; background:#334155"><i class="fas fa-camera"></i> Abrir Scanner</button>
           </div>
 
           <div class="card" style="border-top: 4px solid var(--warning)">
-            <h3><i class="fas fa-bell"></i> Pedidos da Cozinha</h3>
-            <div id="listaRequisicoes" style="max-height: 300px; overflow-y: auto;">
-                </div>
+            <h3><i class="fas fa-bell"></i> Requisições Cozinha</h3>
+            <div id="listaRequisicoes" style="max-height: 250px; overflow-y: auto;">
+              </div>
           </div>
         </aside>
 
         <section>
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-              <h3><i class="fas fa-boxes-stacked"></i> Stock Atual</h3>
-              <input type="text" id="inputBusca" placeholder="Pesquisar..." style="width:200px; margin:0" onkeyup="filtrarTabela()">
+              <h3><i class="fas fa-boxes-stacked"></i> Inventário em Tempo Real</h3>
+              <input type="text" id="inputBusca" placeholder="Filtrar produtos..." style="width:200px; margin:0" onkeyup="filtrarTabela()">
             </div>
             <table id="tabelaEstoque">
-              <thead><tr><th>Produto</th><th>Saldo</th><th>Ações</th></tr></thead>
+              <thead><tr><th>Produto</th><th>Saldo</th><th>Un</th><th>Ações</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -123,36 +140,44 @@
     </div>
 
     <div id="tab-inventario" class="tab-content hidden">
-        <div class="card">
-            <h3><i class="fas fa-clipboard-check"></i> Inventário Cego</h3>
-            <table id="tabelaCega">
-                <thead><tr><th>Produto</th><th>Contagem Física</th><th>Ação</th></tr></thead>
-                <tbody id="corpoCego"></tbody>
-            </table>
-        </div>
+      <div class="card">
+        <h3><i class="fas fa-eye-slash"></i> Auditoria (Contagem Cega)</h3>
+        <table>
+          <thead><tr><th>Produto</th><th>Contagem Física</th><th>Ação</th></tr></thead>
+          <tbody id="corpoCego"></tbody>
+        </table>
+      </div>
     </div>
 
     <div id="tab-relatorios" class="tab-content hidden">
-        <div class="card">
-            <h3><i class="fas fa-history"></i> Log de Movimentações</h3>
-            <table id="tabelaLogs">
-                <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
-                <tbody></tbody>
-            </table>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3><i class="fas fa-history"></i> Log de Movimentações</h3>
+          <button onclick="exportarCSV()" class="btn btn-success" style="font-size:0.8rem;"><i class="fas fa-file-csv"></i> Exportar CSV</button>
         </div>
+        <table id="tabelaLogs">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <div id="modalEtiqueta" class="modal-overlay hidden">
     <div class="modal-content">
-      <canvas id="qrCanvas"></canvas>
-      <h2 id="labelNome" style="margin:1rem 0"></h2>
-      <button onclick="fecharModal()" class="btn" style="background:#e2e8f0; width:100%">Fechar</button>
+      <div id="qrWrapper" style="background: white; padding: 10px; display: inline-block;">
+        <canvas id="qrCanvas"></canvas>
+      </div>
+      <h2 id="labelNome" style="margin:1rem 0; color: var(--primary);"></h2>
+      <div style="display:flex; gap:10px">
+        <button onclick="window.print()" class="btn btn-primary" style="flex:1"><i class="fas fa-print"></i> Imprimir</button>
+        <button onclick="fecharModal()" class="btn btn-modal-close" style="background:#e2e8f0; flex:1">Fechar</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // CONFIGURAÇÃO FIREBASE (Igual à sua)
+    // 1. CONFIGURAÇÃO
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -165,6 +190,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
+    // 2. AUTENTICAÇÃO
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'index.html'; return; }
       const doc = await db.collection('usuarios_autorizados').doc(user.email).get();
@@ -181,82 +207,59 @@
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
+    // 3. MOVIMENTAÇÕES E LOGS
     async function registrarLog(tipo, prod, qtd) {
       await db.collection('historico').add({
-        data: new Date(), tipo: tipo, produto: prod, quantidade: qtd, usuario: auth.currentUser.email.split('@')[0]
+        data: new Date(),
+        tipo: tipo,
+        produto: prod,
+        quantidade: qtd,
+        usuario: auth.currentUser.email.split('@')[0]
       });
     }
 
-    // LISTENER DE REQUISIÇÕES (COZINHA)
+    // 4. REQUISIÇÕES DA COZINHA
     function renderRequisicoes() {
-        db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
-            const container = document.getElementById('listaRequisicoes');
-            container.innerHTML = snap.empty ? '<p style="text-align:center; color:#999; font-size:0.8rem;">Nenhum pedido pendente.</p>' : '';
-            snap.forEach(doc => {
-                const r = doc.data();
-                container.innerHTML += `
-                    <div class="req-item">
-                        <div>
-                            <strong style="font-size:0.9rem;">${r.item}</strong><br>
-                            <small>${r.quantidade} unidades</small>
-                        </div>
-                        <button onclick="finalizarPedido('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success" style="padding:5px 10px; font-size:0.7rem;">Finalizar</button>
-                    </div>`;
-            });
-        });
-    }
-
-    async function finalizarPedido(id, item, qtd) {
-        const snap = await db.collection('estoque').where('nome', '==', item).get();
-        if(!snap.empty) {
-            const docEstoque = snap.docs[0];
-            await db.collection('estoque').doc(docEstoque.id).update({ 
-                quantidade: docEstoque.data().quantidade - qtd 
-            });
-            await registrarLog('Saída (Cozinha)', item, qtd);
-        }
-        await db.collection('requisicoes').doc(id).update({ status: 'entregue' });
-    }
-
-    // RESTANTE DAS FUNÇÕES (Estoque, Scanner, etc)
-    function renderEstoque() {
-      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-        const tbody = document.querySelector('#tabelaEstoque tbody');
-        const tCego = document.querySelector('#corpoCego');
-        tbody.innerHTML = ''; tCego.innerHTML = '';
+      db.collection('requisicoes').where('status', '==', 'pendente').onSnapshot(snap => {
+        const div = document.getElementById('listaRequisicoes');
+        div.innerHTML = snap.empty ? '<p style="text-align:center; color:#999; font-size:0.8rem;">Sem pedidos no momento.</p>' : '';
         snap.forEach(doc => {
-          const p = doc.data();
-          tbody.innerHTML += `<tr>
-            <td><strong>${p.nome}</strong></td>
-            <td>${p.quantidade}</td>
-            <td>
-              <button onclick="mostrarEtiqueta('${p.nome}')" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-qrcode"></i></button>
-            </td>
-          </tr>`;
-          tCego.innerHTML += `<tr><td>${p.nome}</td><td><input type="number" id="cego-${doc.id}" style="width:60px; margin:0;"></td><td><button onclick="validarCego('${doc.id}','${p.nome}',${p.quantidade})" class="btn btn-primary">OK</button></td></tr>`;
+          const r = doc.data();
+          div.innerHTML += `
+            <div class="req-item">
+              <span><strong>${r.item}</strong> (${r.quantidade})</span>
+              <button onclick="finalizarReq('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success" style="padding:4px 8px; font-size:0.7rem;">OK</button>
+            </div>`;
         });
       });
     }
 
-    function renderLogs() {
-        db.collection('historico').orderBy('data', 'desc').limit(10).onSnapshot(snap => {
-            const tb = document.querySelector('#tabelaLogs tbody');
-            tb.innerHTML = '';
-            snap.forEach(doc => {
-                const l = doc.data();
-                tb.innerHTML += `<tr><td>${l.data.toDate().toLocaleDateString()}</td><td>${l.tipo}</td><td>${l.produto}</td><td>${l.quantidade}</td><td>${l.usuario}</td></tr>`;
-            });
+    async function finalizarReq(id, item, qtd) {
+      const snap = await db.collection('estoque').where('nome', '==', item).get();
+      if(!snap.empty) {
+        const docEst = snap.docs[0];
+        await db.collection('estoque').doc(docEst.id).update({ quantidade: docEst.data().quantidade - qtd });
+        await registrarLog('Saída (Cozinha)', item, qtd);
+      }
+      await db.collection('requisicoes').doc(id).update({ status: 'entregue' });
+    }
+
+    // 5. QR CODE GERADOR (CORRIGIDO)
+    function mostrarEtiqueta(nome) {
+      document.getElementById('modalEtiqueta').classList.remove('hidden');
+      setTimeout(() => {
+        new QRious({
+          element: document.getElementById('qrCanvas'),
+          value: nome,
+          size: 200,
+          level: 'H'
         });
+        document.getElementById('labelNome').innerText = nome;
+      }, 150);
     }
+    function fecharModal() { document.getElementById('modalEtiqueta').classList.add('hidden'); }
 
-    // Auxiliares
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.remove('hidden');
-      event.currentTarget.classList.add('active');
-    }
-
+    // 6. QR CODE SCANNER (CORRIGIDO COM RESET)
     let scanner;
     async function iniciarScanner() {
       document.getElementById('reader').classList.remove('hidden');
@@ -272,22 +275,127 @@
     }
 
     async function confirmarBaixaQR() {
-      const q = parseFloat(document.getElementById('qrQtdBaixa').value);
+      const input = document.getElementById('qrQtdBaixa');
+      const q = parseFloat(input.value);
+      if(!q) return alert("Digite a quantidade");
+      
       const snap = await db.collection('estoque').where('nome', '==', window.tempProd).get();
       if(!snap.empty) {
-        await db.collection('estoque').doc(snap.docs[0].id).update({ quantidade: snap.docs[0].data().quantidade - q });
+        const doc = snap.docs[0];
+        await db.collection('estoque').doc(doc.id).update({ quantidade: doc.data().quantidade - q });
         await registrarLog('Saída QR', window.tempProd, q);
-        alert("Baixa confirmada!");
+        
+        alert("Baixa realizada!");
+        input.value = ""; // RESET DO CAMPO
         cancelarScanner();
       }
     }
 
-    function cancelarScanner() { if(scanner) scanner.stop().catch(()=>{}); document.getElementById('reader').classList.add('hidden'); document.getElementById('qrForm').classList.add('hidden'); document.getElementById('btnScan').classList.remove('hidden'); }
-    function fecharModal() { document.getElementById('modalEtiqueta').classList.add('hidden'); }
+    function cancelarScanner() { 
+      if(scanner) scanner.stop().catch(()=>{}); 
+      document.getElementById('reader').classList.add('hidden'); 
+      document.getElementById('qrForm').classList.add('hidden'); 
+      document.getElementById('btnScan').classList.remove('hidden'); 
+    }
+
+    // 7. RENDERIZAÇÃO TABELAS
+    function renderEstoque() {
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        const tbody = document.querySelector('#tabelaEstoque tbody');
+        const tCego = document.querySelector('#corpoCego');
+        tbody.innerHTML = ''; tCego.innerHTML = '';
+        snap.forEach(doc => {
+          const p = doc.data();
+          tbody.innerHTML += `<tr>
+            <td><strong>${p.nome}</strong></td>
+            <td>${p.quantidade}</td>
+            <td>${p.unidade}</td>
+            <td>
+              <button onclick="mostrarEtiqueta('${p.nome}')" style="border:none; background:none; color:var(--accent); cursor:pointer; font-size:1.1rem;"><i class="fas fa-qrcode"></i></button>
+              <button onclick="deletar('${doc.id}')" style="border:none; background:none; color:var(--danger); cursor:pointer; margin-left:12px;"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`;
+          tCego.innerHTML += `<tr>
+            <td>${p.nome}</td>
+            <td><input type="number" id="cego-${doc.id}" style="width:80px; margin:0;" placeholder="0"></td>
+            <td><button onclick="validarCego('${doc.id}', '${p.nome}', ${p.quantidade})" class="btn btn-primary" style="padding:5px 10px; font-size:0.7rem;">Validar</button></td>
+          </tr>`;
+        });
+      });
+    }
+
+    function renderLogs() {
+      db.collection('historico').orderBy('data', 'desc').limit(20).onSnapshot(snap => {
+        const tb = document.querySelector('#tabelaLogs tbody');
+        tb.innerHTML = '';
+        snap.forEach(doc => {
+          const l = doc.data();
+          const badge = l.tipo.includes('Entrada') ? 'badge-entrada' : 'badge-saida';
+          tb.innerHTML += `<tr>
+            <td>${l.data.toDate().toLocaleDateString()}</td>
+            <td><span class="badge ${badge}">${l.tipo}</span></td>
+            <td>${l.produto}</td>
+            <td>${l.quantidade}</td>
+            <td><small>${l.usuario}</small></td>
+          </tr>`;
+        });
+      });
+    }
+
+    // 8. AUDITORIA CEGA
+    async function validarCego(id, nome, saldo) {
+      const input = document.getElementById(`cego-${id}`);
+      const contagem = parseFloat(input.value);
+      if(isNaN(contagem)) return;
+      if(contagem === saldo) { alert("Saldo Correto!"); } 
+      else {
+        if(confirm(`Divergência! Sistema: ${saldo} | Contado: ${contagem}. Ajustar?`)) {
+          await db.collection('estoque').doc(id).update({ quantidade: contagem });
+          await registrarLog('Ajuste Inventário', nome, contagem);
+        }
+      }
+      input.value = "";
+    }
+
+    // 9. UTILITÁRIOS
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
+    }
+
+    document.getElementById('formEntrada').onsubmit = async (e) => {
+      e.preventDefault();
+      const n = document.getElementById('prodNome').value;
+      const q = parseFloat(document.getElementById('prodQtd').value);
+      await db.collection('estoque').add({
+        nome: n, quantidade: q, unidade: document.getElementById('prodUnidade').value, validade: document.getElementById('prodValidade').value
+      });
+      await registrarLog('Entrada', n, q);
+      e.target.reset();
+    };
+
     function filtrarTabela() {
       const b = document.getElementById('inputBusca').value.toLowerCase();
       const rows = document.getElementById('tabelaEstoque').querySelectorAll('tr');
-      rows.forEach(r => { r.style.display = r.innerText.toLowerCase().includes(b) ? '' : 'none'; });
+      rows.forEach(r => { if(r.querySelector('td')) r.style.display = r.innerText.toLowerCase().includes(b) ? '' : 'none'; });
+    }
+
+    async function deletar(id) { if(confirm("Excluir item?")) await db.collection('estoque').doc(id).delete(); }
+
+    async function exportarCSV() {
+      const snap = await db.collection('historico').orderBy('data', 'desc').get();
+      let csv = 'Data,Tipo,Produto,Quantidade,Usuario\n';
+      snap.forEach(doc => {
+        const l = doc.data();
+        csv += `${l.data.toDate().toLocaleDateString()},${l.tipo},${l.produto},${l.quantidade},${l.usuario}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = window.URL.createObjectURL(blob);
+      a.download = 'historico_estoque.csv';
+      a.click();
     }
   </script>
 </body>
