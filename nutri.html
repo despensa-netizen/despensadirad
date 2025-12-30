@@ -190,9 +190,20 @@
     // AUTH & INIT
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
-      document.getElementById('userDisplay').innerText = user.email;
-      initApp();
-    });
+    
+    const doc = await db.collection('usuarios').doc(user.uid).get();
+    const role = doc.data().role;
+
+    // Se for ADMIN, ele entra em qualquer uma. Se não for, precisa ser a role da página.
+    const roleDaPagina = "nutricionista"; //
+    
+    if (role === 'admin' || role === roleDaPagina) {
+        initModulo(); // Sua função que carrega a tela
+    } else {
+        alert("Acesso negado.");
+        window.location.href = 'index.html';
+    }
+});
 
     function initApp() {
       carregarEstoque();
@@ -328,3 +339,4 @@
   </script>
 </body>
 </html>
+
