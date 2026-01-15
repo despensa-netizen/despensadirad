@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa Integral v5</title>
+  <title>EstoqueSync — Despensa Integral v6.1</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -58,8 +58,9 @@
     #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; }
     .hidden { display: none !important; }
 
-    #qrModal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; }
-    .qr-box { background: white; padding: 30px; border-radius: 20px; text-align: center; }
+    /* Modais */
+    #qrModal, #modalBaixa { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+    .qr-box, .baixa-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; }
 
     .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
     .badge-saida { background: #fee2e2; color: #991b1b; }
@@ -105,12 +106,12 @@
             <form id="formSaidaManual">
               <select id="saidaProdSelect" required></select>
               <input type="number" id="saidaQtd" placeholder="Qtd" step="0.01" required>
-              <input type="text" id="saidaMotivo" placeholder="Motivo (Ex: Uso Cozinha, Descarte)">
+              <input type="text" id="saidaMotivo" placeholder="Motivo (Ex: Uso Cozinha)">
               <button type="submit" class="btn btn-warning" style="width:100%">Confirmar Baixa</button>
             </form>
           </div>
           <div class="card">
-            <h3><i class="fas fa-bell"></i> Requisições</h3>
+            <h3><i class="fas fa-bell"></i> Requisições do Dia</h3>
             <div id="listaRequisicoes"></div>
           </div>
         </aside>
@@ -134,40 +135,31 @@
         <h3 id="tituloCadastro"><i class="fas fa-edit"></i> Novo Produto</h3>
         <form id="formCadastro">
           <input type="hidden" id="editId">
-          <label>Nome do Produto</label>
-          <input type="text" id="cadNome" placeholder="Ex: Arroz Tipo 1" required>
-          
+          <input type="text" id="cadNome" placeholder="Nome do Produto" required>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <div><label>Categoria</label>
-              <select id="cadCat">
-                <option value="Secos">Produto Seco</option>
-                <option value="Proteína">Proteína</option>
-                <option value="Hortifrúti">Hortifrúti</option>
-                <option value="Laticínios">Laticínios</option>
-                <option value="Limpeza">Limpeza</option>
-              </select>
-            </div>
-            <div><label>Unidade</label>
-              <select id="cadUn">
-                <option value="kg">Kg</option><option value="g">G</option><option value="l">L</option>
-                <option value="uni">Uni</option><option value="cx">Cx</option>
-              </select>
-            </div>
+            <select id="cadCat">
+              <option value="Secos">Produto Seco</option>
+              <option value="Proteína">Proteína</option>
+              <option value="Hortifrúti">Hortifrúti</option>
+              <option value="Laticínios">Laticínios</option>
+              <option value="Limpeza">Limpeza</option>
+            </select>
+            <select id="cadUn">
+              <option value="kg">Kg</option><option value="g">G</option><option value="l">L</option>
+              <option value="uni">Uni</option><option value="cx">Cx</option>
+            </select>
           </div>
-
           <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-            <div><label>Local (Ex: A01)</label><input type="text" id="cadLocal" placeholder="Prateleira"></div>
-            <div><label>Estoque Mínimo</label><input type="number" id="cadMin" value="5"></div>
-            <div><label>Validade Atual</label><input type="date" id="cadVal"></div>
+            <input type="text" id="cadLocal" placeholder="Local/Prateleira">
+            <input type="number" id="cadMin" placeholder="Mínimo" value="5">
+            <input type="date" id="cadVal">
           </div>
-          
           <div style="display:flex; gap:10px;">
-            <button type="submit" class="btn btn-primary" style="flex:2">Salvar Produto</button>
+            <button type="submit" class="btn btn-primary" style="flex:2">Salvar</button>
             <button type="button" onclick="cancelarEdicao()" id="btnCancelEdit" class="btn btn-danger hidden">Cancelar</button>
           </div>
         </form>
-
-        <h3 style="margin-top:30px;"><i class="fas fa-list"></i> Catálogo / Editar</h3>
+        <h3 style="margin-top:30px;"><i class="fas fa-list"></i> Catálogo</h3>
         <table id="tabelaCatalogo">
           <thead><tr><th>Nome</th><th>Local</th><th>Ações</th></tr></thead>
           <tbody id="corpoCatalogo"></tbody>
@@ -177,9 +169,9 @@
 
     <div id="tab-historico" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-history"></i> Log de Movimentação (Últimas 50)</h3>
+        <h3><i class="fas fa-history"></i> Movimentações Recentes</h3>
         <table id="tabelaHist">
-          <thead><tr><th>Data/Hora</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
           <tbody id="corpoHist"></tbody>
         </table>
       </div>
@@ -187,10 +179,9 @@
 
     <div id="tab-planejamento" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-chart-bar"></i> Consumo Médio Mensal (Últimos 30 dias)</h3>
-        <p style="font-size:0.75rem; color:#64748b; margin-bottom:15px;">Calculado com base em todas as saídas (Cargas, QR e Manuais).</p>
+        <h3><i class="fas fa-chart-bar"></i> Previsão de Compra (30d)</h3>
         <table id="tabelaConsumo">
-          <thead><tr><th>Produto</th><th>Total Saídas (30d)</th><th>Média Diária</th><th>Sugestão Compra</th></tr></thead>
+          <thead><tr><th>Produto</th><th>Total Saídas</th><th>Média Diária</th><th>Sugestão Compra</th></tr></thead>
           <tbody id="corpoConsumo"></tbody>
         </table>
       </div>
@@ -208,13 +199,13 @@
 
     <div id="tab-entrada" class="tab-content hidden">
       <div class="card" style="max-width: 500px; margin: auto;">
-        <h3><i class="fas fa-cart-plus"></i> Entrada de Material</h3>
+        <h3><i class="fas fa-truck-loading"></i> Entrada de Material</h3>
         <form id="formEntrada">
           <select id="entProdSelect" required></select>
           <input type="number" id="entQtd" step="0.01" placeholder="Quantidade" required>
-          <label>Nova Validade</label>
+          <label>Validade</label>
           <input type="date" id="entVal" required>
-          <button type="submit" class="btn btn-success" style="width:100%">Salvar Entrada</button>
+          <button type="submit" class="btn btn-success" style="width:100%">Confirmar Entrada</button>
         </form>
       </div>
     </div>
@@ -222,17 +213,32 @@
 
   <div id="qrModal" class="hidden">
     <div class="qr-box">
-      <h3 id="qrTitle" style="color:#000; margin-bottom:15px; font-size:1rem;"></h3>
+      <h3 id="qrTitle"></h3>
       <canvas id="qrCanvas"></canvas>
       <div style="margin-top:20px; display:flex; gap:10px;" class="no-print">
-        <button onclick="window.print()" class="btn btn-success"><i class="fas fa-print"></i> IMPRIMIR</button>
-        <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="btn btn-outline">VOLTAR</button>
+        <button onclick="window.print()" class="btn btn-success">IMPRIMIR</button>
+        <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="btn">FECHAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalBaixa" class="hidden">
+    <div class="baixa-box">
+      <h3 id="baixaNomeProd" style="margin-bottom:5px; color:var(--primary);"></h3>
+      <p id="baixaInfoSaldo" style="font-size:0.8rem; color:#64748b; margin-bottom:20px;"></p>
+      
+      <input type="hidden" id="baixaIdProd">
+      <label style="font-size:0.7rem; font-weight:bold; display:block; text-align:left;">QTD DE SAÍDA:</label>
+      <input type="number" id="baixaQtdInput" step="0.01" placeholder="0.00" style="font-size:1.5rem; text-align:center;">
+      
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button onclick="confirmarBaixaScanner()" class="btn btn-success" style="flex:1">CONFIRMAR</button>
+        <button onclick="fecharModalBaixa()" class="btn btn-danger" style="flex:1">CANCELAR</button>
       </div>
     </div>
   </div>
 
   <script>
-    // --- CONFIGURAÇÃO FIREBASE ---
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -259,7 +265,7 @@
       carregarHistorico();
     }
 
-    // --- 1. SCANNER SOB DEMANDA ---
+    // --- LÓGICA DO SCANNER E MODAL DE BAIXA ---
     async function toggleScannerGlobal() {
       const readerDiv = document.getElementById('reader');
       const btn = document.getElementById('btnToggleScanner');
@@ -268,7 +274,7 @@
         readerDiv.classList.remove('hidden');
         btn.innerHTML = '<i class="fas fa-times"></i> FECHAR CÂMERA';
         scannerGlobal = new Html5Qrcode("reader");
-        scannerGlobal.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => processarBaixaRapida(txt))
+        scannerGlobal.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (id) => abrirModalBaixa(id))
         .catch(() => alert("Erro ao abrir câmera."));
       } else {
         fecharScanner();
@@ -276,34 +282,62 @@
     }
 
     async function fecharScanner() {
-        const readerDiv = document.getElementById('reader');
-        const btn = document.getElementById('btnToggleScanner');
-        if(scannerGlobal) {
-            await scannerGlobal.stop();
-            scannerGlobal = null;
-        }
-        readerDiv.classList.add('hidden');
-        btn.innerHTML = '<i class="fas fa-qrcode"></i> ABRIR CÂMERA';
+        if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; }
+        document.getElementById('reader').classList.add('hidden');
+        document.getElementById('btnToggleScanner').innerHTML = '<i class="fas fa-qrcode"></i> ABRIR CÂMERA';
     }
 
-    async function processarBaixaRapida(nome) {
-      const q = prompt(`PRODUTO LIDO: ${nome}\nInforme a quantidade de saída:`);
-      if(!q || isNaN(q)) return;
-      
-      const snap = await db.collection('estoque').where('nome', '==', nome).get();
-      if(snap.empty) return alert("Produto não encontrado no catálogo.");
-      
-      const doc = snap.docs[0];
-      const novoSaldo = doc.data().quantidade - parseFloat(q);
-      if(novoSaldo < 0) return alert("Saldo insuficiente!");
-
-      await fecharScanner();
-      await db.collection('estoque').doc(doc.id).update({ quantidade: novoSaldo });
-      registrarLog("SAÍDA QR", nome, q);
-      alert("Saída registrada com sucesso!");
+    async function abrirModalBaixa(id) {
+        // Para o scanner assim que lê
+        await fecharScanner();
+        
+        try {
+            const doc = await db.collection('estoque').doc(id).get();
+            if(!doc.exists) { alert("Produto não encontrado!"); return; }
+            
+            const p = doc.data();
+            document.getElementById('baixaIdProd').value = id;
+            document.getElementById('baixaNomeProd').innerText = p.nome;
+            document.getElementById('baixaInfoSaldo').innerText = `Saldo disponível: ${p.quantidade} ${p.unidade}`;
+            document.getElementById('baixaQtdInput').value = '';
+            
+            document.getElementById('modalBaixa').classList.remove('hidden');
+            setTimeout(() => document.getElementById('baixaQtdInput').focus(), 300);
+        } catch(e) { alert("Erro ao ler dados."); }
     }
 
-    // --- 2. GESTÃO DE PRODUTOS (EDIÇÃO E EXCLUSÃO) ---
+    function fecharModalBaixa() {
+        document.getElementById('modalBaixa').classList.add('hidden');
+    }
+
+    async function confirmarBaixaScanner() {
+        const id = document.getElementById('baixaIdProd').value;
+        const q = parseFloat(document.getElementById('baixaQtdInput').value);
+        
+        if(!q || q <= 0) return alert("Informe uma quantidade válida.");
+
+        const ref = db.collection('estoque').doc(id);
+        const snap = await ref.get();
+        const p = snap.data();
+
+        if(p.quantidade < q) return alert("Estoque insuficiente!");
+
+        await ref.update({ quantidade: p.quantidade - q });
+        await registrarLog("SAÍDA QR", p.nome, q);
+        
+        fecharModalBaixa();
+        alert("Baixa realizada!");
+    }
+
+    // --- FUNÇÕES DE INTERFACE ---
+    function switchTab(e, id) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.remove('hidden');
+      e.currentTarget.classList.add('active');
+      if(id !== 'tab-saidas') fecharScanner();
+    }
+
     function renderEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
         const tb = document.querySelector('#tabelaEstoque tbody');
@@ -318,47 +352,44 @@
           const p = doc.data();
           const alerta = p.quantidade <= (p.estoqueMinimo || 0) ? 'abaixo-minimo' : '';
           
-          // Tabela Saldo (Aba 1)
           tb.innerHTML += `<tr class="${alerta}">
             <td>${p.nome}</td>
             <td><b>${p.quantidade}</b> ${p.unidade}</td>
             <td>${p.local || '--'}</td>
             <td>${p.categoria || '--'}</td>
             <td>${p.validade}</td>
-            <td><button onclick="gerarQR('${p.nome}')" class="btn btn-primary" style="padding:4px;"><i class="fas fa-qrcode"></i></button></td>
+            <td><button onclick="gerarQR('${doc.id}', '${p.nome}')" class="btn btn-primary" style="padding:4px;"><i class="fas fa-qrcode"></i></button></td>
           </tr>`;
 
-          // Tabela Catálogo (Aba Cadastro) - AQUI ESTÃO OS BOTÕES DE EDITAR/EXCLUIR
           cat.innerHTML += `<tr>
             <td>${p.nome}</td>
             <td>${p.local || '--'}</td>
             <td>
-                <button onclick="prepararEdicao('${doc.id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})" class="btn btn-warning" style="padding:4px;"><i class="fas fa-edit"></i></button>
+                <button onclick="prepararEdicao('${doc.id}')" class="btn btn-warning" style="padding:4px;"><i class="fas fa-edit"></i></button>
                 <button onclick="excluirProduto('${doc.id}', '${p.nome}')" class="btn btn-danger" style="padding:4px;"><i class="fas fa-trash"></i></button>
             </td>
           </tr>`;
 
-          // Inventário
           inv.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td><input type="number" id="i-${doc.id}" style="width:60px;margin:0"></td><td><button onclick="ajustar('${doc.id}', '${p.nome}')" class="btn btn-primary">OK</button></td></tr>`;
-          
-          // Selects
           selects.forEach(s => s.innerHTML += `<option value="${doc.id}|${p.nome}">${p.nome}</option>`);
         });
       });
     }
 
-    function prepararEdicao(id, p) {
+    // --- CADASTRO / EDIÇÃO ---
+    async function prepararEdicao(id) {
+        const doc = await db.collection('estoque').doc(id).get();
+        const p = doc.data();
         document.getElementById('editId').value = id;
         document.getElementById('cadNome').value = p.nome;
-        document.getElementById('cadCat').value = p.categoria || 'Secos';
-        document.getElementById('cadUn').value = p.unidade || 'kg';
+        document.getElementById('cadCat').value = p.categoria;
+        document.getElementById('cadUn').value = p.unidade;
         document.getElementById('cadLocal').value = p.local || '';
-        document.getElementById('cadMin').value = p.estoqueMinimo || 0;
+        document.getElementById('cadMin').value = p.estoqueMinimo;
         document.getElementById('cadVal').value = p.validade !== '--' ? p.validade : '';
-        
         document.getElementById('tituloCadastro').innerText = "Editando Produto";
         document.getElementById('btnCancelEdit').classList.remove('hidden');
-        window.scrollTo(0,0);
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function cancelarEdicao() {
@@ -368,134 +399,39 @@
         document.getElementById('btnCancelEdit').classList.add('hidden');
     }
 
-    async function excluirProduto(id, nome) {
-        if(confirm(`Tem certeza que deseja apagar ${nome}? Isso não pode ser desfeito.`)) {
-            await db.collection('estoque').doc(id).delete();
-            alert("Produto removido.");
-        }
-    }
-
-    // --- 4. CADASTRO DE PRODUTO (ATUALIZADO) ---
     document.getElementById('formCadastro').onsubmit = async (e) => {
       e.preventDefault();
       const id = document.getElementById('editId').value;
       const dados = {
-        nome: document.getElementById('cadNome').value, 
+        nome: document.getElementById('cadNome').value,
         categoria: document.getElementById('cadCat').value,
         unidade: document.getElementById('cadUn').value,
         local: document.getElementById('cadLocal').value,
         estoqueMinimo: parseFloat(document.getElementById('cadMin').value),
         validade: document.getElementById('cadVal').value || '--'
       };
-
-      if(id) {
-          await db.collection('estoque').doc(id).update(dados);
-          alert("Atualizado!");
-          cancelarEdicao();
-      } else {
-          dados.quantidade = 0;
-          await db.collection('estoque').add(dados);
-          alert("Cadastrado!");
-          e.target.reset();
-      }
+      if(id) { await db.collection('estoque').doc(id).update(dados); cancelarEdicao(); }
+      else { dados.quantidade = 0; await db.collection('estoque').add(dados); e.target.reset(); }
+      alert("Salvo com sucesso!");
     };
 
-    // --- 3. HISTÓRICO DE MOVIMENTAÇÃO ---
-    function carregarHistorico() {
-        db.collection('historico').orderBy('data', 'desc').limit(50).onSnapshot(snap => {
-            const tb = document.getElementById('corpoHist');
-            tb.innerHTML = '';
-            snap.forEach(doc => {
-                const h = doc.data();
-                const data = h.data.toDate().toLocaleString('pt-BR');
-                const badge = h.tipo.includes('SAÍDA') || h.tipo.includes('BAIXA') ? 'badge-saida' : 'badge-entrada';
-                tb.innerHTML += `<tr>
-                    <td>${data}</td>
-                    <td><span class="badge ${badge}">${h.tipo}</span></td>
-                    <td>${h.produto}</td>
-                    <td>${h.quantidade}</td>
-                    <td style="font-size:0.6rem;">${h.user.split('@')[0]}</td>
-                </tr>`;
-            });
-            calcularConsumo(); // Recalcula consumo sempre que o histórico atualiza
-        });
+    async function excluirProduto(id, nome) {
+        if(confirm(`Excluir permanentemente ${nome}?`)) await db.collection('estoque').doc(id).delete();
     }
 
-    // --- 5. CÁLCULO DE CONSUMO MENSAL ---
-    async function calcularConsumo() {
-        const trintaDiasAtras = new Date();
-        trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
-
-        const snap = await db.collection('historico')
-            .where('data', '>=', trintaDiasAtras)
-            .get();
-
-        const consumoMap = {};
-        
-        snap.forEach(doc => {
-            const h = doc.data();
-            // Considera todos os tipos de saída
-            if(h.tipo.includes('SAÍDA') || h.tipo.includes('BAIXA') || h.tipo.includes('AVULSA')) {
-                consumoMap[h.produto] = (consumoMap[h.produto] || 0) + parseFloat(h.quantidade);
-            }
-        });
-
-        const tb = document.getElementById('corpoConsumo');
-        tb.innerHTML = '';
-
-        for (const prod in consumoMap) {
-            const total = consumoMap[prod];
-            const media = (total / 30).toFixed(2);
-            // Sugestão base: repor o que consome no mês + 20% de margem
-            const sugestao = (total * 1.2).toFixed(1);
-            
-            tb.innerHTML += `<tr>
-                <td>${prod}</td>
-                <td><b>${total.toFixed(1)}</b></td>
-                <td>${media} /dia</td>
-                <td style="color:var(--primary); font-weight:bold;">${sugestao}</td>
-            </tr>`;
-        }
-    }
-
-    // --- OUTRAS LOGICAS MANTIDAS ---
+    // --- ENTRADA E SAÍDA MANUAL ---
     document.getElementById('formSaidaManual').onsubmit = async (e) => {
       e.preventDefault();
       const [id, nome] = document.getElementById('saidaProdSelect').value.split('|');
       const q = parseFloat(document.getElementById('saidaQtd').value);
-      const m = document.getElementById('saidaMotivo').value || 'Não informado';
-
+      const m = document.getElementById('saidaMotivo').value || 'Manual';
       const ref = db.collection('estoque').doc(id);
-      const s = (await ref.get()).data().quantidade;
-      if(s < q) return alert("Estoque insuficiente!");
-
-      await ref.update({ quantidade: s - q });
+      const snap = await ref.get();
+      if(snap.data().quantidade < q) return alert("Estoque insuficiente!");
+      await ref.update({ quantidade: snap.data().quantidade - q });
       await registrarLog(`SAÍDA MANUAL (${m})`, nome, q);
-      alert("Saída confirmada!"); e.target.reset();
+      alert("Confirmado!"); e.target.reset();
     };
-
-    async function registrarLog(tipo, prod, q) {
-      await db.collection('historico').add({ data: new Date(), tipo, produto: prod, quantidade: q, user: auth.currentUser.email });
-    }
-
-    function switchTab(e, id) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(id).classList.remove('hidden');
-      e.currentTarget.classList.add('active');
-      if(id !== 'tab-saidas') fecharScanner();
-    }
-
-    // (Funções de Entregar, Cancelar, Entrada, QR, Ajustar e Filtrar permanecem as mesmas do código anterior)
-    function filtrarEstoque() {
-      const b = document.getElementById('buscaEstoque').value.toLowerCase();
-      document.querySelectorAll('#tabelaEstoque tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none');
-    }
-
-    async function ajustar(id, nome) {
-      const v = parseFloat(document.getElementById(`i-${id}`).value);
-      if(!isNaN(v)) { await db.collection('estoque').doc(id).update({ quantidade: v }); registrarLog("AJUSTE INV", nome, v); }
-    }
 
     document.getElementById('formEntrada').onsubmit = async (e) => {
       e.preventDefault();
@@ -505,39 +441,86 @@
       const ref = db.collection('estoque').doc(id);
       const doc = await ref.get();
       await ref.update({ quantidade: doc.data().quantidade + q, validade: v });
-      alert("Entrada registrada!"); e.target.reset(); registrarLog("ENTRADA", nome, q);
+      await registrarLog("ENTRADA", nome, q);
+      alert("Entrada registrada!"); e.target.reset();
     };
 
-    function gerarQR(nome) {
-      document.getElementById('qrModal').classList.remove('hidden');
-      document.getElementById('qrTitle').innerText = nome;
-      new QRious({ element: document.getElementById('qrCanvas'), value: nome, size: 220 });
+    // --- HISTÓRICO E CONSUMO ---
+    function carregarHistorico() {
+        db.collection('historico').orderBy('data', 'desc').limit(50).onSnapshot(snap => {
+            const tb = document.getElementById('corpoHist');
+            tb.innerHTML = '';
+            snap.forEach(doc => {
+                const h = doc.data();
+                const badge = h.tipo.includes('SAÍDA') || h.tipo.includes('BAIXA') ? 'badge-saida' : 'badge-entrada';
+                tb.innerHTML += `<tr><td>${h.data.toDate().toLocaleString()}</td><td><span class="badge ${badge}">${h.tipo}</span></td><td>${h.produto}</td><td>${h.quantidade}</td><td>${h.user.split('@')[0]}</td></tr>`;
+            });
+            calcularConsumo();
+        });
     }
 
+    async function calcularConsumo() {
+        const trintaDias = new Date(); trintaDias.setDate(trintaDias.getDate() - 30);
+        const snap = await db.collection('historico').where('data', '>=', trintaDias).get();
+        const map = {};
+        snap.forEach(doc => {
+            const h = doc.data();
+            if(h.tipo.includes('SAÍDA') || h.tipo.includes('BAIXA')) map[h.produto] = (map[h.produto] || 0) + parseFloat(h.quantidade);
+        });
+        const tb = document.getElementById('corpoConsumo'); tb.innerHTML = '';
+        for (const p in map) {
+            tb.innerHTML += `<tr><td>${p}</td><td>${map[p].toFixed(1)}</td><td>${(map[p]/30).toFixed(2)}</td><td><b>${(map[p]*1.2).toFixed(1)}</b></td></tr>`;
+        }
+    }
+
+    // --- REQUISIÇÕES (CARGAS) ---
     function monitorarCargas() {
       const hoje = new Date().toISOString().split('T')[0];
       db.collection('requisicoes').where('dataUso', '==', hoje).where('status', '==', 'pendente').onSnapshot(snap => {
-        const cont = document.getElementById('listaRequisicoes');
-        cont.innerHTML = '';
-        if(snap.empty) { cont.innerHTML = '<p style="text-align:center; padding:15px; color:#999; font-size:0.7rem;">Sem pedidos hoje.</p>'; return; }
+        const cont = document.getElementById('listaRequisicoes'); cont.innerHTML = '';
+        if(snap.empty) { cont.innerHTML = '<p style="text-align:center;font-size:0.7rem;">Nada pendente hoje.</p>'; return; }
         snap.forEach(doc => {
           const r = doc.data();
-          const tCls = r.detalhe.includes('Café') ? 'header-cafe' : r.detalhe.includes('Almoço') ? 'header-almoco' : 'header-janta';
-          cont.innerHTML += `<div class="req-group"><div class="req-header ${tCls}">${r.detalhe}</div><div style="padding:10px; display:flex; justify-content:space-between; align-items:center; background:#fff;"><span style="font-size:0.75rem;">${r.item} (<b>${r.quantidade}</b>)</span><div style="display:flex; gap:5px;"><button onclick="entregar('${doc.id}', '${r.item}', ${r.quantidade})" class="btn btn-success" style="padding:5px 8px;">V</button></div></div></div>`;
+          const cls = r.detalhe.includes('Café') ? 'header-cafe' : r.detalhe.includes('Almoço') ? 'header-almoco' : 'header-janta';
+          cont.innerHTML += `<div class="req-group"><div class="req-header ${cls}">${r.detalhe}</div><div style="padding:8px;display:flex;justify-content:space-between;align-items:center;background:#fff;"><span>${r.item} (<b>${r.quantidade}</b>)</span><button onclick="entregar('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success">V</button></div></div>`;
         });
       });
     }
 
     async function entregar(id, item, qtd) {
       const snap = await db.collection('estoque').where('nome', '==', item).get();
-      if(snap.empty) return alert("Item não no catálogo!");
+      if(snap.empty) return alert("Erro catálogo");
       const d = snap.docs[0];
-      const s = d.data().quantidade;
-      if(s < qtd) return alert("Sem estoque!");
-      const b = db.batch();
-      b.update(db.collection('estoque').doc(d.id), { quantidade: s - qtd });
-      b.update(db.collection('requisicoes').doc(id), { status: 'entregue' });
-      await b.commit(); registrarLog("BAIXA CARGA", item, qtd);
+      if(d.data().quantidade < qtd) return alert("Sem estoque!");
+      const batch = db.batch();
+      batch.update(db.collection('estoque').doc(d.id), { quantidade: d.data().quantidade - qtd });
+      batch.update(db.collection('requisicoes').doc(id), { status: 'entregue' });
+      await batch.commit(); await registrarLog("BAIXA CARGA", item, qtd);
+    }
+
+    // --- UTILITÁRIOS ---
+    async function registrarLog(tipo, prod, q) {
+      await db.collection('historico').add({ data: new Date(), tipo, produto: prod, quantidade: q, user: auth.currentUser.email });
+    }
+
+    function gerarQR(id, nome) {
+      document.getElementById('qrModal').classList.remove('hidden');
+      document.getElementById('qrTitle').innerText = nome;
+      new QRious({ element: document.getElementById('qrCanvas'), value: id, size: 220 });
+    }
+
+    async function ajustar(id, nome) {
+      const v = parseFloat(document.getElementById(`i-${id}`).value);
+      if(!isNaN(v)) { 
+        await db.collection('estoque').doc(id).update({ quantidade: v }); 
+        await registrarLog("AJUSTE INV", nome, v);
+        alert("Balanço atualizado!");
+      }
+    }
+
+    function filtrarEstoque() {
+      const b = document.getElementById('buscaEstoque').value.toLowerCase();
+      document.querySelectorAll('#tabelaEstoque tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none');
     }
 
     document.getElementById('logoutBtn').onclick = () => auth.signOut();
