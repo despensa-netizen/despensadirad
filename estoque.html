@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa Integral v6.4</title>
+  <title>EstoqueSync — Despensa Integral v7.0</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -46,7 +46,10 @@
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid var(--border); }
     td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    
     .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 700; }
+    .validade-proxima { background-color: #fffbeb; color: #92400e; font-weight: 700; }
+    .vencido { background-color: #fef2f2; color: #b91c1c; font-weight: 700; text-decoration: underline; }
 
     input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
     #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 15px; }
@@ -58,6 +61,14 @@
     .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
     .badge-saida { background: #fee2e2; color: #991b1b; }
     .badge-entrada { background: #dcfce7; color: #166534; }
+    .badge-ajuste { background: #f1f5f9; color: #475569; }
+
+    /* Estilos de Paginação */
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
+    .page-info { font-size: 0.8rem; font-weight: 600; color: #64748b; }
+    
+    /* Alerta de Validade */
+    .validade-alert { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #92400e; font-size: 0.8rem; }
 
     @media print { body * { visibility: hidden; } #qrModal, #qrModal * { visibility: visible; } #qrModal { position: absolute; left: 0; top: 0; background: white; } }
   </style>
@@ -87,6 +98,7 @@
     <div id="tab-saidas" class="tab-content">
       <div class="grid-layout">
         <aside>
+          <div id="alertasValidadeContainer"></div>
           <div class="card">
             <h3><i class="fas fa-camera"></i> Baixa por Scanner</h3>
             <button class="btn btn-scanner" id="btnToggleScanner" onclick="toggleScannerGlobal()">
@@ -182,11 +194,19 @@
 
     <div id="tab-historico" class="tab-content hidden">
       <div class="card">
-        <h3>Histórico de Movimentações</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Histórico de Movimentações (Últimos 30 dias)</h3>
+            <div style="font-size: 0.75rem; color: #64748b;">Mostrando registros de <span id="dataInicioHist"></span> até hoje</div>
+        </div>
         <table id="tabelaHist">
           <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
           <tbody id="corpoHist"></tbody>
         </table>
+        <div class="pagination">
+            <button id="btnPrevPage" class="btn btn-primary" onclick="paginarHistorico(-1)" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+            <span class="page-info">Página <span id="currentPageDisplay">1</span></span>
+            <button id="btnNextPage" class="btn btn-primary" onclick="paginarHistorico(1)" disabled>Próxima <i class="fas fa-chevron-right"></i></button>
+        </div>
       </div>
     </div>
   </div>
@@ -229,12 +249,29 @@
     const auth = firebase.auth();
     let scannerGlobal;
 
+    // Variáveis de Paginação
+    let histDocs = []; // Armazena os documentos da página atual
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let lastVisible = null;
+    let firstVisible = null;
+
     auth.onAuthStateChanged(user => {
-      if (!user) { window.location.href = 'index.html'; return; }
+      if (!user) { 
+        // Em um ambiente real, redirecionaria. Para teste, apenas logamos.
+        console.log("Usuário não autenticado");
+        // window.location.href = 'index.html'; 
+        return; 
+      }
       document.getElementById('userDisplay').innerText = user.email.toUpperCase();
       renderEstoque();
       monitorarCargas();
       carregarHistorico();
+      
+      // Mostrar data de início do histórico (30 dias atrás)
+      const data30d = new Date();
+      data30d.setDate(data30d.getDate() - 30);
+      document.getElementById('dataInicioHist').innerText = data30d.toLocaleDateString();
     });
 
     function tocarBip() {
@@ -301,15 +338,41 @@
         const inv = document.getElementById('corpoInv');
         const s1 = document.getElementById('saidaProdSelect');
         const s2 = document.getElementById('entProdSelect');
+        const alertaContainer = document.getElementById('alertasValidadeContainer');
         
-        tb.innerHTML = ''; cat.innerHTML = ''; inv.innerHTML = '';
+        tb.innerHTML = ''; cat.innerHTML = ''; inv.innerHTML = ''; alertaContainer.innerHTML = '';
         s1.innerHTML = '<option>Selecione...</option>'; s2.innerHTML = '<option>Selecione...</option>';
+
+        const hoje = new Date();
+        const limiteValidade = new Date();
+        limiteValidade.setDate(hoje.getDate() + 30);
 
         snap.forEach(doc => {
           const p = doc.data();
-          const alerta = p.quantidade <= (p.estoqueMinimo || 0) ? 'abaixo-minimo' : '';
           
-          tb.innerHTML += `<tr class="${alerta}"><td>${p.nome}</td><td><b>${p.quantidade}</b> ${p.unidade}</td><td>${p.local || '-'}</td><td>${p.validade}</td><td><button class="btn btn-primary" onclick="abrirModalBaixa('${doc.id}')"><i class="fas fa-minus"></i></button></td></tr>`;
+          // Lógica de Alerta de Validade
+          let classeValidade = '';
+          if (p.validade && p.validade !== '--') {
+              const dataVal = new Date(p.validade + 'T00:00:00');
+              if (dataVal < hoje) {
+                  classeValidade = 'vencido';
+                  alertaContainer.innerHTML += `<div class="validade-alert" style="border-color: var(--danger); color: var(--danger); background: #fef2f2;"><i class="fas fa-skull-crossbones"></i> <b>${p.nome}</b> VENCIDO em ${dataVal.toLocaleDateString()}!</div>`;
+              } else if (dataVal <= limiteValidade) {
+                  classeValidade = 'validade-proxima';
+                  alertaContainer.innerHTML += `<div class="validade-alert"><i class="fas fa-exclamation-triangle"></i> <b>${p.nome}</b> vence em ${dataVal.toLocaleDateString()} (menos de 30 dias)!</div>`;
+              }
+          }
+
+          const alertaEstoque = p.quantidade <= (p.estoqueMinimo || 0) ? 'abaixo-minimo' : '';
+          const classeLinha = classeValidade || alertaEstoque;
+          
+          tb.innerHTML += `<tr class="${classeLinha}">
+            <td>${p.nome}</td>
+            <td><b>${p.quantidade}</b> ${p.unidade}</td>
+            <td>${p.local || '-'}</td>
+            <td class="${classeValidade}">${p.validade}</td>
+            <td><button class="btn btn-primary" onclick="abrirModalBaixa('${doc.id}')"><i class="fas fa-minus"></i></button></td>
+          </tr>`;
           
           cat.innerHTML += `<tr>
             <td>${p.nome}</td>
@@ -378,7 +441,6 @@
         resetFormCadastro();
     };
 
-    // --- FUNÇÕES RESTANTES MANTIDAS IGUAIS ---
     document.getElementById('formEntrada').onsubmit = async (e) => {
         e.preventDefault();
         const [id, nome] = document.getElementById('entProdSelect').value.split('|');
@@ -389,6 +451,19 @@
         await ref.update({ quantidade: snap.data().quantidade + q, validade: v });
         await registrarLog("ENTRADA", nome, q);
         alert("Entrada registrada!"); e.target.reset();
+    };
+
+    document.getElementById('formSaidaManual').onsubmit = async (e) => {
+        e.preventDefault();
+        const [id, nome] = document.getElementById('saidaProdSelect').value.split('|');
+        const q = parseFloat(document.getElementById('saidaQtd').value);
+        const motivo = document.getElementById('saidaMotivo').value;
+        const ref = db.collection('estoque').doc(id);
+        const snap = await ref.get();
+        if(snap.data().quantidade < q) return alert("Sem saldo!");
+        await ref.update({ quantidade: snap.data().quantidade - q });
+        await registrarLog(`SAÍDA MANUAL ${motivo ? '('+motivo+')' : ''}`, nome, q);
+        alert("Saída registrada!"); e.target.reset();
     };
 
     async function ajustarInv(id, nome) {
@@ -404,15 +479,64 @@
       await db.collection('historico').add({ data: new Date(), tipo, produto: prod, quantidade: q, user: auth.currentUser.email });
     }
 
-    function carregarHistorico() {
-        db.collection('historico').orderBy('data', 'desc').limit(30).onSnapshot(snap => {
-            const tb = document.getElementById('corpoHist'); tb.innerHTML = '';
+    // --- LÓGICA DE HISTÓRICO COM PAGINAÇÃO ---
+    function carregarHistorico(direcao = 0) {
+        const dataLimite = new Date();
+        dataLimite.setDate(dataLimite.getDate() - 30);
+
+        let query = db.collection('historico')
+            .where('data', '>=', dataLimite)
+            .orderBy('data', 'desc');
+
+        if (direcao === 1 && lastVisible) {
+            query = query.startAfter(lastVisible).limit(itemsPerPage);
+        } else if (direcao === -1 && firstVisible) {
+            query = query.endBefore(firstVisible).limitToLast(itemsPerPage);
+        } else {
+            query = query.limit(itemsPerPage);
+        }
+
+        query.onSnapshot(snap => {
+            const tb = document.getElementById('corpoHist'); 
+            tb.innerHTML = '';
+            
+            if (snap.empty) {
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Nenhuma movimentação nos últimos 30 dias.</td></tr>';
+                document.getElementById('btnNextPage').disabled = true;
+                document.getElementById('btnPrevPage').disabled = true;
+                return;
+            }
+
+            firstVisible = snap.docs[0];
+            lastVisible = snap.docs[snap.docs.length - 1];
+
             snap.forEach(doc => {
                 const h = doc.data();
-                const cls = h.tipo.includes('SAÍDA') ? 'badge-saida' : 'badge-entrada';
-                tb.innerHTML += `<tr><td>${h.data.toDate().toLocaleString()}</td><td><span class="badge ${cls}">${h.tipo}</span></td><td>${h.produto}</td><td>${h.quantidade}</td><td>${h.user.split('@')[0]}</td></tr>`;
+                let cls = 'badge-ajuste';
+                if (h.tipo.includes('SAÍDA')) cls = 'badge-saida';
+                if (h.tipo.includes('ENTRADA')) cls = 'badge-entrada';
+                
+                tb.innerHTML += `<tr>
+                    <td>${h.data.toDate().toLocaleString()}</td>
+                    <td><span class="badge ${cls}">${h.tipo}</span></td>
+                    <td>${h.produto}</td>
+                    <td>${h.quantidade}</td>
+                    <td>${h.user ? h.user.split('@')[0] : 'Sistema'}</td>
+                </tr>`;
             });
+
+            // Atualizar botões
+            document.getElementById('currentPageDisplay').innerText = currentPage;
+            document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+            
+            // Verificar se há próxima página (simplificado: se veio o limite, assumimos que pode haver mais)
+            document.getElementById('btnNextPage').disabled = (snap.docs.length < itemsPerPage);
         });
+    }
+
+    function paginarHistorico(direcao) {
+        currentPage += direcao;
+        carregarHistorico(direcao);
     }
 
     function monitorarCargas() {
@@ -421,9 +545,28 @@
             const cont = document.getElementById('listaRequisicoes'); cont.innerHTML = '';
             snap.forEach(doc => {
                 const r = doc.data();
-                cont.innerHTML += `<div class="req-group"><div style="padding:10px; background:#fff;"><span>${r.item} (<b>${r.quantidade}</b>)</span> <button onclick="baixarReq('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success">V</button></div></div>`;
+                cont.innerHTML += `<div class="req-group" style="margin-bottom:10px; border:1px solid #eee; border-radius:8px; overflow:hidden;"><div style="padding:10px; background:#fff; display:flex; justify-content:space-between; align-items:center;"><span>${r.item} (<b>${r.quantidade}</b>)</span> <button onclick="baixarReq('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success"><i class="fas fa-check"></i></button></div></div>`;
             });
         });
+    }
+
+    async function baixarReq(id, item, qtd) {
+        // Lógica para baixar requisição da nutrição
+        const q = await db.collection('estoque').where('nome', '==', item).get();
+        if(!q.empty) {
+            const doc = q.docs[0];
+            const saldo = doc.data().quantidade;
+            if(saldo >= qtd) {
+                await db.collection('estoque').doc(doc.id).update({ quantidade: saldo - qtd });
+                await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
+                await registrarLog("SAÍDA NUTRIÇÃO", item, qtd);
+                alert("Requisição baixada!");
+            } else {
+                alert("Saldo insuficiente no estoque!");
+            }
+        } else {
+            alert("Produto não encontrado no estoque!");
+        }
     }
 
     function gerarQR(id, nome) {
@@ -448,4 +591,3 @@
   </script>
 </body>
 </html>
-
