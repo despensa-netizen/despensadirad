@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa Integral v7.1</title>
+  <title>EstoqueSync — Despensa Integral v7.2</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -68,11 +68,13 @@
     
     .validade-alert { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #92400e; font-size: 0.8rem; }
 
-    /* Estilos Relatório */
     .report-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .summary-card { background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary); }
     .summary-card h4 { margin: 0; font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
     .summary-card p { margin: 5px 0 0 0; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+
+    /* Estilo Edição Ativa */
+    .edit-mode-active { border: 2px solid var(--warning) !important; background: #fffbeb !important; }
 
     @media print { 
         body * { visibility: hidden; } 
@@ -145,36 +147,56 @@
     </div>
 
     <div id="tab-cadastro" class="tab-content hidden">
-      <div class="card" style="max-width:850px; margin:auto;">
+      <div class="card" id="cardCadastro" style="max-width:850px; margin:auto;">
         <h3 id="tituloCadastro"><i class="fas fa-edit"></i> Cadastrar/Editar Produto</h3>
         <form id="formCadastro">
           <input type="hidden" id="editId">
           <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px;">
-              <input type="text" id="cadNome" placeholder="Nome do Produto" required>
-              <select id="cadCat">
-                <option value="Secos">Secos</option>
-                <option value="Proteína">Proteína</option>
-                <option value="Hortifrúti">Hortifrúti</option>
-                <option value="Laticínios">Laticínios</option>
-                <option value="Bebidas">Bebidas</option>
-              </select>
-              <select id="cadUn">
-                <option value="kg">Kg</option><option value="uni">Uni</option><option value="cx">Cx</option><option value="l">L</option>
-              </select>
+              <div>
+                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">NOME DO PRODUTO</label>
+                  <input type="text" id="cadNome" placeholder="Nome do Produto" required>
+              </div>
+              <div>
+                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">CATEGORIA</label>
+                  <select id="cadCat">
+                    <option value="Secos">Secos</option>
+                    <option value="Proteína">Proteína</option>
+                    <option value="Hortifrúti">Hortifrúti</option>
+                    <option value="Laticínios">Laticínios</option>
+                    <option value="Bebidas">Bebidas</option>
+                  </select>
+              </div>
+              <div>
+                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">UNIDADE</label>
+                  <select id="cadUn">
+                    <option value="kg">Kg</option><option value="uni">Uni</option><option value="cx">Cx</option><option value="l">L</option>
+                  </select>
+              </div>
           </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <input type="text" id="cadLocal" placeholder="Local/Prateleira">
-            <input type="number" id="cadMin" placeholder="Mínimo em Estoque">
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <div>
+                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">LOCAL/PRATELEIRA</label>
+                <input type="text" id="cadLocal" placeholder="Local/Prateleira">
+            </div>
+            <div>
+                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">ESTOQUE MÍNIMO</label>
+                <input type="number" id="cadMin" placeholder="Mínimo em Estoque">
+            </div>
+            <div id="containerCadValidade">
+                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">VALIDADE (CORREÇÃO)</label>
+                <input type="date" id="cadVal">
+            </div>
           </div>
-          <div style="display:flex; gap:10px;">
+          <div style="display:flex; gap:10px; margin-top: 10px;">
             <button type="submit" id="btnSalvarProd" class="btn btn-primary" style="flex:3">Salvar Produto</button>
-            <button type="button" onclick="resetFormCadastro()" id="btnCancelarEdicao" class="btn btn-danger hidden" style="flex:1">Cancelar</button>
+            <button type="button" onclick="resetFormCadastro()" id="btnCancelarEdicao" class="btn btn-warning hidden" style="flex:1">Cancelar</button>
+            <button type="button" onclick="excluirProduto()" id="btnExcluirProd" class="btn btn-danger hidden" style="flex:1">Excluir</button>
           </div>
         </form>
         <hr style="margin:25px 0;">
         <h3><i class="fas fa-list"></i> Catálogo de Itens</h3>
         <table id="tabelaCatalogo">
-          <thead><tr><th>Nome</th><th>Categoria</th><th>Mín.</th><th>Local</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Nome</th><th>Categoria</th><th>Mín.</th><th>Local</th><th>Validade</th><th>Ações</th></tr></thead>
           <tbody id="corpoCatalogo"></tbody>
         </table>
       </div>
@@ -220,7 +242,6 @@
       </div>
     </div>
 
-    <!-- Nova Aba de Relatório -->
     <div id="tab-relatorio" class="tab-content hidden">
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -301,7 +322,6 @@
     const auth = firebase.auth();
     let scannerGlobal;
 
-    // Variáveis de Paginação
     let currentPage = 1;
     const itemsPerPage = 10;
     let lastVisible = null;
@@ -421,6 +441,7 @@
             <td>${p.categoria}</td>
             <td>${p.estoqueMinimo}</td>
             <td>${p.local || '-'}</td>
+            <td>${p.validade || '--'}</td>
             <td>
                 <button class="btn btn-warning" onclick="prepararEdicao('${doc.id}')"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-primary" onclick="gerarQR('${doc.id}','${p.nome}')"><i class="fas fa-qrcode"></i></button>
@@ -438,15 +459,22 @@
     async function prepararEdicao(id) {
         const doc = await db.collection('estoque').doc(id).get();
         const p = doc.data();
+        
         document.getElementById('editId').value = id;
         document.getElementById('cadNome').value = p.nome;
         document.getElementById('cadCat').value = p.categoria;
         document.getElementById('cadUn').value = p.unidade;
         document.getElementById('cadLocal').value = p.local || '';
         document.getElementById('cadMin').value = p.estoqueMinimo;
+        document.getElementById('cadVal').value = (p.validade && p.validade !== '--') ? p.validade : '';
+        
         document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-edit"></i> Editando: ${p.nome}`;
         document.getElementById('btnSalvarProd').innerText = "Atualizar Produto";
+        document.getElementById('btnSalvarProd').classList.replace('btn-primary', 'btn-warning');
         document.getElementById('btnCancelarEdicao').classList.remove('hidden');
+        document.getElementById('btnExcluirProd').classList.remove('hidden');
+        document.getElementById('cardCadastro').classList.add('edit-mode-active');
+        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -455,12 +483,29 @@
         document.getElementById('editId').value = '';
         document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-plus-circle"></i> Novo Produto`;
         document.getElementById('btnSalvarProd').innerText = "Salvar Produto";
+        document.getElementById('btnSalvarProd').classList.replace('btn-warning', 'btn-primary');
         document.getElementById('btnCancelarEdicao').classList.add('hidden');
+        document.getElementById('btnExcluirProd').classList.add('hidden');
+        document.getElementById('cardCadastro').classList.remove('edit-mode-active');
+    }
+
+    async function excluirProduto() {
+        const id = document.getElementById('editId').value;
+        const nome = document.getElementById('cadNome').value;
+        if (!id) return;
+        
+        if (confirm(`Tem certeza que deseja EXCLUIR o produto "${nome}"? Esta ação não pode ser desfeita.`)) {
+            await db.collection('estoque').doc(id).delete();
+            alert("Produto excluído com sucesso!");
+            resetFormCadastro();
+        }
     }
 
     document.getElementById('formCadastro').onsubmit = async (e) => {
         e.preventDefault();
         const id = document.getElementById('editId').value;
+        const valManual = document.getElementById('cadVal').value;
+        
         const d = { 
             nome: document.getElementById('cadNome').value, 
             categoria: document.getElementById('cadCat').value,
@@ -468,13 +513,17 @@
             local: document.getElementById('cadLocal').value,
             estoqueMinimo: parseFloat(document.getElementById('cadMin').value) || 0
         };
+
+        if (valManual) d.validade = valManual;
+
         if(id) {
             await db.collection('estoque').doc(id).update(d);
-            alert("Produto atualizado!");
+            alert("Produto atualizado com sucesso!");
         } else {
-            d.quantidade = 0; d.validade = '--';
+            d.quantidade = 0; 
+            if (!d.validade) d.validade = '--';
             await db.collection('estoque').add(d);
-            alert("Produto cadastrado!");
+            alert("Produto cadastrado com sucesso!");
         }
         resetFormCadastro();
     };
@@ -551,20 +600,13 @@
         carregarHistorico(direcao);
     }
 
-    // --- LÓGICA DO RELATÓRIO DE COMPRAS ---
     async function gerarRelatorioCompras() {
         const corpo = document.getElementById('corpoRelatorio');
         corpo.innerHTML = '<tr><td colspan="4" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Consolidando dados dos últimos 30 dias...</td></tr>';
-        
         const dataLimite = new Date();
         dataLimite.setDate(dataLimite.getDate() - 30);
-
         try {
-            // 1. Pegar todas as saídas dos últimos 30 dias
-            const histSnap = await db.collection('historico')
-                .where('data', '>=', dataLimite)
-                .get();
-
+            const histSnap = await db.collection('historico').where('data', '>=', dataLimite).get();
             const consumoPorProduto = {};
             histSnap.forEach(doc => {
                 const h = doc.data();
@@ -573,64 +615,38 @@
                     consumoPorProduto[h.produto] += parseFloat(h.quantidade);
                 }
             });
-
-            // 2. Pegar saldo atual de todos os produtos
             const estoqueSnap = await db.collection('estoque').get();
             const estoqueAtual = {};
             estoqueSnap.forEach(doc => {
                 const p = doc.data();
                 estoqueAtual[p.nome] = { saldo: p.quantidade, unidade: p.unidade, min: p.estoqueMinimo || 0 };
             });
-
-            // 3. Renderizar Tabela
             corpo.innerHTML = '';
             let totalItens = 0;
             let maiorConsumoNome = '-';
             let maiorConsumoValor = 0;
-
-            // Unir as listas (produtos que tiveram saída + produtos que estão no estoque)
             const todosProdutos = [...new Set([...Object.keys(consumoPorProduto), ...Object.keys(estoqueAtual)])].sort();
-
             todosProdutos.forEach(nome => {
                 const consumo = consumoPorProduto[nome] || 0;
                 const dadosEstoque = estoqueAtual[nome] || { saldo: 0, unidade: '-', min: 0 };
-                
                 if (consumo > 0 || dadosEstoque.saldo <= dadosEstoque.min) {
                     totalItens++;
                     if (consumo > maiorConsumoValor) {
                         maiorConsumoValor = consumo;
                         maiorConsumoNome = nome;
                     }
-
                     let statusRep = '<span class="badge badge-entrada">ESTÁVEL</span>';
-                    if (dadosEstoque.saldo <= dadosEstoque.min) {
-                        statusRep = '<span class="badge badge-saida">REPOR URGENTE</span>';
-                    } else if (dadosEstoque.saldo < consumo) {
-                        statusRep = '<span class="badge badge-ajuste">REPOR EM BREVE</span>';
-                    }
-
-                    corpo.innerHTML += `
-                        <tr>
-                            <td><b>${nome}</b></td>
-                            <td>${consumo.toFixed(2)} ${dadosEstoque.unidade}</td>
-                            <td>${dadosEstoque.saldo.toFixed(2)} ${dadosEstoque.unidade}</td>
-                            <td>${statusRep}</td>
-                        </tr>
-                    `;
+                    if (dadosEstoque.saldo <= dadosEstoque.min) statusRep = '<span class="badge badge-saida">REPOR URGENTE</span>';
+                    else if (dadosEstoque.saldo < consumo) statusRep = '<span class="badge badge-ajuste">REPOR EM BREVE</span>';
+                    corpo.innerHTML += `<tr><td><b>${nome}</b></td><td>${consumo.toFixed(2)} ${dadosEstoque.unidade}</td><td>${dadosEstoque.saldo.toFixed(2)} ${dadosEstoque.unidade}</td><td>${statusRep}</td></tr>`;
                 }
             });
-
-            if (totalItens === 0) {
-                corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum consumo registrado nos últimos 30 dias.</td></tr>';
-            }
-
-            // Atualizar cards de resumo
+            if (totalItens === 0) corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum consumo registrado.</td></tr>';
             document.getElementById('repTotalItens').innerText = totalItens;
             document.getElementById('repMaiorConsumo').innerText = maiorConsumoNome !== '-' ? `${maiorConsumoNome} (${maiorConsumoValor.toFixed(2)})` : '-';
-
         } catch (error) {
-            console.error("Erro ao gerar relatório:", error);
-            corpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red">Erro ao carregar dados. Verifique o console.</td></tr>';
+            console.error(error);
+            corpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red">Erro ao carregar dados.</td></tr>';
         }
     }
 
