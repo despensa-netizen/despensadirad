@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa Integral v7.0</title>
+  <title>EstoqueSync — Despensa Integral v7.1</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -63,14 +63,23 @@
     .badge-entrada { background: #dcfce7; color: #166534; }
     .badge-ajuste { background: #f1f5f9; color: #475569; }
 
-    /* Estilos de Paginação */
     .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
     .page-info { font-size: 0.8rem; font-weight: 600; color: #64748b; }
     
-    /* Alerta de Validade */
     .validade-alert { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #92400e; font-size: 0.8rem; }
 
-    @media print { body * { visibility: hidden; } #qrModal, #qrModal * { visibility: visible; } #qrModal { position: absolute; left: 0; top: 0; background: white; } }
+    /* Estilos Relatório */
+    .report-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .summary-card { background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary); }
+    .summary-card h4 { margin: 0; font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
+    .summary-card p { margin: 5px 0 0 0; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+
+    @media print { 
+        body * { visibility: hidden; } 
+        #tab-relatorio, #tab-relatorio * { visibility: visible; } 
+        #tab-relatorio { position: absolute; left: 0; top: 0; width: 100%; }
+        .btn, .tabs, nav { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -93,6 +102,7 @@
       <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-loading"></i> Entradas</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-relatorio'); gerarRelatorioCompras();"><i class="fas fa-chart-line"></i> Planejamento</button>
     </div>
 
     <div id="tab-saidas" class="tab-content">
@@ -209,6 +219,48 @@
         </div>
       </div>
     </div>
+
+    <!-- Nova Aba de Relatório -->
+    <div id="tab-relatorio" class="tab-content hidden">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3><i class="fas fa-file-invoice"></i> Relatório de Planejamento de Compras</h3>
+                <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> Imprimir Relatório</button>
+            </div>
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 20px;">
+                Este relatório consolida todas as <b>saídas</b> (Manual, QR e Nutrição) dos últimos 30 dias para estimar o consumo mensal e auxiliar no planejamento de reposição.
+            </p>
+            
+            <div class="report-summary">
+                <div class="summary-card">
+                    <h4>Total de Itens Movimentados</h4>
+                    <p id="repTotalItens">0</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Maior Consumo (Volume)</h4>
+                    <p id="repMaiorConsumo">-</p>
+                </div>
+                <div class="summary-card">
+                    <h4>Período de Análise</h4>
+                    <p>30 Dias</p>
+                </div>
+            </div>
+
+            <table id="tabelaRelatorio">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Consumo (30 dias)</th>
+                        <th>Saldo Atual</th>
+                        <th>Status Reposição</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoRelatorio">
+                    <tr><td colspan="4" style="text-align:center">Carregando dados...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
   </div>
 
   <div id="qrModal" class="hidden">
@@ -250,25 +302,18 @@
     let scannerGlobal;
 
     // Variáveis de Paginação
-    let histDocs = []; // Armazena os documentos da página atual
     let currentPage = 1;
     const itemsPerPage = 10;
     let lastVisible = null;
     let firstVisible = null;
 
     auth.onAuthStateChanged(user => {
-      if (!user) { 
-        // Em um ambiente real, redirecionaria. Para teste, apenas logamos.
-        console.log("Usuário não autenticado");
-        // window.location.href = 'index.html'; 
-        return; 
-      }
+      if (!user) return;
       document.getElementById('userDisplay').innerText = user.email.toUpperCase();
       renderEstoque();
       monitorarCargas();
       carregarHistorico();
       
-      // Mostrar data de início do histórico (30 dias atrás)
       const data30d = new Date();
       data30d.setDate(data30d.getDate() - 30);
       document.getElementById('dataInicioHist').innerText = data30d.toLocaleDateString();
@@ -330,7 +375,6 @@
 
     function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); }
 
-    // --- RENDERIZAÇÃO E EDIÇÃO ---
     function renderEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
         const tb = document.querySelector('#tabelaEstoque tbody');
@@ -349,8 +393,6 @@
 
         snap.forEach(doc => {
           const p = doc.data();
-          
-          // Lógica de Alerta de Validade
           let classeValidade = '';
           if (p.validade && p.validade !== '--') {
               const dataVal = new Date(p.validade + 'T00:00:00');
@@ -393,18 +435,15 @@
       });
     }
 
-    // LÓGICA DE EDIÇÃO
     async function prepararEdicao(id) {
         const doc = await db.collection('estoque').doc(id).get();
         const p = doc.data();
-        
         document.getElementById('editId').value = id;
         document.getElementById('cadNome').value = p.nome;
         document.getElementById('cadCat').value = p.categoria;
         document.getElementById('cadUn').value = p.unidade;
         document.getElementById('cadLocal').value = p.local || '';
         document.getElementById('cadMin').value = p.estoqueMinimo;
-        
         document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-edit"></i> Editando: ${p.nome}`;
         document.getElementById('btnSalvarProd').innerText = "Atualizar Produto";
         document.getElementById('btnCancelarEdicao').classList.remove('hidden');
@@ -429,7 +468,6 @@
             local: document.getElementById('cadLocal').value,
             estoqueMinimo: parseFloat(document.getElementById('cadMin').value) || 0
         };
-
         if(id) {
             await db.collection('estoque').doc(id).update(d);
             alert("Produto atualizado!");
@@ -479,57 +517,31 @@
       await db.collection('historico').add({ data: new Date(), tipo, produto: prod, quantidade: q, user: auth.currentUser.email });
     }
 
-    // --- LÓGICA DE HISTÓRICO COM PAGINAÇÃO ---
     function carregarHistorico(direcao = 0) {
         const dataLimite = new Date();
         dataLimite.setDate(dataLimite.getDate() - 30);
-
-        let query = db.collection('historico')
-            .where('data', '>=', dataLimite)
-            .orderBy('data', 'desc');
-
-        if (direcao === 1 && lastVisible) {
-            query = query.startAfter(lastVisible).limit(itemsPerPage);
-        } else if (direcao === -1 && firstVisible) {
-            query = query.endBefore(firstVisible).limitToLast(itemsPerPage);
-        } else {
-            query = query.limit(itemsPerPage);
-        }
+        let query = db.collection('historico').where('data', '>=', dataLimite).orderBy('data', 'desc');
+        if (direcao === 1 && lastVisible) query = query.startAfter(lastVisible).limit(itemsPerPage);
+        else if (direcao === -1 && firstVisible) query = query.endBefore(firstVisible).limitToLast(itemsPerPage);
+        else query = query.limit(itemsPerPage);
 
         query.onSnapshot(snap => {
-            const tb = document.getElementById('corpoHist'); 
-            tb.innerHTML = '';
-            
+            const tb = document.getElementById('corpoHist'); tb.innerHTML = '';
             if (snap.empty) {
                 tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Nenhuma movimentação nos últimos 30 dias.</td></tr>';
-                document.getElementById('btnNextPage').disabled = true;
-                document.getElementById('btnPrevPage').disabled = true;
+                document.getElementById('btnNextPage').disabled = true; document.getElementById('btnPrevPage').disabled = true;
                 return;
             }
-
-            firstVisible = snap.docs[0];
-            lastVisible = snap.docs[snap.docs.length - 1];
-
+            firstVisible = snap.docs[0]; lastVisible = snap.docs[snap.docs.length - 1];
             snap.forEach(doc => {
                 const h = doc.data();
                 let cls = 'badge-ajuste';
                 if (h.tipo.includes('SAÍDA')) cls = 'badge-saida';
                 if (h.tipo.includes('ENTRADA')) cls = 'badge-entrada';
-                
-                tb.innerHTML += `<tr>
-                    <td>${h.data.toDate().toLocaleString()}</td>
-                    <td><span class="badge ${cls}">${h.tipo}</span></td>
-                    <td>${h.produto}</td>
-                    <td>${h.quantidade}</td>
-                    <td>${h.user ? h.user.split('@')[0] : 'Sistema'}</td>
-                </tr>`;
+                tb.innerHTML += `<tr><td>${h.data.toDate().toLocaleString()}</td><td><span class="badge ${cls}">${h.tipo}</span></td><td>${h.produto}</td><td>${h.quantidade}</td><td>${h.user ? h.user.split('@')[0] : 'Sistema'}</td></tr>`;
             });
-
-            // Atualizar botões
             document.getElementById('currentPageDisplay').innerText = currentPage;
             document.getElementById('btnPrevPage').disabled = (currentPage === 1);
-            
-            // Verificar se há próxima página (simplificado: se veio o limite, assumimos que pode haver mais)
             document.getElementById('btnNextPage').disabled = (snap.docs.length < itemsPerPage);
         });
     }
@@ -537,6 +549,89 @@
     function paginarHistorico(direcao) {
         currentPage += direcao;
         carregarHistorico(direcao);
+    }
+
+    // --- LÓGICA DO RELATÓRIO DE COMPRAS ---
+    async function gerarRelatorioCompras() {
+        const corpo = document.getElementById('corpoRelatorio');
+        corpo.innerHTML = '<tr><td colspan="4" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Consolidando dados dos últimos 30 dias...</td></tr>';
+        
+        const dataLimite = new Date();
+        dataLimite.setDate(dataLimite.getDate() - 30);
+
+        try {
+            // 1. Pegar todas as saídas dos últimos 30 dias
+            const histSnap = await db.collection('historico')
+                .where('data', '>=', dataLimite)
+                .get();
+
+            const consumoPorProduto = {};
+            histSnap.forEach(doc => {
+                const h = doc.data();
+                if (h.tipo.includes('SAÍDA')) {
+                    if (!consumoPorProduto[h.produto]) consumoPorProduto[h.produto] = 0;
+                    consumoPorProduto[h.produto] += parseFloat(h.quantidade);
+                }
+            });
+
+            // 2. Pegar saldo atual de todos os produtos
+            const estoqueSnap = await db.collection('estoque').get();
+            const estoqueAtual = {};
+            estoqueSnap.forEach(doc => {
+                const p = doc.data();
+                estoqueAtual[p.nome] = { saldo: p.quantidade, unidade: p.unidade, min: p.estoqueMinimo || 0 };
+            });
+
+            // 3. Renderizar Tabela
+            corpo.innerHTML = '';
+            let totalItens = 0;
+            let maiorConsumoNome = '-';
+            let maiorConsumoValor = 0;
+
+            // Unir as listas (produtos que tiveram saída + produtos que estão no estoque)
+            const todosProdutos = [...new Set([...Object.keys(consumoPorProduto), ...Object.keys(estoqueAtual)])].sort();
+
+            todosProdutos.forEach(nome => {
+                const consumo = consumoPorProduto[nome] || 0;
+                const dadosEstoque = estoqueAtual[nome] || { saldo: 0, unidade: '-', min: 0 };
+                
+                if (consumo > 0 || dadosEstoque.saldo <= dadosEstoque.min) {
+                    totalItens++;
+                    if (consumo > maiorConsumoValor) {
+                        maiorConsumoValor = consumo;
+                        maiorConsumoNome = nome;
+                    }
+
+                    let statusRep = '<span class="badge badge-entrada">ESTÁVEL</span>';
+                    if (dadosEstoque.saldo <= dadosEstoque.min) {
+                        statusRep = '<span class="badge badge-saida">REPOR URGENTE</span>';
+                    } else if (dadosEstoque.saldo < consumo) {
+                        statusRep = '<span class="badge badge-ajuste">REPOR EM BREVE</span>';
+                    }
+
+                    corpo.innerHTML += `
+                        <tr>
+                            <td><b>${nome}</b></td>
+                            <td>${consumo.toFixed(2)} ${dadosEstoque.unidade}</td>
+                            <td>${dadosEstoque.saldo.toFixed(2)} ${dadosEstoque.unidade}</td>
+                            <td>${statusRep}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (totalItens === 0) {
+                corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum consumo registrado nos últimos 30 dias.</td></tr>';
+            }
+
+            // Atualizar cards de resumo
+            document.getElementById('repTotalItens').innerText = totalItens;
+            document.getElementById('repMaiorConsumo').innerText = maiorConsumoNome !== '-' ? `${maiorConsumoNome} (${maiorConsumoValor.toFixed(2)})` : '-';
+
+        } catch (error) {
+            console.error("Erro ao gerar relatório:", error);
+            corpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red">Erro ao carregar dados. Verifique o console.</td></tr>';
+        }
     }
 
     function monitorarCargas() {
@@ -551,7 +646,6 @@
     }
 
     async function baixarReq(id, item, qtd) {
-        // Lógica para baixar requisição da nutrição
         const q = await db.collection('estoque').where('nome', '==', item).get();
         if(!q.empty) {
             const doc = q.docs[0];
@@ -561,12 +655,8 @@
                 await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
                 await registrarLog("SAÍDA NUTRIÇÃO", item, qtd);
                 alert("Requisição baixada!");
-            } else {
-                alert("Saldo insuficiente no estoque!");
-            }
-        } else {
-            alert("Produto não encontrado no estoque!");
-        }
+            } else alert("Saldo insuficiente!");
+        } else alert("Produto não encontrado!");
     }
 
     function gerarQR(id, nome) {
