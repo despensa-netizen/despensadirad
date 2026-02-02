@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa Integral v7.3</title>
+  <title>EstoqueSync — Controle de Acesso v8.0</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -44,12 +44,10 @@
     .btn-scanner { background: #6366f1; color: white; width: 100%; margin-bottom: 15px; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid var(--border); }
+    th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 12px; background: #f8fafc; text-transform: uppercase; border-bottom: 2px solid var(--border); }
     td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
     
     .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 700; }
-    
-    /* Estilos de Validade Integrados na Tabela */
     .val-proxima-texto { color: #92400e; font-weight: 700; display: flex; align-items: center; gap: 5px; }
     .val-vencido-texto { color: #b91c1c; font-weight: 700; display: flex; align-items: center; gap: 5px; text-decoration: underline; }
     .val-proxima-linha { background-color: #fffbeb !important; }
@@ -70,12 +68,10 @@
     .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
     .page-info { font-size: 0.8rem; font-weight: 600; color: #64748b; }
     
-    .report-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .summary-card { background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary); }
-    .summary-card h4 { margin: 0; font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
-    .summary-card p { margin: 5px 0 0 0; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
-
     .edit-mode-active { border: 2px solid var(--warning) !important; background: #fffbeb !important; }
+
+    /* Estilo para indicação de perfil */
+    .role-badge { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); }
 
     @media print { 
         body * { visibility: hidden; } 
@@ -93,6 +89,7 @@
       <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">PRO</span></h2>
     </div>
     <div style="display:flex; align-items:center; gap:15px;">
+      <span id="userRoleDisplay" class="role-badge">CARREGANDO...</span>
       <span id="userDisplay" style="font-size: 0.75rem; font-weight: 600;"></span>
       <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
     </div>
@@ -101,17 +98,16 @@
   <div class="container">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Cargas & Saídas</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão de Produtos</button>
+      <button class="tab-btn" id="tabBtnCadastro" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão de Produtos</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-loading"></i> Entradas</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-relatorio'); gerarRelatorioCompras();"><i class="fas fa-chart-line"></i> Planejamento</button>
+      <button class="tab-btn" id="tabBtnRelatorio" onclick="switchTab(event, 'tab-relatorio'); gerarRelatorioCompras();"><i class="fas fa-chart-line"></i> Planejamento</button>
     </div>
 
     <div id="tab-saidas" class="tab-content">
       <div class="grid-layout">
         <aside>
-          <!-- Container de alertas removido conforme solicitado -->
           <div class="card">
             <h3><i class="fas fa-camera"></i> Baixa por Scanner</h3>
             <button class="btn btn-scanner" id="btnToggleScanner" onclick="toggleScannerGlobal()">
@@ -183,7 +179,7 @@
                 <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">ESTOQUE MÍNIMO</label>
                 <input type="number" id="cadMin" placeholder="Mínimo em Estoque">
             </div>
-            <div id="containerCadValidade">
+            <div>
                 <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">VALIDADE (CORREÇÃO)</label>
                 <input type="date" id="cadVal">
             </div>
@@ -197,7 +193,7 @@
         <hr style="margin:25px 0;">
         <h3><i class="fas fa-list"></i> Catálogo de Itens</h3>
         <table id="tabelaCatalogo">
-          <thead><tr><th>Nome</th><th>Categoria</th><th>Mín.</th><th>Local</th><th>Validade</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Nome</th><th>Categoria</th><th>Mín.</th><th>Local</th><th>Validade</th><th class="admin-only">Ações</th></tr></thead>
           <tbody id="corpoCatalogo"></tbody>
         </table>
       </div>
@@ -249,37 +245,9 @@
                 <h3><i class="fas fa-file-invoice"></i> Relatório de Planejamento de Compras</h3>
                 <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> Imprimir Relatório</button>
             </div>
-            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 20px;">
-                Este relatório consolida todas as <b>saídas</b> (Manual, QR e Nutrição) dos últimos 30 dias para estimar o consumo mensal e auxiliar no planejamento de reposição.
-            </p>
-            
-            <div class="report-summary">
-                <div class="summary-card">
-                    <h4>Total de Itens Movimentados</h4>
-                    <p id="repTotalItens">0</p>
-                </div>
-                <div class="summary-card">
-                    <h4>Maior Consumo (Volume)</h4>
-                    <p id="repMaiorConsumo">-</p>
-                </div>
-                <div class="summary-card">
-                    <h4>Período de Análise</h4>
-                    <p>30 Dias</p>
-                </div>
-            </div>
-
             <table id="tabelaRelatorio">
-                <thead>
-                    <tr>
-                        <th>Produto</th>
-                        <th>Consumo (30 dias)</th>
-                        <th>Saldo Atual</th>
-                        <th>Status Reposição</th>
-                    </tr>
-                </thead>
-                <tbody id="corpoRelatorio">
-                    <tr><td colspan="4" style="text-align:center">Carregando dados...</td></tr>
-                </tbody>
+                <thead><tr><th>Produto</th><th>Consumo (30 dias)</th><th>Saldo Atual</th><th>Status Reposição</th></tr></thead>
+                <tbody id="corpoRelatorio"></tbody>
             </table>
         </div>
     </div>
@@ -321,80 +289,54 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
+    
+    let userRole = 'estoque'; // Default restrito
     let scannerGlobal;
-
     let currentPage = 1;
     const itemsPerPage = 10;
     let lastVisible = null;
     let firstVisible = null;
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
       if (!user) return;
       document.getElementById('userDisplay').innerText = user.email.toUpperCase();
+      
+      // BUSCAR ROLE DO USUÁRIO
+      try {
+          const userDoc = await db.collection('usuarios').doc(user.uid).get();
+          if (userDoc.exists) {
+              userRole = userDoc.data().role || 'estoque';
+          } else {
+              // Caso não exista no banco, assume estoque por segurança
+              userRole = 'estoque';
+          }
+      } catch (e) {
+          userRole = 'estoque';
+      }
+
+      aplicarRestricoes();
       renderEstoque();
       monitorarCargas();
       carregarHistorico();
-      
-      const data30d = new Date();
-      data30d.setDate(data30d.getDate() - 30);
-      document.getElementById('dataInicioHist').innerText = data30d.toLocaleDateString();
     });
 
-    function tocarBip() {
-        try {
-            const context = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = context.createOscillator();
-            const gainNode = context.createGain();
-            oscillator.type = "sine"; oscillator.frequency.setValueAtTime(800, context.currentTime);
-            gainNode.gain.setValueAtTime(0.1, context.currentTime);
-            oscillator.connect(gainNode); gainNode.connect(context.destination);
-            oscillator.start(); setTimeout(() => oscillator.stop(), 150);
-        } catch(e) {}
+    function aplicarRestricoes() {
+        const roleDisplay = document.getElementById('userRoleDisplay');
+        roleDisplay.innerText = userRole.toUpperCase();
+        
+        if (userRole === 'admin') {
+            roleDisplay.style.color = '#10b981'; // Verde para Admin
+        } else {
+            roleDisplay.style.color = '#f59e0b'; // Amarelo para Estoque
+            
+            // 1. Esconder formulário de cadastro/edição
+            document.getElementById('formCadastro').classList.add('hidden');
+            document.getElementById('tituloCadastro').innerHTML = '<i class="fas fa-lock"></i> Catálogo (Somente Leitura)';
+            
+            // 2. Esconder aba de Planejamento (opcional, dependendo se o estoque pode ver)
+            // document.getElementById('tabBtnRelatorio').classList.add('hidden');
+        }
     }
-
-    async function toggleScannerGlobal() {
-      const readerDiv = document.getElementById('reader');
-      const btn = document.getElementById('btnToggleScanner');
-      if(readerDiv.classList.contains('hidden')) {
-        readerDiv.classList.remove('hidden');
-        btn.innerHTML = 'FECHAR CÂMERA';
-        scannerGlobal = new Html5Qrcode("reader");
-        scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => {
-            tocarBip(); abrirModalBaixa(id);
-        }).catch(err => alert("Erro: " + err));
-      } else { fecharScanner(); }
-    }
-
-    async function fecharScanner() {
-      if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; }
-      document.getElementById('reader').classList.add('hidden');
-      document.getElementById('btnToggleScanner').innerHTML = 'LIGAR SCANNER';
-    }
-
-    async function abrirModalBaixa(id) {
-      await fecharScanner();
-      const doc = await db.collection('estoque').doc(id).get();
-      if(!doc.exists) return alert("Erro!");
-      const p = doc.data();
-      document.getElementById('baixaIdProd').value = id;
-      document.getElementById('baixaNomeProd').innerText = p.nome;
-      document.getElementById('baixaInfoSaldo').innerText = `Saldo: ${p.quantidade} ${p.unidade}`;
-      document.getElementById('modalBaixa').classList.remove('hidden');
-    }
-
-    async function confirmarBaixaScanner() {
-      const id = document.getElementById('baixaIdProd').value;
-      const q = parseFloat(document.getElementById('baixaQtdInput').value);
-      if(!q || q <= 0) return;
-      const ref = db.collection('estoque').doc(id);
-      const snap = await ref.get();
-      if(snap.data().quantidade < q) return alert("Sem saldo!");
-      await ref.update({ quantidade: snap.data().quantidade - q });
-      await registrarLog("SAÍDA QR", snap.data().nome, q);
-      fecharModalBaixa();
-    }
-
-    function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); }
 
     function renderEstoque() {
       db.collection('estoque').orderBy('nome').onSnapshot(snap => {
@@ -413,22 +355,14 @@
 
         snap.forEach(doc => {
           const p = doc.data();
-          
-          // Lógica de Alerta de Validade Integrada na Tabela
-          let classeLinha = '';
-          let classeTextoVal = '';
-          let iconeVal = '';
+          let classeLinha = ''; let classeTextoVal = ''; let iconeVal = '';
           
           if (p.validade && p.validade !== '--') {
               const dataVal = new Date(p.validade + 'T00:00:00');
               if (dataVal < hoje) {
-                  classeLinha = 'val-vencido-linha';
-                  classeTextoVal = 'val-vencido-texto';
-                  iconeVal = '<i class="fas fa-ban"></i> ';
+                  classeLinha = 'val-vencido-linha'; classeTextoVal = 'val-vencido-texto'; iconeVal = '<i class="fas fa-ban"></i> ';
               } else if (dataVal <= limiteValidade) {
-                  classeLinha = 'val-proxima-linha';
-                  classeTextoVal = 'val-proxima-texto';
-                  iconeVal = '<i class="fas fa-exclamation-triangle"></i> ';
+                  classeLinha = 'val-proxima-linha'; classeTextoVal = 'val-proxima-texto'; iconeVal = '<i class="fas fa-exclamation-triangle"></i> ';
               }
           }
 
@@ -443,16 +377,24 @@
             <td><button class="btn btn-primary" onclick="abrirModalBaixa('${doc.id}')"><i class="fas fa-minus"></i></button></td>
           </tr>`;
           
+          // CATÁLOGO - Botões de ação apenas para Admin
+          let acoesCat = '';
+          if (userRole === 'admin') {
+              acoesCat = `<td>
+                <button class="btn btn-warning" onclick="prepararEdicao('${doc.id}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-primary" onclick="gerarQR('${doc.id}','${p.nome}')"><i class="fas fa-qrcode"></i></button>
+              </td>`;
+          } else {
+              acoesCat = `<td><button class="btn btn-primary" onclick="gerarQR('${doc.id}','${p.nome}')"><i class="fas fa-qrcode"></i></button></td>`;
+          }
+
           cat.innerHTML += `<tr>
             <td>${p.nome}</td>
             <td>${p.categoria}</td>
             <td>${p.estoqueMinimo}</td>
             <td>${p.local || '-'}</td>
             <td>${p.validade || '--'}</td>
-            <td>
-                <button class="btn btn-warning" onclick="prepararEdicao('${doc.id}')"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-primary" onclick="gerarQR('${doc.id}','${p.nome}')"><i class="fas fa-qrcode"></i></button>
-            </td>
+            ${acoesCat}
           </tr>`;
 
           inv.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td><input type="number" id="i-${doc.id}" style="width:70px;margin:0"></td><td><button onclick="ajustarInv('${doc.id}','${p.nome}')" class="btn btn-success">OK</button></td></tr>`;
@@ -464,9 +406,12 @@
     }
 
     async function prepararEdicao(id) {
+        if (userRole !== 'admin') return alert("Ação restrita a administradores.");
+        
         const doc = await db.collection('estoque').doc(id).get();
         const p = doc.data();
         
+        document.getElementById('formCadastro').classList.remove('hidden'); // Mostra se estiver oculto
         document.getElementById('editId').value = id;
         document.getElementById('cadNome').value = p.nome;
         document.getElementById('cadCat').value = p.categoria;
@@ -494,25 +439,27 @@
         document.getElementById('btnCancelarEdicao').classList.add('hidden');
         document.getElementById('btnExcluirProd').classList.add('hidden');
         document.getElementById('cardCadastro').classList.remove('edit-mode-active');
+        
+        if (userRole !== 'admin') document.getElementById('formCadastro').classList.add('hidden');
     }
 
     async function excluirProduto() {
+        if (userRole !== 'admin') return alert("Ação restrita a administradores.");
         const id = document.getElementById('editId').value;
         const nome = document.getElementById('cadNome').value;
         if (!id) return;
-        
-        if (confirm(`Tem certeza que deseja EXCLUIR o produto "${nome}"? Esta ação não pode ser desfeita.`)) {
+        if (confirm(`Excluir "${nome}"?`)) {
             await db.collection('estoque').doc(id).delete();
-            alert("Produto excluído com sucesso!");
-            resetFormCadastro();
+            alert("Excluído!"); resetFormCadastro();
         }
     }
 
     document.getElementById('formCadastro').onsubmit = async (e) => {
         e.preventDefault();
+        if (userRole !== 'admin') return alert("Ação restrita a administradores.");
+        
         const id = document.getElementById('editId').value;
         const valManual = document.getElementById('cadVal').value;
-        
         const d = { 
             nome: document.getElementById('cadNome').value, 
             categoria: document.getElementById('cadCat').value,
@@ -520,21 +467,20 @@
             local: document.getElementById('cadLocal').value,
             estoqueMinimo: parseFloat(document.getElementById('cadMin').value) || 0
         };
-
         if (valManual) d.validade = valManual;
 
         if(id) {
             await db.collection('estoque').doc(id).update(d);
-            alert("Produto atualizado com sucesso!");
+            alert("Atualizado!");
         } else {
-            d.quantidade = 0; 
-            if (!d.validade) d.validade = '--';
+            d.quantidade = 0; if (!d.validade) d.validade = '--';
             await db.collection('estoque').add(d);
-            alert("Produto cadastrado com sucesso!");
+            alert("Cadastrado!");
         }
         resetFormCadastro();
     };
 
+    // --- FUNÇÕES DE MOVIMENTAÇÃO (PERMITIDAS PARA AMBOS) ---
     document.getElementById('formEntrada').onsubmit = async (e) => {
         e.preventDefault();
         const [id, nome] = document.getElementById('entProdSelect').value.split('|');
@@ -574,8 +520,7 @@
     }
 
     function carregarHistorico(direcao = 0) {
-        const dataLimite = new Date();
-        dataLimite.setDate(dataLimite.getDate() - 30);
+        const dataLimite = new Date(); dataLimite.setDate(dataLimite.getDate() - 30);
         let query = db.collection('historico').where('data', '>=', dataLimite).orderBy('data', 'desc');
         if (direcao === 1 && lastVisible) query = query.startAfter(lastVisible).limit(itemsPerPage);
         else if (direcao === -1 && firstVisible) query = query.endBefore(firstVisible).limitToLast(itemsPerPage);
@@ -584,8 +529,7 @@
         query.onSnapshot(snap => {
             const tb = document.getElementById('corpoHist'); tb.innerHTML = '';
             if (snap.empty) {
-                tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Nenhuma movimentação nos últimos 30 dias.</td></tr>';
-                document.getElementById('btnNextPage').disabled = true; document.getElementById('btnPrevPage').disabled = true;
+                tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Sem movimentação.</td></tr>';
                 return;
             }
             firstVisible = snap.docs[0]; lastVisible = snap.docs[snap.docs.length - 1];
@@ -602,59 +546,32 @@
         });
     }
 
-    function paginarHistorico(direcao) {
-        currentPage += direcao;
-        carregarHistorico(direcao);
-    }
+    function paginarHistorico(direcao) { currentPage += direcao; carregarHistorico(direcao); }
 
     async function gerarRelatorioCompras() {
         const corpo = document.getElementById('corpoRelatorio');
-        corpo.innerHTML = '<tr><td colspan="4" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Consolidando dados dos últimos 30 dias...</td></tr>';
-        const dataLimite = new Date();
-        dataLimite.setDate(dataLimite.getDate() - 30);
+        corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Carregando...</td></tr>';
+        const dataLimite = new Date(); dataLimite.setDate(dataLimite.getDate() - 30);
         try {
             const histSnap = await db.collection('historico').where('data', '>=', dataLimite).get();
-            const consumoPorProduto = {};
+            const consumo = {};
             histSnap.forEach(doc => {
                 const h = doc.data();
                 if (h.tipo.includes('SAÍDA')) {
-                    if (!consumoPorProduto[h.produto]) consumoPorProduto[h.produto] = 0;
-                    consumoPorProduto[h.produto] += parseFloat(h.quantidade);
+                    if (!consumo[h.produto]) consumo[h.produto] = 0;
+                    consumo[h.produto] += parseFloat(h.quantidade);
                 }
             });
             const estoqueSnap = await db.collection('estoque').get();
-            const estoqueAtual = {};
+            corpo.innerHTML = '';
             estoqueSnap.forEach(doc => {
                 const p = doc.data();
-                estoqueAtual[p.nome] = { saldo: p.quantidade, unidade: p.unidade, min: p.estoqueMinimo || 0 };
+                const c = consumo[p.nome] || 0;
+                let status = '<span class="badge badge-entrada">ESTÁVEL</span>';
+                if (p.quantidade <= p.estoqueMinimo) status = '<span class="badge badge-saida">REPOR URGENTE</span>';
+                corpo.innerHTML += `<tr><td><b>${p.nome}</b></td><td>${c.toFixed(2)}</td><td>${p.quantidade.toFixed(2)}</td><td>${status}</td></tr>`;
             });
-            corpo.innerHTML = '';
-            let totalItens = 0;
-            let maiorConsumoNome = '-';
-            let maiorConsumoValor = 0;
-            const todosProdutos = [...new Set([...Object.keys(consumoPorProduto), ...Object.keys(estoqueAtual)])].sort();
-            todosProdutos.forEach(nome => {
-                const consumo = consumoPorProduto[nome] || 0;
-                const dadosEstoque = estoqueAtual[nome] || { saldo: 0, unidade: '-', min: 0 };
-                if (consumo > 0 || dadosEstoque.saldo <= dadosEstoque.min) {
-                    totalItens++;
-                    if (consumo > maiorConsumoValor) {
-                        maiorConsumoValor = consumo;
-                        maiorConsumoNome = nome;
-                    }
-                    let statusRep = '<span class="badge badge-entrada">ESTÁVEL</span>';
-                    if (dadosEstoque.saldo <= dadosEstoque.min) statusRep = '<span class="badge badge-saida">REPOR URGENTE</span>';
-                    else if (dadosEstoque.saldo < consumo) statusRep = '<span class="badge badge-ajuste">REPOR EM BREVE</span>';
-                    corpo.innerHTML += `<tr><td><b>${nome}</b></td><td>${consumo.toFixed(2)} ${dadosEstoque.unidade}</td><td>${dadosEstoque.saldo.toFixed(2)} ${dadosEstoque.unidade}</td><td>${statusRep}</td></tr>`;
-                }
-            });
-            if (totalItens === 0) corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum consumo registrado.</td></tr>';
-            document.getElementById('repTotalItens').innerText = totalItens;
-            document.getElementById('repMaiorConsumo').innerText = maiorConsumoNome !== '-' ? `${maiorConsumoNome} (${maiorConsumoValor.toFixed(2)})` : '-';
-        } catch (error) {
-            console.error(error);
-            corpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red">Erro ao carregar dados.</td></tr>';
-        }
+        } catch (e) { console.error(e); }
     }
 
     function monitorarCargas() {
@@ -677,10 +594,39 @@
                 await db.collection('estoque').doc(doc.id).update({ quantidade: saldo - qtd });
                 await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
                 await registrarLog("SAÍDA NUTRIÇÃO", item, qtd);
-                alert("Requisição baixada!");
-            } else alert("Saldo insuficiente!");
-        } else alert("Produto não encontrado!");
+                alert("Baixada!");
+            } else alert("Sem saldo!");
+        } else alert("Não encontrado!");
     }
+
+    async function toggleScannerGlobal() {
+      const readerDiv = document.getElementById('reader');
+      const btn = document.getElementById('btnToggleScanner');
+      if(readerDiv.classList.contains('hidden')) {
+        readerDiv.classList.remove('hidden'); btn.innerHTML = 'FECHAR CÂMERA';
+        scannerGlobal = new Html5Qrcode("reader");
+        scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => { abrirModalBaixa(id); }).catch(e => alert(e));
+      } else { fecharScanner(); }
+    }
+
+    async function fecharScanner() {
+      if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; }
+      document.getElementById('reader').classList.add('hidden');
+      document.getElementById('btnToggleScanner').innerHTML = 'LIGAR SCANNER';
+    }
+
+    async function abrirModalBaixa(id) {
+      await fecharScanner();
+      const doc = await db.collection('estoque').doc(id).get();
+      if(!doc.exists) return alert("Erro!");
+      const p = doc.data();
+      document.getElementById('baixaIdProd').value = id;
+      document.getElementById('baixaNomeProd').innerText = p.nome;
+      document.getElementById('baixaInfoSaldo').innerText = `Saldo: ${p.quantidade} ${p.unidade}`;
+      document.getElementById('modalBaixa').classList.remove('hidden');
+    }
+
+    function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); }
 
     function gerarQR(id, nome) {
       document.getElementById('qrModal').classList.remove('hidden');
