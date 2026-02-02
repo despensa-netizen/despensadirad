@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa Integral v7.2</title>
+  <title>EstoqueSync — Despensa Integral v7.3</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -48,8 +48,12 @@
     td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
     
     .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 700; }
-    .validade-proxima { background-color: #fffbeb; color: #92400e; font-weight: 700; }
-    .vencido { background-color: #fef2f2; color: #b91c1c; font-weight: 700; text-decoration: underline; }
+    
+    /* Estilos de Validade Integrados na Tabela */
+    .val-proxima-texto { color: #92400e; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .val-vencido-texto { color: #b91c1c; font-weight: 700; display: flex; align-items: center; gap: 5px; text-decoration: underline; }
+    .val-proxima-linha { background-color: #fffbeb !important; }
+    .val-vencido-linha { background-color: #fef2f2 !important; }
 
     input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
     #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 15px; }
@@ -66,14 +70,11 @@
     .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
     .page-info { font-size: 0.8rem; font-weight: 600; color: #64748b; }
     
-    .validade-alert { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #92400e; font-size: 0.8rem; }
-
     .report-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .summary-card { background: #f8fafc; padding: 15px; border-radius: 10px; border-left: 4px solid var(--primary); }
     .summary-card h4 { margin: 0; font-size: 0.7rem; color: #64748b; text-transform: uppercase; }
     .summary-card p { margin: 5px 0 0 0; font-size: 1.2rem; font-weight: 700; color: var(--primary); }
 
-    /* Estilo Edição Ativa */
     .edit-mode-active { border: 2px solid var(--warning) !important; background: #fffbeb !important; }
 
     @media print { 
@@ -110,7 +111,7 @@
     <div id="tab-saidas" class="tab-content">
       <div class="grid-layout">
         <aside>
-          <div id="alertasValidadeContainer"></div>
+          <!-- Container de alertas removido conforme solicitado -->
           <div class="card">
             <h3><i class="fas fa-camera"></i> Baixa por Scanner</h3>
             <button class="btn btn-scanner" id="btnToggleScanner" onclick="toggleScannerGlobal()">
@@ -402,9 +403,8 @@
         const inv = document.getElementById('corpoInv');
         const s1 = document.getElementById('saidaProdSelect');
         const s2 = document.getElementById('entProdSelect');
-        const alertaContainer = document.getElementById('alertasValidadeContainer');
         
-        tb.innerHTML = ''; cat.innerHTML = ''; inv.innerHTML = ''; alertaContainer.innerHTML = '';
+        tb.innerHTML = ''; cat.innerHTML = ''; inv.innerHTML = '';
         s1.innerHTML = '<option>Selecione...</option>'; s2.innerHTML = '<option>Selecione...</option>';
 
         const hoje = new Date();
@@ -413,26 +413,33 @@
 
         snap.forEach(doc => {
           const p = doc.data();
-          let classeValidade = '';
+          
+          // Lógica de Alerta de Validade Integrada na Tabela
+          let classeLinha = '';
+          let classeTextoVal = '';
+          let iconeVal = '';
+          
           if (p.validade && p.validade !== '--') {
               const dataVal = new Date(p.validade + 'T00:00:00');
               if (dataVal < hoje) {
-                  classeValidade = 'vencido';
-                  alertaContainer.innerHTML += `<div class="validade-alert" style="border-color: var(--danger); color: var(--danger); background: #fef2f2;"><i class="fas fa-skull-crossbones"></i> <b>${p.nome}</b> VENCIDO em ${dataVal.toLocaleDateString()}!</div>`;
+                  classeLinha = 'val-vencido-linha';
+                  classeTextoVal = 'val-vencido-texto';
+                  iconeVal = '<i class="fas fa-ban"></i> ';
               } else if (dataVal <= limiteValidade) {
-                  classeValidade = 'validade-proxima';
-                  alertaContainer.innerHTML += `<div class="validade-alert"><i class="fas fa-exclamation-triangle"></i> <b>${p.nome}</b> vence em ${dataVal.toLocaleDateString()} (menos de 30 dias)!</div>`;
+                  classeLinha = 'val-proxima-linha';
+                  classeTextoVal = 'val-proxima-texto';
+                  iconeVal = '<i class="fas fa-exclamation-triangle"></i> ';
               }
           }
 
-          const alertaEstoque = p.quantidade <= (p.estoqueMinimo || 0) ? 'abaixo-minimo' : '';
-          const classeLinha = classeValidade || alertaEstoque;
+          const alertaEstoqueMinimo = p.quantidade <= (p.estoqueMinimo || 0) ? 'abaixo-minimo' : '';
+          const classeFinalLinha = classeLinha || alertaEstoqueMinimo;
           
-          tb.innerHTML += `<tr class="${classeLinha}">
+          tb.innerHTML += `<tr class="${classeFinalLinha}">
             <td>${p.nome}</td>
             <td><b>${p.quantidade}</b> ${p.unidade}</td>
             <td>${p.local || '-'}</td>
-            <td class="${classeValidade}">${p.validade}</td>
+            <td class="${classeTextoVal}">${iconeVal}${p.validade}</td>
             <td><button class="btn btn-primary" onclick="abrirModalBaixa('${doc.id}')"><i class="fas fa-minus"></i></button></td>
           </tr>`;
           
