@@ -2,20 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>EstoqueSync - Portal de Acesso</title>
-  
-  <!-- PWA Meta Tags -->
-  <meta name="theme-color" content="#2f75b5">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="EstoqueSync">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2897/2897785.png">
-  
-  <!-- Link para o Manifest -->
-  <link rel="manifest" href="manifest.json">
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EstoqueSync - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -23,68 +12,27 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <style>
-    body { font-family: 'Inter', sans-serif; background: #f0f4ff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-    .card { background: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-    .logo-container { background: #eef2ff; width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #2f75b5; }
-    h2 { color: #1e293b; margin-bottom: 8px; font-weight: 700; }
-    p { color: #64748b; font-size: 0.9rem; margin-bottom: 30px; }
-    .form-group { text-align: left; margin-bottom: 15px; }
-    label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 5px; text-transform: uppercase; }
-    input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0; box-sizing: border-box; font-size: 1rem; transition: all 0.2s; }
-    input:focus { outline: none; border-color: #2f75b5; box-shadow: 0 0 0 3px rgba(47, 117, 181, 0.1); }
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; background: #2f75b5; color: white; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 1rem; transition: background 0.2s; }
-    .btn:hover { background: #2563a3; }
-    #status { margin-top: 20px; font-size: 0.85rem; font-weight: 500; min-height: 20px; }
-    
-    /* Banner PWA */
-    #installBanner { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #1e293b; color: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #2f75b5; }
-    .btn-install { background: #2f75b5; color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.75rem; }
+    body{font-family:'Inter',sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;}
+    .card{background:white;padding:40px 30px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,0.1);width:100%;max-width:400px;text-align:center;}
+    h2{color:#2f75b5;margin-bottom:25px;}
+    input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:1px solid #ddd;box-sizing:border-box;}
+    .btn{width:100%;padding:12px;border:none;border-radius:8px;background:#2f75b5;color:white;font-weight:600;cursor:pointer;margin-top:10px;}
+    #status{margin-top:15px;font-size:14px;color:#e74c3c;font-weight:500; min-height: 20px;}
   </style>
 </head>
 <body>
 
   <div class="card">
-    <div class="logo-container">
-      <i class="fas fa-boxes-stacked fa-2x"></i>
-    </div>
-    <h2>EstoqueSync PRO</h2>
-    <p>Portal de Gestão Integrada</p>
-    
-    <div class="form-group">
-      <label>E-mail de Acesso</label>
-      <input type="email" id="email" placeholder="seu@email.com">
-    </div>
-    <div class="form-group">
-      <label>Senha</label>
-      <input type="password" id="password" placeholder="••••••••">
-    </div>
-    
-    <button class="btn" id="btnLogin">ENTRAR NO SISTEMA</button>
+    <i class="fas fa-boxes fa-3x" style="color:#2f75b5;margin-bottom:15px;"></i>
+    <h2>EstoqueSync</h2>
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="password" placeholder="Senha">
+    <button class="btn" id="btnLogin">Entrar</button>
     <div id="status"></div>
   </div>
 
-  <!-- Banner PWA -->
-  <div id="installBanner" class="hidden">
-    <div style="display:flex; align-items:center; gap:12px;">
-      <i class="fas fa-download"></i>
-      <span style="font-size:0.8rem;">Instalar o EstoqueSync como App?</span>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button onclick="installPWA()" class="btn-install">INSTALAR</button>
-      <button onclick="document.getElementById('installBanner').classList.add('hidden')" style="background:none; border:none; color:white; cursor:pointer;"><i class="fas fa-times"></i></button>
-    </div>
-  </div>
-
   <script>
-    // Registro do Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker registrado!', reg))
-          .catch(err => console.log('Falha ao registrar Service Worker', err));
-      });
-    }
-
+    // 1. Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
@@ -94,32 +42,34 @@
       appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
     };
 
+    // 2. Inicialização
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // 3. Lógica de Login
     document.getElementById('btnLogin').onclick = async () => {
       const email = document.getElementById('email').value.trim().toLowerCase();
       const pass = document.getElementById('password').value;
       const status = document.getElementById('status');
       
       if(!email || !pass) {
-          status.style.color = "#ef4444";
           status.textContent = "Preencha todos os campos.";
           return;
       }
 
       status.style.color = "#2f75b5"; 
-      status.textContent = "Autenticando...";
+      status.textContent = "Verificando acesso...";
 
       try {
+        // Autenticação
         const userCredential = await auth.signInWithEmailAndPassword(email, pass);
         const user = userCredential.user;
         
-        status.textContent = "Verificando permissões...";
-        
+        // Busca o perfil no Firestore
         let userDoc = await db.collection('usuarios').doc(user.uid).get();
         
+        // Se não achar pelo UID, tenta pelo e-mail (migração automática)
         if (!userDoc.exists) {
           const snap = await db.collection('usuarios').where('email', '==', user.email).get();
           if (!snap.empty) {
@@ -139,45 +89,29 @@
           };
           
           if (rotas[role]) {
-            status.style.color = "#10b981";
+            status.style.color = "green";
             status.textContent = "Sucesso! Redirecionando...";
-            setTimeout(() => { window.location.href = rotas[role]; }, 500);
+            window.location.href = rotas[role];
           } else {
-            status.style.color = "#ef4444";
-            status.textContent = "Erro: Acesso não configurado para '" + role + "'.";
+            status.style.color = "red";
+            status.textContent = "Erro: Cargo '" + role + "' não tem página definida.";
           }
         } else {
-          status.style.color = "#ef4444";
-          status.textContent = "Usuário sem perfil cadastrado.";
+          status.style.color = "red";
+          status.textContent = "Usuário sem perfil no banco de dados.";
           await auth.signOut();
         }
 
       } catch (error) {
         console.error(error);
-        status.style.color = "#ef4444";
+        status.style.color = "red";
         if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
           status.textContent = "E-mail ou senha incorretos.";
         } else {
-          status.textContent = "Erro de conexão: " + error.message;
+          status.textContent = "Erro: " + error.message;
         }
       }
     };
-
-    // PWA Logic
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBanner').classList.remove('hidden');
-    });
-
-    async function installPWA() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') document.getElementById('installBanner').classList.add('hidden');
-      deferredPrompt = null;
-    }
   </script>
 </body>
 </html>
