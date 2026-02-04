@@ -11,7 +11,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="EstoqueSync">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2897/2897785.png">
-  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22EstoqueSync%20PRO%22,%22short_name%22:%22Estoque%22,%22start_url%22:%22index.html%22,%22display%22:%22standalone%22,%22background_color%22:%22#f0f4ff%22,%22theme_color%22:%22#2f75b5%22,%22icons%22:[{%22src%22:%22https://cdn-icons-png.flaticon.com/512/2897/2897785.png%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22}]} border-radius: 12px;">
+  
+  <!-- Link para o Manifest -->
+  <link rel="manifest" href="manifest.json">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -74,6 +76,15 @@
   </div>
 
   <script>
+    // Registro do Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registrado!', reg))
+          .catch(err => console.log('Falha ao registrar Service Worker', err));
+      });
+    }
+
     const firebaseConfig = {
       apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
       authDomain: "estoquesync-f0d10.firebaseapp.com",
