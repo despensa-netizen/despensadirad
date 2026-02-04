@@ -3,16 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync PRO v9.6 — PWA App</title>
+  <title>EstoqueSync — Versão Final Auditada v8.2</title>
   
-  <!-- PWA Meta Tags -->
-  <meta name="theme-color" content="#0f172a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="EstoqueSync">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2897/2897785.png">
-  
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -23,272 +16,605 @@
 
   <style>
     :root {
-      --primary: #0f172a; --accent: #2563eb; --accent-soft: #dbeafe;
-      --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --text-soft: #64748b;
-      --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
-      --border: #e2e8f0; --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); --radius: 12px;
+      --primary: #1e3a8a; --accent: #3b82f6; --bg: #f1f5f9; --card: #ffffff;
+      --text: #0f172a; --danger: #ef4444; --success: #22c55e; --warning: #f59e0b;
+      --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --military: #334155;
     }
 
-    body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; background: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; }
-    nav { background: var(--primary); color: white; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: var(--shadow); }
-    .nav-brand { display: flex; align-items: center; gap: 12px; }
-    .nav-brand i { font-size: 1.5rem; color: var(--accent); }
-    .nav-brand h2 { margin: 0; font-size: 1.1rem; font-weight: 800; }
-    .user-pill { background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 100px; display: flex; align-items: center; gap: 10px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.1); }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+    
+    .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; }
+    .tab-btn { padding: 12px 18px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-    .container { max-width: 1440px; margin: 1.5rem auto; padding: 0 1.5rem; }
+    .grid-layout { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; }
+    @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
 
-    .tabs-container { background: var(--card); padding: 6px; border-radius: var(--radius); display: flex; gap: 4px; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-    .tabs-container::-webkit-scrollbar { display: none; }
-    .tab-btn { padding: 10px 16px; cursor: pointer; border: none; background: transparent; font-weight: 600; color: var(--text-soft); border-radius: 8px; transition: all 0.2s; white-space: nowrap; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
-    .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .card h3 { margin-top: 0; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; color: var(--primary); border-bottom: 1px solid #f8fafc; padding-bottom: 10px; text-transform: uppercase; }
 
-    .card { background: var(--card); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 1.5rem; }
-    .card h3 { margin: 0 0 1.25rem 0; font-size: 0.9rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; text-transform: uppercase; }
-
-    .btn { padding: 10px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-size: 0.75rem; border: none; text-transform: uppercase; }
-    .btn-primary { background: var(--accent); color: white; }
+    .btn { cursor: pointer; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-size: 0.7rem; text-transform: uppercase; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
+    .btn-primary { background: var(--primary); color: white; }
     .btn-warning { background: var(--warning); color: white; }
-    .btn-ghost { background: var(--accent-soft); color: var(--accent); }
+    .btn-scanner { background: #6366f1; color: white; width: 100%; margin-bottom: 15px; }
 
-    .table-container { overflow-x: auto; }
-    table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    th { text-align: left; font-size: 0.7rem; color: var(--text-soft); padding: 12px 16px; background: var(--bg); font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-    td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 12px; background: #f8fafc; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    
+    .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 700; }
+    .val-proxima-texto { color: #92400e; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .val-vencido-texto { color: #b91c1c; font-weight: 700; display: flex; align-items: center; gap: 5px; text-decoration: underline; }
+    .val-proxima-linha { background-color: #fffbeb !important; }
+    .val-vencido-linha { background-color: #fef2f2 !important; }
 
-    .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
-    .bg-low { background: #fee2e2; color: #b91c1c; }
-    .bg-ok { background: #dcfce7; color: #15803d; }
-    .bg-warning { background: #fef3c7; color: #92400e; }
-
-    .form-group { margin-bottom: 1rem; }
-    label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--text-soft); margin-bottom: 6px; text-transform: uppercase; }
-    input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; background: #fdfdfd; box-sizing: border-box; -webkit-appearance: none; }
-    input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-    .alert-panel { background: #fff1f2; border: 1px solid #fecaca; border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem; }
-    .alert-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #fee2e2; font-size: 0.8rem; }
-
-    /* Banner de Instalação PWA */
-    #installBanner { position: fixed; bottom: 20px; left: 20px; right: 20px; background: var(--primary); color: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 3000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid var(--accent); animation: slideUp 0.5s ease-out; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
+    input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
+    #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 15px; }
     .hidden { display: none !important; }
+
+    #qrModal, #modalBaixa { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+    .qr-box, .baixa-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; }
+
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
+    .badge-saida { background: #fee2e2; color: #991b1b; }
+    .badge-entrada { background: #dcfce7; color: #166534; }
+    .badge-ajuste { background: #f1f5f9; color: #475569; }
+
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
+    .page-info { font-size: 0.8rem; font-weight: 600; color: #64748b; }
+    
+    .role-badge { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); }
+
+    @media print { 
+        body * { visibility: hidden; } 
+        #tab-relatorio, #tab-relatorio * { visibility: visible; } 
+        #tab-relatorio { position: absolute; left: 0; top: 0; width: 100%; }
+        .btn, .tabs, nav { display: none !important; }
+    }
   </style>
 </head>
 <body>
 
   <nav>
-    <div class="nav-brand"><i class="fas fa-boxes-stacked"></i><h2>ESTOQUESYNC <span style="font-weight:400; opacity:0.8;">PRO v9.6</span></h2></div>
-    <div style="display:flex; align-items:center; gap:16px;">
-      <div class="user-pill"><i class="fas fa-user-circle"></i><span id="userDisplay">CARREGANDO...</span><span id="userRoleDisplay" style="font-weight:800; color:var(--accent);">--</span></div>
-      <button id="logoutBtn" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.65rem;"><i class="fas fa-sign-out-alt"></i> SAIR</button>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <i class="fas fa-boxes-packing fa-lg"></i>
+      <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">PRO</span></h2>
+    </div>
+    <div style="display:flex; align-items:center; gap:15px;">
+      <span id="userRoleDisplay" class="role-badge">CARREGANDO...</span>
+      <span id="userDisplay" style="font-size: 0.75rem; font-weight: 600;"></span>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
-    <div id="painelAlertasValidade" class="alert-panel hidden">
-        <h3 style="margin:0 0 10px 0; font-size:0.85rem; color:#991b1b; display:flex; align-items:center; gap:8px;">
-            <i class="fas fa-triangle-exclamation"></i> ALERTAS DE VALIDADE (PRÓXIMOS 30 DIAS)
-        </h3>
-        <div id="listaAlertasValidade"></div>
-    </div>
-
-    <div class="tabs-container">
-      <button class="tab-btn active" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-warehouse"></i> Inventário</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-recebimento')"><i class="fas fa-file-import"></i> Recebimento</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Baixas</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-balanco')"><i class="fas fa-clipboard-check"></i> Balanço</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-planejamento')"><i class="fas fa-cart-shopping"></i> Planejamento</button>
-      <button class="tab-btn" id="tabBtnCadastro" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão</button>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Cargas & Saídas</button>
+      <button class="tab-btn" id="tabBtnCadastro" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão de Produtos</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-loading"></i> Entradas</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
+      <button class="tab-btn" id="tabBtnRelatorio" onclick="switchTab(event, 'tab-relatorio'); gerarRelatorioCompras();"><i class="fas fa-chart-line"></i> Planejamento</button>
     </div>
 
-    <!-- Conteúdo das abas (simplificado para o exemplo, mas contém toda a lógica v9.5) -->
-    <div id="tab-inventario" class="tab-content">
-        <div class="card">
-            <h3><i class="fas fa-list-ul"></i> Saldo por Lote/Marca</h3>
-            <div class="table-container"><table id="tabelaEstoque"><thead><tr><th>Produto</th><th>Marca</th><th>Saldo</th><th>Validade</th><th>Status</th></tr></thead><tbody></tbody></table></div>
-        </div>
-    </div>
-    
-    <!-- Outras abas permanecem com a mesma estrutura da v9.5 -->
-    <div id="tab-recebimento" class="tab-content hidden">
-        <div class="card" style="max-width: 600px; margin: auto;">
-            <h3><i class="fas fa-truck-ramp-box"></i> Recebimento</h3>
-            <form id="formRecebimento">
-                <div class="form-group"><label>Fornecedor</label><input type="text" id="recFornecedor" required></div>
-                <div class="form-group"><label>Produto</label><select id="recProdSelect" required></select></div>
-                <div class="form-group"><label>Marca</label><input type="text" id="recMarca" required></div>
-                <div class="form-group"><label>Quantidade</label><input type="number" id="recQtd" step="0.01" required></div>
-                <div class="form-group"><label>Validade</label><input type="date" id="recValidade" required></div>
-                <button type="submit" class="btn btn-success" style="width:100%">Confirmar Recebimento</button>
+    <div id="tab-saidas" class="tab-content">
+      <div class="grid-layout">
+        <aside>
+          <div class="card">
+            <h3><i class="fas fa-camera"></i> Baixa por Scanner</h3>
+            <button class="btn btn-scanner" id="btnToggleScanner" onclick="toggleScannerGlobal()">
+              <i class="fas fa-qrcode"></i> LIGAR SCANNER
+            </button>
+            <div id="reader" class="hidden"></div>
+            <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+            <h3><i class="fas fa-hand-holding"></i> Saída Manual</h3>
+            <form id="formSaidaManual">
+              <select id="saidaProdSelect" required><option value="">Selecione...</option></select>
+              <input type="number" id="saidaQtd" placeholder="Quantidade" step="0.01" required>
+              <input type="text" id="saidaMotivo" placeholder="Motivo (ex: Cozinha)">
+              <button type="submit" class="btn btn-warning" style="width:100%">Baixar Manual</button>
             </form>
-        </div>
-    </div>
-
-    <div id="tab-saidas" class="tab-content hidden">
-        <div class="card" style="max-width: 600px; margin: auto;">
-            <h3><i class="fas fa-barcode"></i> Baixa de Material</h3>
-            <div id="alertaPeps" class="peps-alert hidden"></div>
-            <form id="formSaida">
-                <div class="form-group"><label>Produto</label><select id="saidaProdSelect" onchange="checarMelhorValidade()" required></select></div>
-                <div class="form-group"><label>Lote</label><select id="saidaLoteSelect" required></select></div>
-                <div class="form-group"><label>Quantidade</label><input type="number" id="saidaQtd" step="0.01" required></div>
-                <button type="submit" class="btn btn-primary" style="width:100%">Confirmar Baixa</button>
-            </form>
-            <hr style="margin:20px 0; border:0; border-top:1px solid var(--border);">
-            <button class="btn btn-ghost" id="btnToggleScanner" onclick="toggleScannerGlobal()" style="width:100%"><i class="fas fa-camera"></i> Scanner QR Code</button>
-            <div id="reader" class="hidden" style="margin-top:15px; border-radius:12px; overflow:hidden;"></div>
-        </div>
-    </div>
-
-    <div id="tab-balanco" class="tab-content hidden">
-        <div class="card"><h3><i class="fas fa-clipboard-check"></i> Balanço Físico</h3><button class="btn btn-warning" onclick="gerarListaBalanco()">Iniciar Contagem</button><div class="table-container"><table id="tabelaBalanco"><thead><tr><th>Item</th><th>Sistema</th><th>Real</th><th>Div.</th></tr></thead><tbody id="corpoBalanco"></tbody></table></div><div id="areaAcoesBalanco" class="hidden" style="margin-top:20px;"><button class="btn btn-success" onclick="processarBalanco()">Sincronizar</button></div></div>
-    </div>
-
-    <div id="tab-planejamento" class="tab-content hidden">
-        <div class="card"><h3><i class="fas fa-cart-shopping"></i> Planejamento</h3><div class="table-container"><table><thead><tr><th>Material</th><th>Consumo 30d</th><th>Saldo</th><th>Status</th></tr></thead><tbody id="corpoPlanejamento"></tbody></table></div></div>
+          </div>
+          <div class="card">
+            <h3><i class="fas fa-bell"></i> Requisições da Nutrição</h3>
+            <div id="listaRequisicoes"></div>
+          </div>
+        </aside>
+        <section>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <h3><i class="fas fa-warehouse"></i> Inventário em Tempo Real</h3>
+              <input type="text" id="buscaEstoque" placeholder="Pesquisar..." style="width:200px; margin:0" onkeyup="filtrarEstoque()">
+            </div>
+            <table id="tabelaEstoque">
+              <thead><tr><th>Produto</th><th>Saldo</th><th>Local</th><th>Validade</th><th>Ação</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </div>
 
     <div id="tab-cadastro" class="tab-content hidden">
-        <div class="card" style="max-width: 600px; margin: auto;"><h3><i class="fas fa-plus-circle"></i> Gestão</h3><form id="formCadastro"><input type="hidden" id="editId"><div class="form-group"><label>Nome</label><input type="text" id="cadNome" required></div><div class="form-group"><label>Mínimo</label><input type="number" id="cadMin" value="0"></div><button type="submit" class="btn btn-primary" style="width:100%">Salvar</button></form></div>
+      <div class="card" id="cardCadastro" style="max-width:850px; margin:auto;">
+        <h3 id="tituloCadastro"><i class="fas fa-edit"></i> Cadastrar/Editar Produto</h3>
+        <form id="formCadastro">
+          <input type="hidden" id="editId">
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px;">
+              <div>
+                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">NOME DO PRODUTO</label>
+                  <input type="text" id="cadNome" placeholder="Nome do Produto" required>
+              </div>
+              <div>
+                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">CATEGORIA</label>
+                  <select id="cadCat">
+                    <option value="Secos">Secos</option>
+                    <option value="Proteína">Proteína</option>
+                    <option value="Hortifrúti">Hortifrúti</option>
+                    <option value="Laticínios">Laticínios</option>
+                    <option value="Bebidas">Bebidas</option>
+                  </select>
+              </div>
+              <div>
+                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">UNIDADE</label>
+                  <select id="cadUn">
+                    <option value="kg">Kg</option><option value="uni">Uni</option><option value="cx">Cx</option><option value="l">L</option>
+                  </select>
+              </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <div>
+                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">LOCAL/PRATELEIRA</label>
+                <input type="text" id="cadLocal" placeholder="Local/Prateleira">
+            </div>
+            <div>
+                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">ESTOQUE MÍNIMO</label>
+                <input type="number" id="cadMin" placeholder="Mínimo em Estoque">
+            </div>
+            <div>
+                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">VALIDADE (CORREÇÃO)</label>
+                <input type="date" id="cadVal">
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top: 10px;">
+            <button type="submit" id="btnSalvarProd" class="btn btn-primary" style="flex:3">Salvar Produto</button>
+            <button type="button" onclick="resetFormCadastro()" id="btnCancelarEdicao" class="btn btn-warning hidden" style="flex:1">Cancelar</button>
+            <button type="button" onclick="excluirProduto()" id="btnExcluirProd" class="btn btn-danger hidden" style="flex:1">Excluir</button>
+          </div>
+        </form>
+        <hr style="margin:25px 0;">
+        <h3><i class="fas fa-list"></i> Catálogo de Itens</h3>
+        <table id="tabelaCatalogo">
+          <thead><tr><th>Nome</th><th>Categoria</th><th>Mín.</th><th>Local</th><th>Validade</th><th>Ações</th></tr></thead>
+          <tbody id="corpoCatalogo"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-entrada" class="tab-content hidden">
+      <div class="card" style="max-width:500px; margin:auto;">
+        <h3>Entrada de Mercadoria</h3>
+        <form id="formEntrada">
+          <select id="entProdSelect" required><option value="">Selecione...</option></select>
+          <input type="number" id="entQtd" step="0.01" placeholder="Qtd" required>
+          <input type="date" id="entVal" required>
+          <button type="submit" class="btn btn-success" style="width:100%">Confirmar Entrada</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="tab-inventario" class="tab-content hidden">
+        <div class="card">
+            <h3>Ajuste de Balanço</h3>
+            <table id="tabelaInv">
+                <thead><tr><th>Produto</th><th>Sistema</th><th>Real</th><th>Ação</th></tr></thead>
+                <tbody id="corpoInv"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="tab-historico" class="tab-content hidden">
-        <div class="card"><h3><i class="fas fa-history"></i> Histórico</h3><div class="table-container"><table><thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th></tr></thead><tbody id="corpoHist"></tbody></table></div></div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Histórico de Movimentações (Últimos 30 dias)</h3>
+            <div style="font-size: 0.75rem; color: #64748b;">Mostrando registros de <span id="dataInicioHist"></span> até hoje</div>
+        </div>
+        <table id="tabelaHist">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+          <tbody id="corpoHist"></tbody>
+        </table>
+        <div class="pagination">
+            <button id="btnPrevPage" class="btn btn-primary" onclick="paginarHistorico(-1)"><i class="fas fa-chevron-left"></i> Anterior</button>
+            <span class="page-info">Página <span id="currentPageDisplay">1</span></span>
+            <button id="btnNextPage" class="btn btn-primary" onclick="paginarHistorico(1)">Próxima <i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-relatorio" class="tab-content hidden">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3><i class="fas fa-file-invoice"></i> Relatório de Planejamento de Compras</h3>
+                <button onclick="window.print()" class="btn btn-primary"><i class="fas fa-print"></i> Imprimir Relatório</button>
+            </div>
+            <table id="tabelaRelatorio">
+                <thead><tr><th>Produto</th><th>Consumo (30 dias)</th><th>Saldo Atual</th><th>Status Reposição</th></tr></thead>
+                <tbody id="corpoRelatorio"></tbody>
+            </table>
+        </div>
     </div>
   </div>
 
-  <!-- Banner de Instalação (Apenas Android/Chrome) -->
-  <div id="installBanner" class="hidden">
-    <div style="display:flex; align-items:center; gap:12px;">
-        <i class="fas fa-download" style="font-size:1.2rem; color:var(--accent);"></i>
-        <div><b style="font-size:0.8rem;">Instalar EstoqueSync?</b><br><small style="font-size:0.65rem; opacity:0.8;">Acesse como um app na sua tela inicial.</small></div>
+  <!-- Modais -->
+  <div id="qrModal" class="hidden">
+    <div class="qr-box">
+      <h3 id="qrTitle"></h3>
+      <canvas id="qrCanvas"></canvas>
+      <div style="margin-top:20px; display:flex; gap:10px;">
+        <button onclick="window.print()" class="btn btn-success">IMPRIMIR</button>
+        <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="btn">FECHAR</button>
+      </div>
     </div>
-    <div style="display:flex; gap:8px;">
-        <button onclick="installPWA()" class="btn btn-success" style="padding:8px 12px; font-size:0.65rem;">INSTALAR</button>
-        <button onclick="document.getElementById('installBanner').classList.add('hidden')" class="btn btn-ghost" style="padding:8px; color:white;"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div id="modalBaixa" class="hidden">
+    <div class="baixa-box">
+      <h2 id="baixaNomeProd" style="color:var(--primary);"></h2>
+      <p id="baixaInfoSaldo"></p>
+      <input type="hidden" id="baixaIdProd">
+      <input type="number" id="baixaQtdInput" step="0.01" placeholder="0.00" style="font-size:2rem; text-align:center;">
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="confirmarBaixaScanner()" class="btn btn-success" style="flex:1">CONFIRMAR</button>
+        <button onclick="fecharModalBaixa()" class="btn btn-danger" style="flex:1">CANCELAR</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Configuração Firebase (Mesma das versões anteriores)
-    const firebaseConfig = { apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE", authDomain: "estoquesync-f0d10.firebaseapp.com", projectId: "estoquesync-f0d10", storageBucket: "estoquesync-f0d10.appspot.com", messagingSenderId: "67257178512", appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15" };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+      authDomain: "estoquesync-f0d10.firebaseapp.com",
+      projectId: "estoquesync-f0d10",
+      storageBucket: "estoquesync-f0d10.appspot.com",
+      messagingSenderId: "67257178512",
+      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+    };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(); const auth = firebase.auth();
-
-    // Lógica de PWA
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('installBanner').classList.remove('hidden');
-    });
-
-    async function installPWA() {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') document.getElementById('installBanner').classList.add('hidden');
-        deferredPrompt = null;
-    }
-
-    // Registro do Service Worker (Simulado via Blob para funcionar em um único arquivo HTML)
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            const CACHE_NAME = 'estoquesync-v9.6';
-            self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./']))); });
-            self.addEventListener('fetch', (e) => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))); });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        // navigator.serviceWorker.register(swUrl); // Desativado para evitar erros em ambientes locais sem HTTPS
-    }
-
-    // --- RESTANTE DA LÓGICA V9.5 (Resumida para brevidade, mas deve ser mantida completa no arquivo final) ---
-    let userRole = 'estoque'; let lotesCache = []; let produtosCache = []; let historicoFull = []; let scanner;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeep() { const osc = audioCtx.createOscillator(); const g = audioCtx.createGain(); osc.connect(g); g.connect(audioCtx.destination); osc.frequency.value = 880; g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
-
-    auth.onAuthStateChanged(async (u) => {
-        if (!u) return;
-        document.getElementById('userDisplay').innerText = u.email.split('@')[0].toUpperCase();
-        const uDoc = await db.collection('usuarios').doc(u.uid).get();
-        userRole = uDoc.exists ? (uDoc.data().role || 'estoque') : 'estoque';
-        document.getElementById('userRoleDisplay').innerText = userRole.toUpperCase();
-        if(userRole !== 'admin') document.getElementById('tabBtnCadastro').classList.add('hidden');
-        inicializar();
-    });
-
-    function inicializar() { monitorarProdutos(); monitorarLotes(); carregarHistorico(); }
-    function monitorarProdutos() { db.collection('estoque').orderBy('nome').onSnapshot(s => { produtosCache = s.docs.map(d => ({id: d.id, ...d.data()})); renderSelects(); gerarRelatorioCompras(); }); }
-    function monitorarLotes() { db.collection('lotes').orderBy('validade').onSnapshot(s => { lotesCache = s.docs.map(d => ({id: d.id, ...d.data()})); renderEstoque(); atualizarAlertasValidade(); gerarRelatorioCompras(); }); }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
     
+    let userRole = 'estoque';
+    let scannerGlobal;
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let pagesHistory = [null]; // Armazena o primeiro documento de cada página para navegação
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+          window.location.href = 'index.html'; // Proteção básica
+          return;
+      }
+      document.getElementById('userDisplay').innerText = user.email.toUpperCase();
+      try {
+          const userDoc = await db.collection('usuarios').doc(user.uid).get();
+          userRole = userDoc.exists ? (userDoc.data().role || 'estoque') : 'estoque';
+      } catch (e) { userRole = 'estoque'; }
+      
+      aplicarRestricoes();
+      renderEstoque();
+      monitorarCargas();
+      carregarHistorico();
+      
+      const data30d = new Date(); data30d.setDate(data30d.getDate() - 30);
+      document.getElementById('dataInicioHist').innerText = data30d.toLocaleDateString();
+    });
+
+    function aplicarRestricoes() {
+        const roleDisplay = document.getElementById('userRoleDisplay');
+        roleDisplay.innerText = userRole.toUpperCase();
+        if (userRole === 'admin') {
+            roleDisplay.style.color = '#10b981';
+        } else {
+            roleDisplay.style.color = '#f59e0b';
+            document.getElementById('formCadastro').classList.add('hidden');
+            document.getElementById('tituloCadastro').innerHTML = '<i class="fas fa-lock"></i> Catálogo (Somente Leitura)';
+        }
+    }
+
     function renderEstoque() {
-        const tb = document.querySelector('#tabelaEstoque tbody'); tb.innerHTML = '';
-        const hoje = new Date(); const limite30 = new Date(); limite30.setDate(hoje.getDate() + 30);
-        lotesCache.forEach(l => {
-            const p = produtosCache.find(x => x.id === l.produtoId); if(!p) return;
-            const dVal = new Date(l.validade + 'T00:00:00');
-            let status = '<span class="badge bg-ok">OK</span>'; let style = '';
-            if (dVal < hoje) { status = '<span class="badge bg-low">VENCIDO</span>'; style = 'background:#fff1f2'; }
-            else if (dVal <= limite30) { status = '<span class="badge bg-warning">PRÓXIMO</span>'; style = 'background:#fffbeb'; }
-            tb.innerHTML += `<tr style="${style}"><td><b>${p.nome}</b></td><td>${l.marca}</td><td><b>${l.quantidade}</b></td><td>${l.validade}</td><td>${status}</td></tr>`;
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        const tb = document.querySelector('#tabelaEstoque tbody');
+        const cat = document.getElementById('corpoCatalogo');
+        const inv = document.getElementById('corpoInv');
+        const s1 = document.getElementById('saidaProdSelect');
+        const s2 = document.getElementById('entProdSelect');
+        
+        tb.innerHTML = ''; cat.innerHTML = ''; inv.innerHTML = '';
+        s1.innerHTML = '<option value="">Selecione...</option>'; 
+        s2.innerHTML = '<option value="">Selecione...</option>';
+
+        const hoje = new Date();
+        const limiteValidade = new Date();
+        limiteValidade.setDate(hoje.getDate() + 30);
+
+        snap.forEach(doc => {
+          const p = doc.data();
+          let clsLinha = ''; let clsTxtVal = ''; let icVal = '';
+          
+          if (p.validade && p.validade !== '--') {
+              const dVal = new Date(p.validade + 'T00:00:00');
+              if (dVal < hoje) { clsLinha = 'val-vencido-linha'; clsTxtVal = 'val-vencido-texto'; icVal = '<i class="fas fa-ban"></i> '; }
+              else if (dVal <= limiteValidade) { clsLinha = 'val-proxima-linha'; clsTxtVal = 'val-proxima-texto'; icVal = '<i class="fas fa-exclamation-triangle"></i> '; }
+          }
+          const alertaMin = p.quantidade <= (p.estoqueMinimo || 0) ? 'abaixo-minimo' : '';
+          
+          tb.innerHTML += `<tr class="${clsLinha || alertaMin}"><td>${p.nome}</td><td><b>${p.quantidade}</b> ${p.unidade}</td><td>${p.local || '-'}</td><td class="${clsTxtVal}">${icVal}${p.validade}</td><td><button class="btn btn-primary" onclick="abrirModalBaixa('${doc.id}')"><i class="fas fa-minus"></i></button></td></tr>`;
+          
+          let acoes = userRole === 'admin' ? `<td><button class="btn btn-warning" onclick="prepararEdicao('${doc.id}')"><i class="fas fa-edit"></i></button> <button class="btn btn-primary" onclick="gerarQR('${doc.id}','${p.nome}')"><i class="fas fa-qrcode"></i></button></td>` : `<td><button class="btn btn-primary" onclick="gerarQR('${doc.id}','${p.nome}')"><i class="fas fa-qrcode"></i></button></td>`;
+          cat.innerHTML += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>${p.estoqueMinimo}</td><td>${p.local || '-'}</td><td>${p.validade || '--'}</td>${acoes}</tr>`;
+          inv.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td><input type="number" id="i-${doc.id}" style="width:70px;margin:0"></td><td><button onclick="ajustarInv('${doc.id}','${p.nome}')" class="btn btn-success">OK</button></td></tr>`;
+          
+          const opt = `<option value="${doc.id}|${p.nome}">${p.nome}</option>`;
+          s1.innerHTML += opt; s2.innerHTML += opt;
+        });
+      }, err => console.error("Erro renderEstoque:", err));
+    }
+
+    async function confirmarBaixaScanner() {
+        const id = document.getElementById('baixaIdProd').value;
+        const q = parseFloat(document.getElementById('baixaQtdInput').value);
+        if(!q || q <= 0) return alert("Informe a quantidade!");
+        try {
+            const ref = db.collection('estoque').doc(id);
+            const snap = await ref.get();
+            const p = snap.data();
+            if(p.quantidade < q) return alert("Sem saldo suficiente!");
+            await ref.update({ quantidade: p.quantidade - q });
+            await registrarLog("SAÍDA QR", p.nome, q);
+            alert("Baixa realizada!"); fecharModalBaixa();
+        } catch (e) { alert("Erro: " + e.message); }
+    }
+
+    async function prepararEdicao(id) {
+        if (userRole !== 'admin') return;
+        const doc = await db.collection('estoque').doc(id).get();
+        const p = doc.data();
+        document.getElementById('formCadastro').classList.remove('hidden');
+        document.getElementById('editId').value = id;
+        document.getElementById('cadNome').value = p.nome;
+        document.getElementById('cadCat').value = p.categoria;
+        document.getElementById('cadUn').value = p.unidade;
+        document.getElementById('cadLocal').value = p.local || '';
+        document.getElementById('cadMin').value = p.estoqueMinimo;
+        document.getElementById('cadVal').value = (p.validade && p.validade !== '--') ? p.validade : '';
+        document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-edit"></i> Editando: ${p.nome}`;
+        document.getElementById('btnSalvarProd').innerText = "Atualizar Produto";
+        document.getElementById('btnSalvarProd').classList.replace('btn-primary', 'btn-warning');
+        document.getElementById('btnCancelarEdicao').classList.remove('hidden');
+        document.getElementById('btnExcluirProd').classList.remove('hidden');
+        document.getElementById('cardCadastro').classList.add('edit-mode-active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetFormCadastro() {
+        document.getElementById('formCadastro').reset();
+        document.getElementById('editId').value = '';
+        document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-plus-circle"></i> Novo Produto`;
+        document.getElementById('btnSalvarProd').innerText = "Salvar Produto";
+        document.getElementById('btnSalvarProd').classList.replace('btn-warning', 'btn-primary');
+        document.getElementById('btnCancelarEdicao').classList.add('hidden');
+        document.getElementById('btnExcluirProd').classList.add('hidden');
+        document.getElementById('cardCadastro').classList.remove('edit-mode-active');
+        if (userRole !== 'admin') document.getElementById('formCadastro').classList.add('hidden');
+    }
+
+    async function excluirProduto() {
+        if (userRole !== 'admin') return;
+        const id = document.getElementById('editId').value;
+        const nome = document.getElementById('cadNome').value;
+        if (confirm(`Excluir permanentemente "${nome}"?`)) { 
+            await db.collection('estoque').doc(id).delete(); 
+            alert("Excluído!"); resetFormCadastro(); 
+        }
+    }
+
+    document.getElementById('formCadastro').onsubmit = async (e) => {
+        e.preventDefault();
+        if (userRole !== 'admin') return;
+        const id = document.getElementById('editId').value;
+        const val = document.getElementById('cadVal').value;
+        const d = { 
+            nome: document.getElementById('cadNome').value, 
+            categoria: document.getElementById('cadCat').value, 
+            unidade: document.getElementById('cadUn').value, 
+            local: document.getElementById('cadLocal').value, 
+            estoqueMinimo: parseFloat(document.getElementById('cadMin').value) || 0 
+        };
+        if (val) d.validade = val;
+        try {
+            if(id) { await db.collection('estoque').doc(id).update(d); alert("Atualizado!"); }
+            else { d.quantidade = 0; if (!d.validade) d.validade = '--'; await db.collection('estoque').add(d); alert("Cadastrado!"); }
+            resetFormCadastro();
+        } catch(e) { alert("Erro ao salvar: " + e.message); }
+    };
+
+    document.getElementById('formEntrada').onsubmit = async (e) => {
+        e.preventDefault();
+        const valSel = document.getElementById('entProdSelect').value;
+        if(!valSel) return alert("Selecione um produto!");
+        const [id, nome] = valSel.split('|');
+        const q = parseFloat(document.getElementById('entQtd').value);
+        const v = document.getElementById('entVal').value;
+        const ref = db.collection('estoque').doc(id);
+        const snap = await ref.get();
+        await ref.update({ quantidade: snap.data().quantidade + q, validade: v });
+        await registrarLog("ENTRADA", nome, q);
+        alert("Entrada registrada!"); e.target.reset();
+    };
+
+    document.getElementById('formSaidaManual').onsubmit = async (e) => {
+        e.preventDefault();
+        const valSel = document.getElementById('saidaProdSelect').value;
+        if(!valSel) return alert("Selecione um produto!");
+        const [id, nome] = valSel.split('|');
+        const q = parseFloat(document.getElementById('saidaQtd').value);
+        const mot = document.getElementById('saidaMotivo').value;
+        const ref = db.collection('estoque').doc(id);
+        const snap = await ref.get();
+        if(snap.data().quantidade < q) return alert("Sem saldo!");
+        await ref.update({ quantidade: snap.data().quantidade - q });
+        await registrarLog(`SAÍDA MANUAL ${mot ? '('+mot+')' : ''}`, nome, q);
+        alert("Saída registrada!"); e.target.reset();
+    };
+
+    async function ajustarInv(id, nome) {
+        const v = parseFloat(document.getElementById(`i-${id}`).value);
+        if(!isNaN(v)) { 
+            await db.collection('estoque').doc(id).update({ quantidade: v }); 
+            await registrarLog("AJUSTE", nome, v); 
+            alert("Balanço atualizado!"); 
+        }
+    }
+
+    async function registrarLog(tipo, prod, q) { 
+        try {
+            await db.collection('historico').add({ data: new Date(), tipo, produto: prod, quantidade: q, user: auth.currentUser.email }); 
+        } catch(e) { console.error("Erro log:", e); }
+    }
+
+    function carregarHistorico() {
+        const dLim = new Date(); dLim.setDate(dLim.getDate() - 30);
+        let q = db.collection('historico').where('data', '>=', dLim).orderBy('data', 'desc');
+        
+        // Paginação baseada em snapshots
+        if (currentPage > 1 && pagesHistory[currentPage-1]) {
+            q = q.startAt(pagesHistory[currentPage-1]);
+        }
+        q = q.limit(itemsPerPage);
+
+        q.onSnapshot(snap => {
+            const tb = document.getElementById('corpoHist'); tb.innerHTML = '';
+            if (snap.empty) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Sem movimentação.</td></tr>'; return; }
+            
+            // Salva o ponto de partida da próxima página
+            if (snap.docs.length === itemsPerPage) {
+                pagesHistory[currentPage] = snap.docs[snap.docs.length - 1];
+            }
+
+            snap.forEach(doc => {
+                const h = doc.data(); let cls = 'badge-ajuste';
+                if (h.tipo.includes('SAÍDA')) cls = 'badge-saida';
+                if (h.tipo.includes('ENTRADA')) cls = 'badge-entrada';
+                tb.innerHTML += `<tr><td>${h.data.toDate().toLocaleString()}</td><td><span class="badge ${cls}">${h.tipo}</span></td><td>${h.produto}</td><td>${h.quantidade}</td><td>${h.user ? h.user.split('@')[0] : 'Sistema'}</td></tr>`;
+            });
+            document.getElementById('currentPageDisplay').innerText = currentPage;
+            document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+            document.getElementById('btnNextPage').disabled = (snap.docs.length < itemsPerPage);
         });
     }
 
-    function atualizarAlertasValidade() {
-        const p = document.getElementById('painelAlertasValidade'); const l = document.getElementById('listaAlertasValidade');
-        const hoje = new Date(); const limite30 = new Date(); limite30.setDate(hoje.getDate() + 30);
-        const criticos = lotesCache.filter(x => new Date(x.validade + 'T00:00:00') <= limite30 && x.quantidade > 0);
-        if(criticos.length > 0) { p.classList.remove('hidden'); l.innerHTML = criticos.map(x => `<div class="alert-item"><span><b>${produtosCache.find(p=>p.id===x.produtoId)?.nome}</b> (${x.marca})</span><span style="color:var(--danger); font-weight:800;">${x.validade}</span></div>`).join(''); }
-        else p.classList.add('hidden');
+    function paginarHistorico(dir) { 
+        if(dir === -1 && currentPage > 1) currentPage--;
+        else if(dir === 1) currentPage++;
+        carregarHistorico(); 
     }
 
-    function renderSelects() {
-        const r = document.getElementById('recProdSelect'); const s = document.getElementById('saidaProdSelect');
-        r.innerHTML = s.innerHTML = '<option value="">Selecione...</option>';
-        produtosCache.forEach(p => { const o = `<option value="${p.id}">${p.nome}</option>`; r.innerHTML += o; s.innerHTML += o; });
+    async function gerarRelatorioCompras() {
+        const corpo = document.getElementById('corpoRelatorio');
+        corpo.innerHTML = '<tr><td colspan="4" style="text-align:center"><i class="fas fa-spinner fa-spin"></i> Consolidando dados...</td></tr>';
+        const dLim = new Date(); dLim.setDate(dLim.getDate() - 30);
+        try {
+            const hSnap = await db.collection('historico').where('data', '>=', dLim).get();
+            const cons = {};
+            hSnap.forEach(doc => { 
+                const h = doc.data(); 
+                if (h.tipo.includes('SAÍDA')) { cons[h.produto] = (cons[h.produto] || 0) + parseFloat(h.quantidade); } 
+            });
+            const eSnap = await db.collection('estoque').get();
+            corpo.innerHTML = '';
+            eSnap.forEach(doc => {
+                const p = doc.data(); const c = cons[p.nome] || 0;
+                let st = '<span class="badge badge-entrada">ESTÁVEL</span>';
+                if (p.quantidade <= p.estoqueMinimo) st = '<span class="badge badge-saida">REPOR URGENTE</span>';
+                else if (p.quantidade < c) st = '<span class="badge badge-ajuste">REPOR EM BREVE</span>';
+                corpo.innerHTML += `<tr><td><b>${p.nome}</b></td><td>${c.toFixed(2)} ${p.unidade}</td><td>${p.quantidade.toFixed(2)} ${p.unidade}</td><td>${st}</td></tr>`;
+            });
+            if(corpo.innerHTML === '') corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Nenhum dado para o período.</td></tr>';
+        } catch (e) { corpo.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red">Erro ao carregar relatório.</td></tr>'; }
     }
 
-    function checarMelhorValidade() {
-        const pId = document.getElementById('saidaProdSelect').value; const lSel = document.getElementById('saidaLoteSelect'); const a = document.getElementById('alertaPeps');
-        lSel.innerHTML = '<option value="">Selecione...</option>'; a.classList.add('hidden');
-        if(!pId) return;
-        const lotes = lotesCache.filter(l => l.produtoId === pId && l.quantidade > 0);
-        if(lotes.length === 0) return;
-        a.innerHTML = `<i class="fas fa-lightbulb"></i> Priorize: <b>${lotes[0].marca}</b> (${lotes[0].validade})`; a.classList.remove('hidden');
-        lotes.forEach(l => lSel.innerHTML += `<option value="${l.id}">${l.marca} | Val: ${l.validade} (${l.quantidade})</option>`);
+    function monitorarCargas() {
+        const hj = new Date().toISOString().split('T')[0];
+        db.collection('requisicoes').where('dataUso', '==', hj).where('status', '==', 'pendente').onSnapshot(snap => {
+            const cont = document.getElementById('listaRequisicoes'); cont.innerHTML = '';
+            snap.forEach(doc => {
+                const r = doc.data();
+                cont.innerHTML += `<div style="padding:10px; background:#fff; border:1px solid #eee; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>${r.item} (<b>${r.quantidade}</b>)</span> <button onclick="baixarReq('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success"><i class="fas fa-check"></i></button></div>`;
+            });
+        });
     }
 
-    document.getElementById('formSaida').onsubmit = async (e) => {
-        e.preventDefault(); const id = document.getElementById('saidaLoteSelect').value; const q = parseFloat(document.getElementById('saidaQtd').value);
-        const l = lotesCache.find(x => x.id === id); if(l.quantidade < q) return alert("Saldo insuficiente!");
-        await db.collection('lotes').doc(id).update({ quantidade: l.quantidade - q });
-        await db.collection('historico').add({ data: new Date(), tipo: "SAÍDA", produto: produtosCache.find(p=>p.id===l.produtoId).nome, marca: l.marca, quantidade: q, user: auth.currentUser.email });
-        alert("Baixa concluída!"); e.target.reset(); checarMelhorValidade();
-    };
-
-    document.getElementById('formRecebimento').onsubmit = async (e) => {
-        e.preventDefault();
-        const pId = document.getElementById('recProdSelect').value; const m = document.getElementById('recMarca').value; const q = parseFloat(document.getElementById('recQtd').value); const v = document.getElementById('recValidade').value;
-        await db.collection('lotes').add({ produtoId: pId, marca: m, quantidade: q, validade: v, fornecedor: document.getElementById('recFornecedor').value });
-        alert("Recebido!"); e.target.reset();
-    };
-
-    function switchTab(e, id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.remove('hidden'); e.currentTarget.classList.add('active'); if(scanner && id !== 'tab-saidas') { scanner.stop(); scanner = null; document.getElementById('reader').classList.add('hidden'); } }
-    
-    function toggleScannerGlobal() {
-        const r = document.getElementById('reader'); if(r.classList.contains('hidden')) { r.classList.remove('hidden'); scanner = new Html5Qrcode("reader"); scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (id) => { playBeep(); alert("Lido: " + id); }); }
-        else { scanner.stop(); r.classList.add('hidden'); }
+    async function baixarReq(id, item, qtd) {
+        const q = await db.collection('estoque').where('nome', '==', item).get();
+        if(!q.empty) {
+            const doc = q.docs[0]; const saldo = doc.data().quantidade;
+            if(saldo >= qtd) { 
+                await db.collection('estoque').doc(doc.id).update({ quantidade: saldo - qtd }); 
+                await db.collection('requisicoes').doc(id).update({ status: 'concluido' }); 
+                await registrarLog("SAÍDA NUTRIÇÃO", item, qtd); 
+                alert("Baixada!"); 
+            } else alert("Sem saldo!");
+        } else alert("Não encontrado!");
     }
 
-    function carregarHistorico() { db.collection('historico').orderBy('data', 'desc').limit(20).onSnapshot(s => { historicoFull = s.docs.map(d => d.data()); const tb = document.getElementById('corpoHist'); tb.innerHTML = historicoFull.map(h => `<tr><td>${h.data.toDate().toLocaleDateString()}</td><td>${h.tipo}</td><td>${h.produto}</td><td>${h.quantidade}</td></tr>`).join(''); }); }
-    function gerarRelatorioCompras() { /* Lógica v9.5 mantida aqui */ }
+    async function toggleScannerGlobal() {
+      const rDiv = document.getElementById('reader'); const btn = document.getElementById('btnToggleScanner');
+      if(rDiv.classList.contains('hidden')) {
+        rDiv.classList.remove('hidden'); btn.innerHTML = 'FECHAR CÂMERA';
+        scannerGlobal = new Html5Qrcode("reader");
+        scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => { abrirModalBaixa(id); }).catch(e => alert("Erro câmera: " + e));
+      } else { fecharScanner(); }
+    }
+
+    async function fecharScanner() { if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; } document.getElementById('reader').classList.add('hidden'); document.getElementById('btnToggleScanner').innerHTML = 'LIGAR SCANNER'; }
+
+    async function abrirModalBaixa(id) {
+      await fecharScanner();
+      const doc = await db.collection('estoque').doc(id).get();
+      if(!doc.exists) return alert("Erro: Produto não existe!");
+      const p = doc.data();
+      document.getElementById('baixaIdProd').value = id;
+      document.getElementById('baixaNomeProd').innerText = p.nome;
+      document.getElementById('baixaInfoSaldo').innerText = `Saldo: ${p.quantidade} ${p.unidade}`;
+      document.getElementById('modalBaixa').classList.remove('hidden');
+    }
+
+    function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); }
+
+    function gerarQR(id, nome) { 
+        document.getElementById('qrModal').classList.remove('hidden'); 
+        document.getElementById('qrTitle').innerText = nome; 
+        new QRious({ element: document.getElementById('qrCanvas'), value: id, size: 220 }); 
+    }
+
+    function switchTab(e, id) { 
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); 
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+        document.getElementById(id).classList.remove('hidden'); 
+        e.currentTarget.classList.add('active'); 
+    }
+
+    function filtrarEstoque() { 
+        const b = document.getElementById('buscaEstoque').value.toLowerCase(); 
+        document.querySelectorAll('#tabelaEstoque tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none'); 
+    }
+
     document.getElementById('logoutBtn').onclick = () => auth.signOut();
   </script>
 </body>
