@@ -1,0 +1,18 @@
+{
+  "name": "EstoqueSync PRO",
+  "short_name": "EstoqueSync",
+  "description": "Sistema de Gestão de Estoque e Nutrição",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f0f4ff",
+  "theme_color": "#2f75b5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2897/2897785.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
