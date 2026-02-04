@@ -15,6 +15,489 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
   <style>
+    /* TODO O SEU ESTILO ORIGINAL INTEGRALMENTE PRESERVADO */
+    :root {
+      --primary: #1e3a8a; --accent: #3b82f6; --bg: #f1f5f9; --card: #ffffff;
+      --text: #0f172a; --danger: #ef4444; --success: #22c55e; --warning: #f59e0b;
+      --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      --military: #334155;
+    }
+
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
+    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+    
+    .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; }
+    .tab-btn { padding: 12px 18px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .grid-layout { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; }
+    @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .card h3 { margin-top: 0; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; color: var(--primary); border-bottom: 1px solid #f8fafc; padding-bottom: 10px; text-transform: uppercase; }
+
+    .btn { cursor: pointer; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-size: 0.7rem; text-transform: uppercase; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-scanner { background: #6366f1; color: white; width: 100%; margin-bottom: 15px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 12px; background: #f8fafc; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    
+    .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 700; }
+    .val-proxima-texto { color: #92400e; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+    .val-vencido-texto { color: #b91c1c; font-weight: 700; display: flex; align-items: center; gap: 5px; text-decoration: underline; }
+    .val-proxima-linha { background-color: #fffbeb !important; }
+    .val-vencido-linha { background-color: #fef2f2 !important; }
+
+    input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
+    #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 15px; }
+    .hidden { display: none !important; }
+
+    /* Estilo do Alerta PEPS no Modal */
+    .alerta-peps { background: #fff7ed; border: 2px solid #f97316; padding: 15px; border-radius: 10px; margin-bottom: 15px; color: #9a3412; font-weight: bold; font-size: 0.9rem; }
+
+    #qrModal, #modalBaixa, #modalLotes { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+    .qr-box, .baixa-box, .lote-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto; }
+
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
+    
+    @media print { 
+        body * { visibility: hidden; } 
+        .qr-box, .qr-box *, #tab-relatorio, #tab-relatorio * { visibility: visible; } 
+        .qr-box { position: absolute; left: 0; top: 0; width: 100%; }
+        .btn, .tabs, nav { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <i class="fas fa-boxes-packing fa-lg"></i>
+      <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">PRO</span></h2>
+    </div>
+    <div style="display:flex; align-items:center; gap:15px;">
+      <span id="userRoleDisplay" class="role-badge" style="background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:20px; font-size:0.65rem;">CARREGANDO...</span>
+      <span id="userDisplay" style="font-size: 0.75rem; font-weight: 600;"></span>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Cargas & Saídas</button>
+      <button class="tab-btn" id="tabBtnCadastro" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão de Produtos</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-loading"></i> Recebimento PEPS</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
+      <button class="tab-btn" id="tabBtnRelatorio" onclick="switchTab(event, 'tab-relatorio'); gerarRelatorioCompras();"><i class="fas fa-chart-line"></i> Planejamento</button>
+    </div>
+
+    <div id="tab-saidas" class="tab-content">
+      <div class="grid-layout">
+        <aside>
+          <div class="card">
+            <h3><i class="fas fa-camera"></i> Baixa por Scanner</h3>
+            <button class="btn btn-scanner" id="btnToggleScanner" onclick="toggleScannerGlobal()">
+              <i class="fas fa-qrcode"></i> LIGAR SCANNER
+            </button>
+            <div id="reader" class="hidden"></div>
+            <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+            <h3><i class="fas fa-hand-holding"></i> Saída Manual</h3>
+            <form id="formSaidaManual">
+              <label style="font-size:0.65rem; font-weight:700;">PRODUTO</label>
+              <select id="saidaProdSelect" required onchange="checarLoteSugerido(this.value)"><option value="">Selecione...</option></select>
+              <label style="font-size:0.65rem; font-weight:700;">QUANTIDADE</label>
+              <input type="number" id="saidaQtd" placeholder="0.00" step="0.01" required>
+              <label style="font-size:0.65rem; font-weight:700;">MOTIVO</label>
+              <input type="text" id="saidaMotivo" placeholder="Destino (Ex: Cozinha)">
+              <button type="submit" class="btn btn-warning" style="width:100%">Baixar Manual</button>
+            </form>
+          </div>
+          <div class="card">
+            <h3><i class="fas fa-bell"></i> Requisições Nutrição</h3>
+            <div id="listaRequisicoes"></div>
+          </div>
+        </aside>
+        <section>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <h3><i class="fas fa-warehouse"></i> Inventário em Tempo Real</h3>
+              <input type="text" id="buscaEstoque" placeholder="Pesquisar..." style="width:200px; margin:0" onkeyup="filtrarEstoque()">
+            </div>
+            <table id="tabelaEstoque">
+              <thead><tr><th>Produto</th><th>Saldo Total</th><th>Local</th><th>Próx. Validade</th><th>Ação</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="tab-cadastro" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-edit"></i> Cadastrar/Editar Produto Base</h3>
+        <form id="formCadastro">
+          <input type="hidden" id="editId">
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px;">
+              <input type="text" id="cadNome" placeholder="Nome do Produto" required>
+              <select id="cadCat"><option value="Secos">Secos</option><option value="Proteína">Proteína</option><option value="Hortifrúti">Hortifrúti</option></select>
+              <select id="cadUn"><option value="kg">Kg</option><option value="uni">Uni</option><option value="cx">Cx</option></select>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+            <input type="text" id="cadLocal" placeholder="Local/Prateleira">
+            <input type="number" id="cadMin" placeholder="Mínimo">
+            <input type="date" id="cadVal">
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top:10px;">Salvar no Catálogo</button>
+          <button type="button" id="btnCancelaEdit" class="btn btn-warning hidden" onclick="limparFormCadastro()">Cancelar</button>
+        </form>
+        <table id="tabelaCatalogo" style="margin-top:20px;">
+          <thead><tr><th>Nome</th><th>Local</th><th>Mínimo</th><th>Ações</th></tr></thead>
+          <tbody id="corpoCatalogo"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-entrada" class="tab-content hidden">
+        <div class="card" style="max-width:500px; margin:auto;">
+            <h3><i class="fas fa-truck-loading"></i> Entrada de Lote (PEPS)</h3>
+            <form id="formEntradaPeps">
+                <select id="entProdSelect" required><option value="">Selecione o produto...</option></select>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="number" id="entQtd" placeholder="Qtd" step="0.01" required>
+                    <input type="date" id="entVal" required>
+                </div>
+                <input type="text" id="entLote" placeholder="Identificação do Lote">
+                <button type="submit" class="btn btn-success" style="width:100%; margin-top:15px; padding:15px;">REGISTRAR ENTRADA</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="tab-inventario" class="tab-content hidden">
+        <div class="card">
+            <h3>Ajuste de Balanço</h3>
+            <table id="tabelaInv">
+                <thead><tr><th>Produto</th><th>Sistema</th><th>Real</th><th>Ação</th></tr></thead>
+                <tbody id="corpoInv"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-historico" class="tab-content hidden">
+      <div class="card">
+        <h3>Histórico de Movimentações</h3>
+        <table id="tabelaHist">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+          <tbody id="corpoHist"></tbody>
+        </table>
+        <div class="pagination">
+            <button class="btn btn-primary" onclick="paginarHistorico(-1)">Anterior</button>
+            <span id="currentPageDisplay">1</span>
+            <button class="btn btn-primary" onclick="paginarHistorico(1)">Próxima</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-relatorio" class="tab-content hidden">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between;">
+                <h3>Planejamento de Compras</h3>
+                <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
+            </div>
+            <table id="tabelaRelatorio">
+                <thead><tr><th>Produto</th><th>Consumo (30d)</th><th>Saldo</th><th>Status</th></tr></thead>
+                <tbody id="corpoRelatorio"></tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+
+  <div id="modalBaixa" class="hidden">
+    <div class="baixa-box">
+      <h2 id="bxNomeProd"></h2>
+      <div id="avisoPeps" class="alerta-peps">Buscando sugestão PEPS...</div>
+      <p id="baixaInfoSaldo" style="font-weight:bold;"></p>
+      <input type="hidden" id="bxIdProd">
+      <input type="number" id="bxQtd" step="0.01" style="font-size:2.5rem; text-align:center; width:100%;">
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button onclick="confirmarBaixa()" class="btn btn-success" style="flex:1; padding:15px;">CONFIRMAR</button>
+        <button onclick="fecharModalBaixa()" class="btn btn-danger" style="flex:1">CANCELAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="qrModal" class="hidden">
+    <div class="qr-box">
+      <h3 id="qrTitle"></h3>
+      <canvas id="qrCanvas"></canvas>
+      <div style="margin-top:20px; display:flex; gap:10px;">
+        <button onclick="window.print()" class="btn btn-success">IMPRIMIR</button>
+        <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="btn">FECHAR</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // CONFIGURAÇÃO FIREBASE ORIGINAL
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
+      authDomain: "estoquesync-f0d10.firebaseapp.com",
+      projectId: "estoquesync-f0d10",
+      storageBucket: "estoquesync-f0d10.appspot.com",
+      messagingSenderId: "67257178512",
+      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let scannerGlobal;
+    let currentPage = 1;
+
+    // --- INICIALIZAÇÃO ---
+    auth.onAuthStateChanged(async user => {
+      if(!user) return;
+      document.getElementById('userDisplay').innerText = user.email.toUpperCase();
+      try {
+          const userDoc = await db.collection('usuarios').doc(user.uid).get();
+          document.getElementById('userRoleDisplay').innerText = userDoc.exists ? userDoc.data().role.toUpperCase() : 'ESTOQUE';
+      } catch (e) { document.getElementById('userRoleDisplay').innerText = 'ESTOQUE'; }
+      
+      renderEstoque();
+      monitorarCargas();
+      carregarHistorico();
+    });
+
+    // --- RENDERIZAÇÃO (Mantendo toda a sua lógica de cores e alertas) ---
+    function renderEstoque() {
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        const tb = document.querySelector('#tabelaEstoque tbody');
+        const cat = document.getElementById('corpoCatalogo');
+        const inv = document.getElementById('corpoInv');
+        const s1 = document.getElementById('saidaProdSelect');
+        const s2 = document.getElementById('entProdSelect');
+        
+        tb.innerHTML = ''; cat.innerHTML = ''; inv.innerHTML = '';
+        s1.innerHTML = '<option value="">Selecione...</option>';
+        s2.innerHTML = '<option value="">Selecione...</option>';
+
+        const hoje = new Date();
+
+        snap.forEach(doc => {
+          const p = doc.data();
+          const id = doc.id;
+          
+          let clsLinha = '';
+          if (p.validade && p.validade !== '--') {
+              const dVal = new Date(p.validade + 'T00:00:00');
+              if (dVal < hoje) clsLinha = 'val-vencido-linha';
+          }
+          if (p.quantidade <= (p.estoqueMinimo || 0)) clsLinha = 'abaixo-minimo';
+
+          tb.innerHTML += `<tr class="${clsLinha}">
+            <td>${p.nome}</td>
+            <td><b>${p.quantidade.toFixed(2)}</b> ${p.unidade || ''}</td>
+            <td>${p.local || '-'}</td>
+            <td>${p.validade || '--'}</td>
+            <td><button class="btn btn-primary" onclick="abrirModalBaixa('${id}')"><i class="fas fa-minus"></i></button></td>
+          </tr>`;
+
+          cat.innerHTML += `<tr>
+            <td>${p.nome}</td>
+            <td>${p.local || '-'}</td>
+            <td>${p.estoqueMinimo}</td>
+            <td>
+                <button class="btn btn-warning" onclick="prepararEdicao('${id}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-primary" onclick="gerarQR('${id}','${p.nome}')"><i class="fas fa-qrcode"></i></button>
+            </td>
+          </tr>`;
+
+          inv.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td><input type="number" id="i-${id}" style="width:70px;"></td><td><button onclick="ajustarInv('${id}')" class="btn btn-success">OK</button></td></tr>`;
+          
+          const opt = `<option value="${id}">${p.nome}</option>`;
+          s1.innerHTML += opt; s2.innerHTML += opt;
+        });
+      });
+    }
+
+    // --- LOGICA DE BAIXA (Unificada Manual/Scanner) ---
+    document.getElementById('formSaidaManual').onsubmit = (e) => {
+      e.preventDefault();
+      const id = document.getElementById('saidaProdSelect').value;
+      const qtd = document.getElementById('saidaQtd').value;
+      document.getElementById('bxQtd').value = qtd;
+      abrirModalBaixa(id);
+    };
+
+    async function abrirModalBaixa(id) {
+      const doc = await db.collection('estoque').doc(id).get();
+      const p = doc.data();
+      document.getElementById('bxIdProd').value = id;
+      document.getElementById('bxNomeProd').innerText = p.nome;
+      document.getElementById('baixaInfoSaldo').innerText = `Saldo Atual: ${p.quantidade} ${p.unidade || ''}`;
+      document.getElementById('modalBaixa').classList.remove('hidden');
+
+      // PEPS: Busca o lote mais antigo com saldo
+      const loteSnap = await db.collection('lotes').where('idProduto', '==', id).where('quantidade', '>', 0).orderBy('validade', 'asc').limit(1).get();
+      const aviso = document.getElementById('avisoPeps');
+      if(!loteSnap.empty) {
+          const l = loteSnap.docs[0].data();
+          aviso.innerHTML = `PEGAR LOTE: <b>${l.lote || 'S/L'}</b> (Validade: ${l.validade})`;
+      } else {
+          aviso.innerText = "Aviso: Nenhum lote PEPS encontrado para este item.";
+      }
+    }
+
+    async function confirmarBaixa() {
+        const id = document.getElementById('bxIdProd').value;
+        const qtd = parseFloat(document.getElementById('bxQtd').value);
+        if(!qtd) return;
+
+        try {
+            const batch = db.batch();
+            const pRef = db.collection('estoque').doc(id);
+            
+            // Abate PEPS nos lotes
+            const lotes = await db.collection('lotes').where('idProduto', '==', id).where('quantidade', '>', 0).orderBy('validade', 'asc').get();
+            let resto = qtd;
+            lotes.forEach(ldoc => {
+                if(resto <= 0) return;
+                const lq = ldoc.data().quantidade;
+                if(lq >= resto) { batch.update(ldoc.ref, {quantidade: lq - resto}); resto = 0; }
+                else { batch.update(ldoc.ref, {quantidade: 0}); resto -= lq; }
+            });
+
+            batch.update(pRef, { quantidade: firebase.firestore.FieldValue.increment(-qtd) });
+            batch.set(db.collection('historico').doc(), { data: new Date(), tipo: 'SAÍDA', produto: document.getElementById('bxNomeProd').innerText, quantidade: qtd, usuario: auth.currentUser.email });
+            
+            await batch.commit();
+            fecharModalBaixa();
+            alert("Saída registrada!");
+        } catch(e) { alert("Erro: " + e.message); }
+    }
+
+    // --- CADASTRO COM QR AUTOMATICO ---
+    document.getElementById('formCadastro').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const nome = document.getElementById('cadNome').value;
+        const d = { 
+            nome: nome, 
+            categoria: document.getElementById('cadCat').value, 
+            unidade: document.getElementById('cadUn').value,
+            local: document.getElementById('cadLocal').value,
+            estoqueMinimo: parseFloat(document.getElementById('cadMin').value) || 0
+        };
+
+        if(id) {
+            await db.collection('estoque').doc(id).update(d);
+            alert("Atualizado!");
+        } else {
+            d.quantidade = 0; d.validade = '--';
+            const novo = await db.collection('estoque').add(d);
+            alert("Cadastrado! Gerando QR Code...");
+            gerarQR(novo.id, nome);
+        }
+        limparFormCadastro();
+    };
+
+    // --- ENTRADA PEPS ---
+    document.getElementById('formEntradaPeps').onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('entProdSelect').value;
+        const q = parseFloat(document.getElementById('entQtd').value);
+        const v = document.getElementById('entVal').value;
+        const l = document.getElementById('entLote').value || 'S/L';
+
+        const batch = db.batch();
+        batch.set(db.collection('lotes').doc(), { idProduto: id, quantidade: q, validade: v, lote: l, data: new Date() });
+        batch.update(db.collection('estoque').doc(id), { 
+            quantidade: firebase.firestore.FieldValue.increment(q),
+            validade: v 
+        });
+        await batch.commit();
+        alert("Entrada de Lote Registrada!");
+        e.target.reset();
+    };
+
+    // --- FUNÇÕES DE INTERFACE (Restauradas) ---
+    function switchTab(e, id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.remove('hidden');
+        if(e) e.currentTarget.classList.add('active');
+    }
+
+    function toggleScannerGlobal() {
+        const r = document.getElementById('reader');
+        if(r.classList.contains('hidden')) {
+            r.classList.remove('hidden');
+            scannerGlobal = new Html5Qrcode("reader");
+            scannerGlobal.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (id) => { abrirModalBaixa(id); });
+        } else { if(scannerGlobal) scannerGlobal.stop(); r.classList.add('hidden'); }
+    }
+
+    function carregarHistorico() {
+        db.collection('historico').orderBy('data', 'desc').limit(20).onSnapshot(snap => {
+            const h = document.getElementById('corpoHist'); h.innerHTML = '';
+            snap.forEach(doc => {
+                const d = doc.data();
+                h.innerHTML += `<tr><td>${d.data.toDate().toLocaleString()}</td><td>${d.tipo}</td><td>${d.produto}</td><td>${d.quantidade}</td><td>${d.usuario || ''}</td></tr>`;
+            });
+        });
+    }
+
+    function monitorarCargas() {
+        const hj = new Date().toISOString().split('T')[0];
+        db.collection('requisicoes').where('dataUso', '==', hj).where('status', '==', 'pendente').onSnapshot(snap => {
+            const cont = document.getElementById('listaRequisicoes'); cont.innerHTML = '';
+            snap.forEach(doc => {
+                const r = doc.data();
+                cont.innerHTML += `<div style="padding:10px; border:1px solid #eee; margin-bottom:5px;">${r.item} (${r.quantidade}) <button onclick="baixarReq('${doc.id}')" class="btn btn-success">OK</button></div>`;
+            });
+        });
+    }
+
+    async function baixarReq(id) {
+        await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
+    }
+
+    function gerarQR(id, nome) {
+        document.getElementById('qrModal').classList.remove('hidden');
+        document.getElementById('qrTitle').innerText = nome;
+        new QRious({ element: document.getElementById('qrCanvas'), value: id, size: 220 });
+    }
+
+    function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); }
+    function filtrarEstoque() { const b = document.getElementById('buscaEstoque').value.toLowerCase(); document.querySelectorAll('#tabelaEstoque tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none'); }
+    function limparFormCadastro() { document.getElementById('formCadastro').reset(); document.getElementById('editId').value = ''; document.getElementById('btnCancelaEdit').classList.add('hidden'); }
+    
+    document.getElementById('logoutBtn').onclick = () => auth.signOut();
+  </script>
+</body>
+</html><!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EstoqueSync — Versão Final Auditada v8.2 (PEPS INTEGRADO)</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+  <style>
     /* TODO O SEU CSS ORIGINAL FOI MANTIDO */
     :root {
       --primary: #1e3a8a; --accent: #3b82f6; --bg: #f1f5f9; --card: #ffffff;
@@ -475,3 +958,4 @@
   </script>
 </body>
 </html>
+
