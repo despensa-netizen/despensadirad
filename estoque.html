@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Versão 10.3 CORRIGIDA</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>EstoqueSync — Versão 10.5 PRO</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,72 +22,75 @@
       --military: #334155;
     }
 
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; }
-    nav { background: var(--military); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+    nav { background: var(--military); color: white; padding: 0.8rem 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     
-    .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
-    .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; }
-    .tab-btn { padding: 12px 18px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; font-size: 0.75rem; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+    .container { max-width: 1400px; margin: 0.5rem auto; padding: 0 0.8rem; }
+    
+    .tabs { display: flex; gap: 4px; margin-bottom: 15px; border-bottom: 2px solid var(--border); overflow-x: auto; background: white; padding: 8px 8px 0 8px; border-radius: 12px; scrollbar-width: none; -ms-overflow-style: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 10px 15px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; font-size: 0.7rem; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
     .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-    .grid-layout { display: grid; grid-template-columns: 420px 1fr; gap: 1.5rem; }
+    .grid-layout { display: grid; grid-template-columns: 380px 1fr; gap: 1rem; }
     @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
 
-    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
-    .card h3 { margin-top: 0; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; color: var(--primary); border-bottom: 1px solid #f8fafc; padding-bottom: 10px; text-transform: uppercase; }
+    .card { background: var(--card); border-radius: 12px; padding: 1.2rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1rem; }
+    .card h3 { margin-top: 0; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; color: var(--primary); border-bottom: 1px solid #f8fafc; padding-bottom: 8px; text-transform: uppercase; }
 
-    .btn { cursor: pointer; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-size: 0.7rem; text-transform: uppercase; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn { cursor: pointer; border: none; padding: 12px 16px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; font-size: 0.75rem; text-transform: uppercase; min-height: 44px; }
+    .btn:active { transform: scale(0.98); }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-warning { background: var(--warning); color: white; }
-    .btn-scanner { background: #6366f1; color: white; width: 100%; margin-bottom: 15px; }
+    .btn-scanner { background: #6366f1; color: white; width: 100%; margin-bottom: 15px; font-size: 0.9rem; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; font-size: 0.7rem; color: #64748b; padding: 12px; background: #f8fafc; text-transform: uppercase; border-bottom: 2px solid var(--border); }
-    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 5px; min-width: 600px; }
+    th { text-align: left; font-size: 0.65rem; color: #64748b; padding: 10px; background: #f8fafc; text-transform: uppercase; border-bottom: 2px solid var(--border); position: sticky; top: 0; }
+    td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
     
     .abaixo-minimo { background-color: #fef2f2; color: #b91c1c; font-weight: 700; }
-    .val-proxima-texto { color: #92400e; font-weight: 700; display: flex; align-items: center; gap: 5px; }
-    .val-vencido-texto { color: #b91c1c; font-weight: 700; display: flex; align-items: center; gap: 5px; text-decoration: underline; }
+    .val-proxima-texto { color: #92400e; font-weight: 700; }
+    .val-vencido-texto { color: #b91c1c; font-weight: 700; text-decoration: underline; }
     .val-proxima-linha { background-color: #fffbeb !important; }
     .val-vencido-linha { background-color: #fef2f2 !important; }
 
-    input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
+    input, select { width: 100%; padding: 12px; margin: 4px 0 10px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.9rem; background: #f8fafc; }
     #reader { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 15px; }
     .hidden { display: none !important; }
 
-    #qrModal, #modalBaixa { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; }
-    .qr-box, .baixa-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; }
+    #qrModal, #modalBaixa { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 3000; padding: 15px; }
+    .qr-box, .baixa-box { background: white; padding: 25px; border-radius: 20px; text-align: center; width: 100%; max-width: 400px; box-sizing: border-box; }
 
-    .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; }
     .badge-saida { background: #fee2e2; color: #991b1b; }
     .badge-entrada { background: #dcfce7; color: #166534; }
     .badge-ajuste { background: #f1f5f9; color: #475569; }
 
-    .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); }
-    .page-info { font-size: 0.8rem; font-weight: 600; color: #64748b; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 15px; padding: 10px 0; border-top: 1px solid var(--border); }
+    .page-info { font-size: 0.8rem; font-weight: 700; color: #64748b; }
     
-    .role-badge { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); }
+    .role-badge { background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 20px; font-size: 0.6rem; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); }
 
-    .alert-panel { background: #fff1f2; border: 1px solid #fecaca; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-    .alert-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #fee2e2; font-size: 0.8rem; }
+    .alert-panel { background: #fff1f2; border: 1px solid #fecaca; border-radius: 12px; padding: 12px; margin-bottom: 15px; }
+    .alert-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #fee2e2; font-size: 0.75rem; }
     .alert-item:last-child { border-bottom: none; }
 
-    /* Estilos da Aba de Recebimento (RESTAURADOS) */
-    .recebimento-card { max-width: 650px; margin: 20px auto; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
-    .recebimento-header { background: #b4c7e7; padding: 15px 20px; display: flex; align-items: center; gap: 12px; color: #1e293b; font-weight: 700; font-size: 0.9rem; }
-    .recebimento-body { padding: 25px; }
-    .recebimento-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-    .recebimento-full { grid-column: span 3; }
-    .recebimento-label { display: block; font-size: 0.65rem; font-weight: 800; color: #334155; margin-bottom: 5px; text-transform: uppercase; }
-    .recebimento-input { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; width: 100%; box-sizing: border-box; font-size: 0.85rem; color: #475569; background: #f8fafc; }
-    .btn-registrar { background: #34a853; color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: 700; cursor: pointer; margin-top: 25px; font-size: 0.8rem; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .peps-alert-box { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; color: #9a3412; display: flex; align-items: center; gap: 10px; }
+    .recebimento-card { max-width: 650px; margin: 10px auto; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+    .recebimento-header { background: #b4c7e7; padding: 15px 20px; display: flex; align-items: center; gap: 12px; color: #1e293b; font-weight: 700; font-size: 0.85rem; }
+    .recebimento-body { padding: 20px; }
+    .recebimento-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .recebimento-full { grid-column: span 2; }
+    @media (max-width: 480px) { .recebimento-grid { grid-template-columns: 1fr; } .recebimento-full { grid-column: span 1; } }
+    .recebimento-label { display: block; font-size: 0.6rem; font-weight: 800; color: #334155; margin-bottom: 4px; text-transform: uppercase; }
+    .recebimento-input { border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; width: 100%; box-sizing: border-box; font-size: 0.9rem; color: #475569; background: #f8fafc; }
+    .btn-registrar { background: #34a853; color: white; border: none; padding: 16px; border-radius: 10px; width: 100%; font-weight: 700; cursor: pointer; margin-top: 20px; font-size: 0.85rem; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; }
+    
+    .peps-alert-box { background: #fff7ed; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.75rem; color: #9a3412; display: flex; align-items: center; gap: 8px; }
 
-    /* Estilo para input de ajuste real */
-    .input-real { width: 80px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; font-weight: bold; margin: 0; }
+    .input-real { width: 70px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-weight: bold; margin: 0; font-size: 0.9rem; }
 
     @media print { 
         body * { visibility: hidden; } 
@@ -100,239 +103,246 @@
 <body>
 
   <nav>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <i class="fas fa-boxes-packing fa-lg"></i>
-      <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">PRO</span></h2>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <i class="fas fa-boxes-packing"></i>
+      <h2 style="margin:0; font-size: 0.95rem; letter-spacing: 0.5px;">ESTOQUESYNC <span style="font-weight:300;">PRO</span></h2>
     </div>
-    <div style="display:flex; align-items:center; gap:15px;">
-      <span id="userRoleDisplay" class="role-badge">CARREGANDO...</span>
-      <span id="userDisplay" style="font-size: 0.75rem; font-weight: 600;"></span>
-      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span id="userRoleDisplay" class="role-badge">...</span>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white; padding: 6px 10px; min-height: auto; font-size: 0.65rem;">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
-    <!-- Alertas de Validade -->
     <div id="painelAlertas" class="alert-panel hidden">
-        <h3 style="margin:0 0 10px 0; font-size:0.8rem; color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> ALERTAS DE VALIDADE (30 DIAS)</h3>
+        <h3 style="margin:0 0 8px 0; font-size:0.75rem; color:#b91c1c;"><i class="fas fa-exclamation-triangle"></i> ALERTAS DE VALIDADE (30 DIAS)</h3>
         <div id="listaAlertas"></div>
     </div>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Cargas & Saídas</button>
-      <button class="tab-btn" id="tabBtnCadastro" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão de Produtos</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Saídas</button>
+      <button class="tab-btn" id="tabBtnCadastro" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-recebimento')"><i class="fas fa-truck-ramp-box"></i> Recebimento</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
-      <button class="tab-btn" id="tabBtnRelatorio" onclick="switchTab(event, 'tab-relatorio'); gerarRelatorioCompras();"><i class="fas fa-chart-line"></i> Planejamento</button>
+      <button class="tab-btn" id="tabBtnRelatorio" onclick="switchTab(event, 'tab-relatorio'); gerarRelatorioCompras();"><i class="fas fa-chart-line"></i> Compras</button>
     </div>
 
     <div id="tab-saidas" class="tab-content">
       <div class="grid-layout">
         <aside>
           <div class="card">
-            <h3><i class="fas fa-camera"></i> Baixa por Scanner</h3>
+            <h3><i class="fas fa-camera"></i> Scanner</h3>
             <button class="btn btn-scanner" id="btnToggleScanner" onclick="toggleScannerGlobal()">
-              <i class="fas fa-qrcode"></i> LIGAR SCANNER
+              <i class="fas fa-qrcode"></i> LIGAR CÂMERA
             </button>
             <div id="reader" class="hidden"></div>
-            <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+            <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
             <h3><i class="fas fa-hand-holding"></i> Saída Manual</h3>
             <div id="pepsAlertaBaixa" class="peps-alert-box hidden"></div>
             <form id="formSaidaManual">
+              <label class="recebimento-label">PRODUTO</label>
               <select id="saidaProdSelect" onchange="checarPrioridadePEPS(this.value)" required><option value="">Selecione...</option></select>
+              <label class="recebimento-label">LOTE/MARCA</label>
               <select id="saidaLoteSelect" required><option value="">Selecione o Lote...</option></select>
-              <input type="number" id="saidaQtd" placeholder="Quantidade" step="0.01" required>
-              <input type="text" id="saidaMotivo" placeholder="Motivo (ex: Cozinha)">
-              <button type="submit" class="btn btn-warning" style="width:100%">Baixar Manual</button>
+              <label class="recebimento-label">QUANTIDADE</label>
+              <input type="number" id="saidaQtd" placeholder="0.00" step="0.01" inputmode="decimal" required>
+              <label class="recebimento-label">MOTIVO/DESTINO</label>
+              <input type="text" id="saidaMotivo" placeholder="Ex: Consumo Interno" required>
+              <button type="submit" class="btn btn-success" style="width:100%; margin-top:10px;">CONFIRMAR SAÍDA</button>
             </form>
           </div>
           <div class="card">
-            <h3><i class="fas fa-bell"></i> Requisições da Nutrição</h3>
+            <h3><i class="fas fa-list"></i> Requisitados Hoje</h3>
             <div id="listaRequisicoes"></div>
           </div>
         </aside>
-        <section>
+        <main>
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-              <h3><i class="fas fa-warehouse"></i> Inventário em Tempo Real</h3>
-              <input type="text" id="buscaEstoque" placeholder="Pesquisar..." style="width:200px; margin:0" onkeyup="filtrarEstoque()">
+              <h3 style="margin:0;"><i class="fas fa-warehouse"></i> Estoque Atual</h3>
+              <input type="text" id="buscaEstoque" placeholder="Filtrar item..." onkeyup="filtrarEstoque()" style="width:200px; margin:0;">
             </div>
-            <table id="tabelaEstoque">
-              <thead><tr><th>Produto</th><th>Lote/Marca</th><th>Saldo</th><th>Validade</th><th>QR</th></tr></thead>
-              <tbody></tbody>
-            </table>
+            <div class="table-container">
+              <table id="tabelaEstoque">
+                <thead><tr><th>Produto</th><th>Lote/Marca</th><th>Saldo</th><th>Validade</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
-        </section>
-      </div>
-    </div>
-
-    <div id="tab-recebimento" class="tab-content hidden">
-      <div class="recebimento-card">
-        <div class="recebimento-header">
-          <i class="fas fa-truck-moving fa-lg"></i> ENTRADA DE LOTE (SISTEMA PEPS)
-        </div>
-        <div class="recebimento-body">
-          <form id="formRecebimento">
-            <div class="recebimento-grid">
-              <div class="recebimento-full">
-                <label class="recebimento-label">PRODUTO</label>
-                <select id="recProdSelect" class="recebimento-input" required><option value="">Selecione...</option></select>
-              </div>
-              <div>
-                <label class="recebimento-label">PRODUTO (MARCA/FABRICANTE)</label>
-                <input type="text" id="recMarcaProd" class="recebimento-input" placeholder="MARCA/FABRCTANCE">
-              </div>
-              <div>
-                <label class="recebimento-label">FORNECEDOR</label>
-                <input type="text" id="recFornecedor" class="recebimento-input" placeholder="Distribuidora Bom Gosto" required>
-              </div>
-              <div>
-                <label class="recebimento-label">MARCA/FABRCTACE</label>
-                <input type="text" id="recMarca" class="recebimento-input" placeholder="Ex: Tio João" required>
-              </div>
-              <div>
-                <label class="recebimento-label">QUANTIDADE</label>
-                <input type="number" id="recQtd" class="recebimento-input" placeholder="Nº do Lote" step="0.01" required>
-              </div>
-              <div>
-                <label class="recebimento-label">LOTE</label>
-                <input type="text" id="recLote" class="recebimento-input" placeholder="LOTE-2024A-123" required>
-              </div>
-              <div>
-                <label class="recebimento-label">VALIDADE</label>
-                <input type="date" id="recValidade" class="recebimento-input" required>
-              </div>
-              <div class="recebimento-full" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                <div>
-                  <label class="recebimento-label">DATA/HORA DO RECEBIMENTO</label>
-                  <input type="date" id="recDataEntrega" class="recebimento-input" required>
-                </div>
-                <div>
-                  <label class="recebimento-label">&nbsp;</label>
-                  <input type="time" id="recHoraEntrega" class="recebimento-input" required>
-                </div>
-              </div>
-            </div>
-            <button type="submit" class="btn-registrar">
-              REGISTRAR ENTRADA NO ESTOQUE <i class="fas fa-truck"></i>
-            </button>
-          </form>
-        </div>
+        </main>
       </div>
     </div>
 
     <div id="tab-cadastro" class="tab-content hidden">
-      <div class="card" id="cardCadastro" style="max-width:850px; margin:auto;">
-        <h3 id="tituloCadastro"><i class="fas fa-edit"></i> Cadastrar/Editar Produto</h3>
-        <form id="formCadastro">
-          <input type="hidden" id="editId">
-          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px;">
-              <div>
-                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">NOME DO PRODUTO</label>
-                  <input type="text" id="cadNome" placeholder="Nome do Produto" required>
+      <div class="grid-layout">
+        <aside>
+          <div class="card">
+            <h3 id="tituloCadastro"><i class="fas fa-plus-circle"></i> Gestão de Catálogo</h3>
+            <form id="formCadastro">
+              <input type="hidden" id="editId">
+              <label class="recebimento-label">NOME DO PRODUTO</label>
+              <input type="text" id="cadNome" placeholder="Ex: Arroz Tio João" required>
+              <label class="recebimento-label">CATEGORIA</label>
+              <select id="cadCat" required>
+                <option value="Secos">Secos</option>
+                <option value="Frios">Frios</option>
+                <option value="Hortifruti">Hortifruti</option>
+                <option value="Limpeza">Limpeza</option>
+              </select>
+              <label class="recebimento-label">UNIDADE</label>
+              <select id="cadUn" required>
+                <option value="KG">Quilograma (KG)</option>
+                <option value="UN">Unidade (UN)</option>
+                <option value="LT">Litro (LT)</option>
+                <option value="CX">Caixa (CX)</option>
+                <option value="PCT">Pacote (PCT)</option>
+              </select>
+              <label class="recebimento-label">LOCALIZAÇÃO</label>
+              <input type="text" id="cadLocal" placeholder="Ex: Prateleira A1">
+              <label class="recebimento-label">ESTOQUE MÍNIMO</label>
+              <input type="number" id="cadMin" placeholder="0" step="0.01" inputmode="decimal" required>
+              <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-primary" style="flex:1">SALVAR</button>
+                <button type="button" class="btn btn-danger hidden" id="btnExcluirProd" onclick="excluirProduto()">EXCLUIR</button>
               </div>
-              <div>
-                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">CATEGORIA</label>
-                  <select id="cadCat">
-                    <option value="Secos">Secos</option><option value="Proteína">Proteína</option><option value="Hortifrúti">Hortifrúti</option><option value="Laticínios">Laticínios</option><option value="Bebidas">Bebidas</option>
-                  </select>
-              </div>
-              <div>
-                  <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">UNIDADE</label>
-                  <select id="cadUn">
-                    <option value="kg">Kg</option><option value="uni">Uni</option><option value="cx">Cx</option><option value="l">L</option>
-                  </select>
-              </div>
+              <button type="button" class="btn" onclick="cancelarEdicao()" style="width:100%; margin-top:10px; background:#e2e8f0;">CANCELAR</button>
+            </form>
           </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <div>
-                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">LOCAL/PRATELEIRA</label>
-                <input type="text" id="cadLocal" placeholder="Local/Prateleira">
-            </div>
-            <div>
-                <label style="font-size: 0.65rem; font-weight: bold; color: #64748b;">ESTOQUE MÍNIMO</label>
-                <input type="number" id="cadMin" placeholder="Qtd Mínima" value="0">
-            </div>
-          </div>
-          <div style="display:flex; gap:10px;">
-            <button type="submit" class="btn btn-primary" style="flex:1">SALVAR PRODUTO</button>
-            <button type="button" onclick="cancelarEdicao()" class="btn btn-danger" style="flex:1">CANCELAR</button>
-            <button type="button" id="btnExcluirProd" onclick="excluirProduto()" class="btn btn-danger hidden" style="flex:1">EXCLUIR</button>
-          </div>
-        </form>
-        <hr style="margin:25px 0; border:0; border-top:1px solid #eee;">
-        <div class="table-container">
-            <table id="tabelaCatalogo">
-                <thead><tr><th>Nome</th><th>Cat</th><th>Un</th><th>Ação</th></tr></thead>
+        </aside>
+        <main>
+          <div class="card">
+            <h3><i class="fas fa-list-ul"></i> Catálogo de Itens</h3>
+            <div class="table-container">
+              <table id="tabelaCatalogo">
+                <thead><tr><th>Nome</th><th>Categoria</th><th>Unidade</th><th>Ações</th></tr></thead>
                 <tbody></tbody>
-            </table>
-        </div>
+              </table>
+            </div>
+          </div>
+        </main>
       </div>
+    </div>
+
+    <div id="tab-recebimento" class="tab-content hidden">
+        <div class="recebimento-card">
+            <div class="recebimento-header">
+                <i class="fas fa-truck"></i> ENTRADA DE LOTE (SISTEMA PEPS)
+            </div>
+            <div class="recebimento-body">
+                <form id="formRecebimento">
+                    <div class="recebimento-grid">
+                        <div class="recebimento-full">
+                            <label class="recebimento-label">PRODUTO</label>
+                            <select id="recProdSelect" class="recebimento-input" required><option value="">Selecione...</option></select>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">PRODUTO (MARCA/FABRICANTE)</label>
+                            <input type="text" id="recMarcaProd" class="recebimento-input" placeholder="MARCA/FABRCTANCE" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">FORNECEDOR</label>
+                            <input type="text" id="recFornecedor" class="recebimento-input" placeholder="Distribuidora Bom Gosto" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">MARCA/FABRCTACE</label>
+                            <input type="text" id="recMarca" class="recebimento-input" placeholder="Ex: Tio João" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">QUANTIDADE</label>
+                            <input type="number" id="recQtd" class="recebimento-input" placeholder="0.00" step="0.01" inputmode="decimal" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">LOTE</label>
+                            <input type="text" id="recLote" class="recebimento-input" placeholder="LOTE-2024A-123" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">VALIDADE</label>
+                            <input type="date" id="recValidade" class="recebimento-input" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">DATA DO RECEBIMENTO</label>
+                            <input type="date" id="recDataEntrega" class="recebimento-input" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">HORA DO RECEBIMENTO</label>
+                            <input type="time" id="recHoraEntrega" class="recebimento-input" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-registrar">
+                        REGISTRAR ENTRADA NO ESTOQUE <i class="fas fa-truck"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div id="tab-inventario" class="tab-content hidden">
       <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
-          <h3><i class="fas fa-clipboard-list"></i> Balanço de Inventário Físico</h3>
-          <div style="display:flex; gap:10px;">
-            <button class="btn btn-success" onclick="atualizarBalancoGeral()"><i class="fas fa-sync"></i> ATUALIZAR TUDO</button>
-            <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> IMPRIMIR</button>
-          </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h3><i class="fas fa-clipboard-check"></i> Balanço Físico (Inventário)</h3>
+          <button class="btn btn-success" onclick="atualizarBalancoGeral()"><i class="fas fa-sync"></i> ATUALIZAR TUDO</button>
         </div>
-        <table id="tabelaRelatorioInv">
-          <thead><tr><th>Produto</th><th>Lote/Marca</th><th>Saldo Sistema</th><th>Qtd Real (Manual)</th><th>Un</th><th>Validade</th><th>Ação</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-container">
+          <table id="tabelaRelatorioInv">
+            <thead><tr><th>Item</th><th>Lote/Marca</th><th>Sistema</th><th>Qtd Real (Manual)</th><th>Un</th><th>Validade</th><th>Ação</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <div id="tab-historico" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-history"></i> Histórico de Movimentações (30 dias)</h3>
-        <table id="tabelaHistorico">
-          <thead><tr><th>Data/Hora</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
-          <tbody id="corpoHist"></tbody>
-        </table>
+        <h3><i class="fas fa-history"></i> Histórico (Últimos 30 Dias)</h3>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Data/Hora</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+            <tbody id="corpoHist"></tbody>
+          </table>
+        </div>
         <div class="pagination">
-            <button id="btnPrevPage" class="btn btn-ghost" onclick="paginarHistorico(-1)"><i class="fas fa-chevron-left"></i></button>
-            <span class="page-info">PÁGINA <span id="currentPageDisplay">1</span></span>
-            <button id="btnNextPage" class="btn btn-ghost" onclick="paginarHistorico(1)"><i class="fas fa-chevron-right"></i></button>
+          <button id="btnPrevPage" class="btn" onclick="paginarHistorico(-1)" style="background:#e2e8f0;"><i class="fas fa-chevron-left"></i></button>
+          <span class="page-info">Página <span id="currentPageDisplay">1</span></span>
+          <button id="btnNextPage" class="btn" onclick="paginarHistorico(1)" style="background:#e2e8f0;"><i class="fas fa-chevron-right"></i></button>
         </div>
       </div>
     </div>
 
     <div id="tab-relatorio" class="tab-content hidden">
       <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h3><i class="fas fa-cart-shopping"></i> Planejamento de Compras (Consumo 30 dias)</h3>
-          <button class="btn btn-primary" onclick="window.print()">IMPRIMIR RELATÓRIO</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h3><i class="fas fa-shopping-cart"></i> Planejamento de Compras</h3>
+          <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> IMPRIMIR</button>
         </div>
-        <table>
-          <thead><tr><th>Material</th><th>Consumo (30 dias)</th><th>Saldo Atual</th><th>Status</th></tr></thead>
-          <tbody id="corpoRelatorio"></tbody>
-        </table>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Material</th><th>Consumo (30d)</th><th>Saldo Atual</th><th>Status</th></tr></thead>
+            <tbody id="corpoRelatorio"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
   <div id="qrModal" class="hidden">
     <div class="qr-box">
-      <h3 id="qrTitle">QR CODE</h3>
-      <canvas id="qrCanvas"></canvas><br>
-      <button class="btn btn-danger" onclick="document.getElementById('qrModal').classList.add('hidden')">FECHAR</button>
+      <h3 id="qrTitle">QR Code</h3>
+      <canvas id="qrCanvas"></canvas>
+      <button class="btn btn-danger" onclick="document.getElementById('qrModal').classList.add('hidden')" style="width:100%; margin-top:15px;">FECHAR</button>
     </div>
   </div>
 
   <div id="modalBaixa" class="hidden">
     <div class="baixa-box">
-      <h3 id="baixaNomeProd">PRODUTO</h3>
-      <p id="baixaInfoSaldo" style="font-weight:bold; color:var(--primary);"></p>
-      <div id="pepsAlertaScanner" class="peps-alert-box hidden" style="margin-bottom:15px; text-align:left;"></div>
+      <h3 id="baixaNomeProd">Produto</h3>
+      <div id="pepsAlertaScanner" class="peps-alert-box hidden"></div>
       <input type="hidden" id="baixaIdProd">
-      <select id="baixaLoteScanner" class="recebimento-input" style="margin-bottom:15px;"></select>
-      <input type="number" id="baixaQtdScanner" placeholder="Quantidade para Baixa" step="0.01" style="font-size:1.5rem; text-align:center;">
-      <div style="display:flex; gap:10px;">
+      <label class="recebimento-label">SELECIONE O LOTE</label>
+      <select id="baixaLoteScanner"></select>
+      <label class="recebimento-label">QUANTIDADE</label>
+      <input type="number" id="baixaQtdScanner" placeholder="0.00" step="0.01" inputmode="decimal">
+      <div style="display:flex; gap:10px; margin-top: 15px;">
         <button class="btn btn-success" onclick="confirmarBaixaScanner()" style="flex:1">CONFIRMAR</button>
         <button class="btn btn-danger" onclick="fecharModalBaixa()" style="flex:1">CANCELAR</button>
       </div>
@@ -352,7 +362,6 @@
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) return;
-      document.getElementById('userDisplay').innerText = user.email.split('@')[0].toUpperCase();
       const uDoc = await db.collection('usuarios').doc(user.uid).get();
       userRole = uDoc.exists ? (uDoc.data().role || 'estoque') : 'estoque';
       document.getElementById('userRoleDisplay').innerText = userRole.toUpperCase();
@@ -402,11 +411,10 @@
             const lotesDoProd = lotesCache.filter(l => l.produtoId === id && l.quantidade > 0);
             const saldoTotal = (p.quantidade || 0) + lotesDoProd.reduce((a,b) => a + b.quantidade, 0);
             const min = p.estoqueMinimo || 0;
-            const status = saldoTotal <= min ? '<span class="badge badge-saida">CRÍTICO</span>' : '<span class="badge badge-entrada">OK</span>';
 
-            tbSaida.innerHTML += `<tr style="background:#f8fafc"><td><b>${p.nome}</b></td><td>TOTAL EM ESTOQUE</td><td><b>${saldoTotal.toFixed(2)}</b></td><td>Vários</td><td><button class="btn btn-primary" onclick="gerarQR('${id}','${p.nome}')"><i class="fas fa-qrcode"></i></button></td></tr>`;
-            tbInv.innerHTML += `<tr style="background:#f8fafc"><td><b>${p.nome}</b></td><td>TOTAL GERAL</td><td><b>${saldoTotal.toFixed(2)}</b></td><td><input type="number" class="input-real" data-prod-id="${id}" value="${saldoTotal.toFixed(2)}"></td><td>${p.unidade}</td><td>-</td><td><button class="btn btn-success" onclick="ajustarSaldoOriginal('${id}')"><i class="fas fa-check"></i></button></td></tr>`;
-            tbCat.innerHTML += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>${p.unidade}</td><td><button class="btn btn-warning" onclick="prepararEdicao('${id}')">EDITAR</button></td></tr>`;
+            tbSaida.innerHTML += `<tr style="background:#f8fafc"><td><b>${p.nome}</b></td><td>TOTAL</td><td><b>${saldoTotal.toFixed(2)}</b></td><td>Vários</td><td><button class="btn btn-primary" style="min-height:auto; padding:5px 10px;" onclick="gerarQR('${id}','${p.nome}')"><i class="fas fa-qrcode"></i></button></td></tr>`;
+            tbInv.innerHTML += `<tr style="background:#f8fafc"><td><b>${p.nome}</b></td><td>GERAL</td><td><b>${saldoTotal.toFixed(2)}</b></td><td><input type="number" class="input-real" data-prod-id="${id}" value="" placeholder="Manual" inputmode="decimal"></td><td>${p.unidade}</td><td>-</td><td><button class="btn btn-success" style="min-height:auto; padding:5px 10px;" onclick="ajustarSaldoOriginal('${id}')"><i class="fas fa-check"></i></button></td></tr>`;
+            tbCat.innerHTML += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>${p.unidade}</td><td><button class="btn btn-warning" style="min-height:auto; padding:5px 10px;" onclick="prepararEdicao('${id}')">EDITAR</button></td></tr>`;
             sSel.innerHTML += `<option value="${id}">${p.nome}</option>`;
             rSel.innerHTML += `<option value="${id}">${p.nome}</option>`;
             
@@ -420,8 +428,8 @@
                     lAlerta.innerHTML += `<div class="alert-item"><span><b>${p.nome}</b> (${l.marca})</span><span style="color:#b45309; font-weight:800;">${l.validade}</span></div>`;
                 }
 
-                tbSaida.innerHTML += `<tr class="${valClass}"><td style="padding-left:30px; opacity:0.7">↳ ${l.marca}</td><td>Lote: ${l.lote}</td><td>${l.quantidade}</td><td>${valIcon} ${l.validade}</td><td>-</td></tr>`;
-                tbInv.innerHTML += `<tr class="${valClass}"><td style="padding-left:30px; opacity:0.7">↳ ${l.marca}</td><td>Lote: ${l.lote}</td><td>${l.quantidade}</td><td><input type="number" class="input-real" data-lote-id="${l.id}" value="${l.quantidade}"></td><td>${p.unidade}</td><td>${l.validade}</td><td><button class="btn btn-success" onclick="ajustarSaldoLote('${l.id}')"><i class="fas fa-check"></i></button></td></tr>`;
+                tbSaida.innerHTML += `<tr class="${valClass}"><td style="padding-left:20px; opacity:0.7; font-size:0.7rem;">↳ ${l.marca}</td><td style="font-size:0.7rem;">Lote: ${l.lote}</td><td>${l.quantidade}</td><td style="font-size:0.7rem;">${valIcon} ${l.validade}</td><td>-</td></tr>`;
+                tbInv.innerHTML += `<tr class="${valClass}"><td style="padding-left:20px; opacity:0.7; font-size:0.7rem;">↳ ${l.marca}</td><td style="font-size:0.7rem;">Lote: ${l.lote}</td><td>${l.quantidade}</td><td><input type="number" class="input-real" data-lote-id="${l.id}" value="" placeholder="Manual" inputmode="decimal"></td><td>${p.unidade}</td><td style="font-size:0.7rem;">${l.validade}</td><td><button class="btn btn-success" style="min-height:auto; padding:5px 10px;" onclick="ajustarSaldoLote('${l.id}')"><i class="fas fa-check"></i></button></td></tr>`;
             });
         });
         pAlerta.classList.toggle('hidden', alertasCount === 0);
@@ -429,6 +437,7 @@
 
     async function ajustarSaldoOriginal(id) {
         const input = document.querySelector(`input[data-prod-id="${id}"]`);
+        if(input.value === "") return alert("Digite um valor para ajustar.");
         const novaQtd = parseFloat(input.value);
         const p = produtosCache.find(x => x.id === id);
         if(confirm(`Confirmar ajuste de ${p.nome} para ${novaQtd}?`)) {
@@ -440,6 +449,7 @@
 
     async function ajustarSaldoLote(id) {
         const input = document.querySelector(`input[data-lote-id="${id}"]`);
+        if(input.value === "") return alert("Digite um valor para ajustar.");
         const novaQtd = parseFloat(input.value);
         const l = lotesCache.find(x => x.id === id);
         const p = produtosCache.find(x => x.id === l.produtoId);
@@ -451,28 +461,25 @@
     }
 
     async function atualizarBalancoGeral() {
-        if(!confirm("Deseja atualizar TODOS os itens com os valores digitados?")) return;
-        const inputs = document.querySelectorAll('.input-real');
+        const inputs = Array.from(document.querySelectorAll('.input-real')).filter(i => i.value !== "");
+        if(inputs.length === 0) return alert("Nenhum valor preenchido para atualizar.");
+        if(!confirm(`Deseja atualizar os ${inputs.length} itens preenchidos com os valores digitados?`)) return;
         for(let input of inputs) {
             const pId = input.getAttribute('data-prod-id');
             const lId = input.getAttribute('data-lote-id');
             const val = parseFloat(input.value);
             if(pId) {
                 const p = produtosCache.find(x => x.id === pId);
-                if(p.quantidade !== val) {
-                    await db.collection('estoque').doc(pId).update({ quantidade: val });
-                    await registrarLog("AJUSTE INVENTÁRIO", p.nome, val, `De: ${p.quantidade}`);
-                }
+                await db.collection('estoque').doc(pId).update({ quantidade: val });
+                await registrarLog("AJUSTE INVENTÁRIO", p.nome, val, `De: ${p.quantidade}`);
             } else if(lId) {
                 const l = lotesCache.find(x => x.id === lId);
-                if(l.quantidade !== val) {
-                    await db.collection('lotes').doc(lId).update({ quantidade: val });
-                    const p = produtosCache.find(x => x.id === l.produtoId);
-                    await registrarLog("AJUSTE INVENTÁRIO", `${p.nome} (${l.marca})`, val, `De: ${l.quantidade}`);
-                }
+                await db.collection('lotes').doc(lId).update({ quantidade: val });
+                const p = produtosCache.find(x => x.id === l.produtoId);
+                await registrarLog("AJUSTE INVENTÁRIO", `${p.nome} (${l.marca})`, val, `De: ${l.quantidade}`);
             }
         }
-        alert("Balanço geral atualizado com sucesso!");
+        alert("Balanço atualizado com sucesso!");
     }
 
     async function registrarLog(tipo, produto, qtd, obs = "") {
@@ -485,6 +492,7 @@
         const p = produtosCache.find(x => x.id === prodId);
         const dados = {
             produtoId: prodId,
+            nomeProd: p.nome,
             marcaProd: document.getElementById('recMarcaProd').value,
             fornecedor: document.getElementById('recFornecedor').value,
             marca: document.getElementById('recMarca').value,
@@ -507,7 +515,7 @@
         if(!prodId) return;
         const lotes = lotesCache.filter(l => l.produtoId === prodId && l.quantidade > 0);
         if(lotes.length > 0) {
-            alerta.innerHTML = `<i class="fas fa-exclamation-circle"></i> PRIORIDADE PEPS: Retire primeiro o lote <b>${lotes[0].marca}</b> (Vence em: ${lotes[0].validade})`;
+            alerta.innerHTML = `<i class="fas fa-exclamation-circle"></i> PRIORIDADE: Retire o lote <b>${lotes[0].marca}</b> (${lotes[0].validade})`;
             alerta.classList.remove('hidden');
             lotes.forEach(l => lSel.innerHTML += `<option value="${l.id}">${l.marca} (Val: ${l.validade}) - Saldo: ${l.quantidade}</option>`);
         }
@@ -556,7 +564,7 @@
       document.getElementById('btnExcluirProd').classList.remove('hidden'); window.scrollTo(0,0);
     }
 
-    function cancelarEdicao() { document.getElementById('formCadastro').reset(); document.getElementById('editId').value = ''; document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-edit"></i> Cadastrar/Editar Produto`; document.getElementById('btnExcluirProd').classList.add('hidden'); }
+    function cancelarEdicao() { document.getElementById('formCadastro').reset(); document.getElementById('editId').value = ''; document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-edit"></i> Gestão de Catálogo`; document.getElementById('btnExcluirProd').classList.add('hidden'); }
     async function excluirProduto() { const id = document.getElementById('editId').value; if(id && confirm("Excluir?")) { await db.collection('estoque').doc(id).delete(); alert("Excluído!"); cancelarEdicao(); } }
 
     function carregarHistorico() {
@@ -569,7 +577,7 @@
             if (snap.docs.length === itemsPerPage) { pagesHistory[currentPage] = snap.docs[snap.docs.length - 1]; }
             snap.forEach(doc => {
                 const h = doc.data(); let cls = h.tipo.includes('SAÍDA') ? 'badge-saida' : (h.tipo.includes('ENTRADA') || h.tipo.includes('RECEBIMENTO') ? 'badge-entrada' : 'badge-ajuste');
-                tb.innerHTML += `<tr><td>${h.data.toDate().toLocaleString()}</td><td><span class="badge ${cls}">${h.tipo}</span></td><td>${h.produto}</td><td>${h.quantidade}</td><td>${h.user ? h.user.split('@')[0] : 'Sistema'}</td></tr>`;
+                tb.innerHTML += `<tr><td>${h.data.toDate().toLocaleString()}</td><td><span class="badge ${cls}">${h.tipo}</span></td><td>${h.produto}</td><td>${h.quantidade}</td><td>${h.user ? h.user.split('@')[0] : 'Sist'}</td></tr>`;
             });
             document.getElementById('currentPageDisplay').innerText = currentPage;
             document.getElementById('btnPrevPage').disabled = (currentPage === 1); document.getElementById('btnNextPage').disabled = (snap.docs.length < itemsPerPage);
@@ -589,8 +597,8 @@
                 const c = cons[p.nome] || 0;
                 const salLotes = lotesCache.filter(l => l.produtoId === p.id).reduce((a,b) => a + b.quantidade, 0);
                 const salTotal = (p.quantidade || 0) + salLotes;
-                let st = salTotal <= p.estoqueMinimo ? '<span class="badge badge-saida">REPOR URGENTE</span>' : (salTotal < c ? '<span class="badge badge-ajuste">REPOR EM BREVE</span>' : '<span class="badge badge-entrada">ESTÁVEL</span>');
-                corpo.innerHTML += `<tr><td><b>${p.nome}</b></td><td>${c.toFixed(2)} ${p.unidade}</td><td>${salTotal.toFixed(2)} ${p.unidade}</td><td>${st}</td></tr>`;
+                let st = salTotal <= p.estoqueMinimo ? '<span class="badge badge-saida">URGENTE</span>' : (salTotal < c ? '<span class="badge badge-ajuste">EM BREVE</span>' : '<span class="badge badge-entrada">OK</span>');
+                corpo.innerHTML += `<tr><td><b>${p.nome}</b></td><td>${c.toFixed(2)}</td><td>${salTotal.toFixed(2)}</td><td>${st}</td></tr>`;
             });
         } catch (e) { corpo.innerHTML = '<tr><td colspan="4">Erro ao carregar.</td></tr>'; }
     }
@@ -601,7 +609,7 @@
             const cont = document.getElementById('listaRequisicoes'); cont.innerHTML = '';
             snap.forEach(doc => {
                 const r = doc.data();
-                cont.innerHTML += `<div style="padding:10px; background:#fff; border:1px solid #eee; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>${r.item} (<b>${r.quantidade}</b>)</span> <button onclick="baixarReq('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success"><i class="fas fa-check"></i></button></div>`;
+                cont.innerHTML += `<div style="padding:10px; background:#fff; border:1px solid #eee; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>${r.item} (<b>${r.quantidade}</b>)</span> <button onclick="baixarReq('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success" style="min-height:auto; padding:5px 10px;"><i class="fas fa-check"></i></button></div>`;
             });
         });
     }
@@ -631,7 +639,7 @@
         scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => { playBeep(); abrirModalBaixa(id); }).catch(e => alert("Erro câmera: " + e));
       } else { fecharScanner(); }
     }
-    async function fecharScanner() { if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; } document.getElementById('reader').classList.add('hidden'); document.getElementById('btnToggleScanner').innerHTML = 'LIGAR SCANNER'; }
+    async function fecharScanner() { if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; } document.getElementById('reader').classList.add('hidden'); document.getElementById('btnToggleScanner').innerHTML = 'LIGAR CÂMERA'; }
     async function abrirModalBaixa(id) { 
         await fecharScanner(); const doc = await db.collection('estoque').doc(id).get(); if(!doc.exists) return alert("Erro!"); 
         const p = doc.data(); document.getElementById('baixaIdProd').value = id; document.getElementById('baixaNomeProd').innerText = p.nome;
