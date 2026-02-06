@@ -212,7 +212,10 @@
         </aside>
         <main>
           <div class="card">
-            <h3><i class="fas fa-list-ul"></i> Catálogo de Itens</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <h3 style="margin:0;"><i class="fas fa-list-ul"></i> Catálogo de Itens</h3>
+              <input type="text" id="buscaCatalogo" placeholder="Filtrar item..." onkeyup="filtrarCatalogo()" style="width:200px; margin:0;">
+            </div>
             <div class="table-container">
               <table id="tabelaCatalogo">
                 <thead><tr><th>Nome</th><th>Categoria</th><th>Unidade</th><th>Ações</th></tr></thead>
@@ -279,9 +282,12 @@
 
     <div id="tab-inventario" class="tab-content hidden">
       <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-          <h3><i class="fas fa-clipboard-check"></i> Balanço Físico (Inventário)</h3>
-          <button class="btn btn-success" onclick="atualizarBalancoGeral()"><i class="fas fa-sync"></i> ATUALIZAR TUDO</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; gap: 10px; flex-wrap: wrap;">
+          <h3 style="margin:0;"><i class="fas fa-clipboard-check"></i> Balanço Físico (Inventário)</h3>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input type="text" id="buscaInventario" placeholder="Filtrar item..." onkeyup="filtrarInventario()" style="width:200px; margin:0;">
+            <button class="btn btn-success" onclick="atualizarBalancoGeral()"><i class="fas fa-sync"></i> ATUALIZAR TUDO</button>
+          </div>
         </div>
         <div class="table-container">
           <table id="tabelaRelatorioInv">
@@ -433,6 +439,9 @@
             });
         });
         pAlerta.classList.toggle('hidden', alertasCount === 0);
+        if(typeof filtrarEstoque === 'function') filtrarEstoque();
+        if(typeof filtrarCatalogo === 'function') filtrarCatalogo();
+        if(typeof filtrarInventario === 'function') filtrarInventario();
     }
 
     async function ajustarSaldoOriginal(id) {
@@ -667,6 +676,8 @@
     function gerarQR(id, nome) { document.getElementById('qrModal').classList.remove('hidden'); document.getElementById('qrTitle').innerText = nome; new QRious({ element: document.getElementById('qrCanvas'), value: id, size: 220 }); }
     function switchTab(e, id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.remove('hidden'); e.currentTarget.classList.add('active'); }
     function filtrarEstoque() { const b = document.getElementById('buscaEstoque').value.toLowerCase(); document.querySelectorAll('#tabelaEstoque tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none'); }
+    function filtrarCatalogo() { const b = document.getElementById('buscaCatalogo').value.toLowerCase(); document.querySelectorAll('#tabelaCatalogo tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none'); }
+    function filtrarInventario() { const b = document.getElementById('buscaInventario').value.toLowerCase(); document.querySelectorAll('#tabelaRelatorioInv tbody tr').forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(b) ? '' : 'none'); }
     document.getElementById('logoutBtn').onclick = () => auth.signOut();
   </script>
 </body>
