@@ -366,6 +366,12 @@
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playBeep() { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination); o.frequency.value = 880; g.gain.setValueAtTime(0, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1); o.start(); o.stop(audioCtx.currentTime + 0.1); }
 
+    // Função para exibir feedback ao usuário (substitui alert())
+    function mostrarFeedback(mensagem, tipo = 'success') {
+        // Implementação simples para demonstração. Em um ambiente real, usaria um toast ou modal customizado.
+        alert(mensagem);
+    }
+
     auth.onAuthStateChanged(async (user) => {
       if (!user) return;
       const uDoc = await db.collection('usuarios').doc(user.uid).get();
@@ -444,34 +450,38 @@
         if(typeof filtrarInventario === 'function') filtrarInventario();
     }
 
-    async function ajustarSaldoOriginal(id) {
+async function ajustarSaldoOriginal(id) {
         const input = document.querySelector(`input[data-prod-id="${id}"]`);
-        if(input.value === "") return alert("Digite um valor para ajustar.");
+        if(input.value === "") return mostrarFeedback("Digite um valor para ajustar.", 'warning');
         const novaQtd = parseFloat(input.value);
         const p = produtosCache.find(x => x.id === id);
         if(confirm(`Confirmar ajuste de ${p.nome} para ${novaQtd}?`)) {
             await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
             await registrarLog("AJUSTE INVENTÁRIO", p.nome, novaQtd, `De: ${p.quantidade}`);
-            alert("Saldo atualizado!");
+            input.value = ""; // Limpa o campo após a atualização
+            mostrarFeedback("Saldo atualizado com sucesso!");
         }
     }
+    }
 
-    async function ajustarSaldoLote(id) {
+async function ajustarSaldoLote(id) {
         const input = document.querySelector(`input[data-lote-id="${id}"]`);
-        if(input.value === "") return alert("Digite um valor para ajustar.");
+        if(input.value === "") return mostrarFeedback("Digite um valor para ajustar.", 'warning');
         const novaQtd = parseFloat(input.value);
         const l = lotesCache.find(x => x.id === id);
         const p = produtosCache.find(x => x.id === l.produtoId);
         if(confirm(`Confirmar ajuste do lote ${l.marca} para ${novaQtd}?`)) {
             await db.collection('lotes').doc(id).update({ quantidade: novaQtd });
             await registrarLog("AJUSTE INVENTÁRIO", `${p.nome} (${l.marca})`, novaQtd, `De: ${l.quantidade}`);
-            alert("Saldo do lote atualizado!");
+            input.value = ""; // Limpa o campo após a atualização
+            mostrarFeedback("Saldo do lote atualizado com sucesso!");
         }
+    }
     }
 
     async function atualizarBalancoGeral() {
         const inputs = Array.from(document.querySelectorAll('.input-real')).filter(i => i.value !== "");
-        if(inputs.length === 0) return alert("Nenhum valor preenchido para atualizar.");
+        if(inputs.length === 0) return mostrarFeedback("Nenhum valor preenchido para atualizar.", 'warning');
         if(!confirm(`Deseja atualizar os ${inputs.length} itens preenchidos com os valores digitados?`)) return;
         for(let input of inputs) {
             const pId = input.getAttribute('data-prod-id');
@@ -488,11 +498,13 @@
                 await registrarLog("AJUSTE INVENTÁRIO", `${p.nome} (${l.marca})`, val, `De: ${l.quantidade}`);
             }
         }
-        alert("Balanço atualizado com sucesso!");
-    }
+        inputs.forEach(input => input.value = ""); // Limpa todos os campos preenchidos
+        mostrarFeedback("Balanço atualizado com sucesso!");
 
     async function registrarLog(tipo, produto, qtd, obs = "") {
-        await db.collection('historico').add({ data: new Date(), tipo, produto, quantidade: qtd, obs, user: auth.currentUser.email });
+        // Substituindo o email do usuário por um ID genérico para fins de privacidade em logs
+        const userIdForLog = auth.currentUser ? auth.currentUser.uid : 'Sistema';
+        await db.collection("historico").add({ data: new Date(), tipo, produto, quantidade: qtd, obs, user: userIdForLog });
     }
 
     document.getElementById('formRecebimento').onsubmit = async (e) => {
@@ -513,7 +525,7 @@
         };
         await db.collection('lotes').add(dados);
         await registrarLog("RECEBIMENTO", p.nome, dados.quantidade, `Marca: ${dados.marca} | Lote: ${dados.lote}`);
-        alert("Recebimento registrado!");
+        mostrarFeedback("Recebimento registrado!");
         e.target.reset(); preencherDataHora();
     };
 
@@ -522,13 +534,21 @@
         const lSel = document.getElementById('saidaLoteSelect');
         alerta.classList.add('hidden'); lSel.innerHTML = '<option value="">Selecione o Lote...</option>';
         if(!prodId) return;
-        const lotes = lotesCache.filter(l => l.produtoId === prodId && l.quantidade > 0);
+        const lotes = lotesCache.filter(l => l.produtoId === prodId && l.quantidade > 0).sort((a, b) => {
+            // Prioriza lotes com validade mais próxima
+            if (a.validade < b.validade) return -1;
+            if (a.validade > b.validade) return 1;
+            // Em caso de mesma validade, prioriza o lote mais antigo (assumindo que o ID é sequencial ou que a data de entrada seria um campo adicional)
+            return 0; // Se houver um campo 'dataEntrada', seria 'a.dataEntrada - b.dataEntrada'
+        });
         if(lotes.length > 0) {
             alerta.innerHTML = `<i class="fas fa-exclamation-circle"></i> PRIORIDADE: Retire o lote <b>${lotes[0].marca}</b> (${lotes[0].validade})`;
             alerta.classList.remove('hidden');
             lotes.forEach(l => lSel.innerHTML += `<option value="${l.id}">${l.marca} (Val: ${l.validade}) - Saldo: ${l.quantidade}</option>`);
         }
-        lSel.innerHTML += `<option value="ORIGINAL">SALDO ANTERIOR (Geral)</option>`;
+        // Opção 'SALDO ANTERIOR (Geral)' removida ou restrita para forçar a seleção de lotes e manter a integridade PEPS.
+        // Se necessário, pode ser reintroduzida com validações adicionais ou permissões específicas.
+        // lSel.innerHTML += `<option value="ORIGINAL">SALDO ANTERIOR (Geral)</option>`;
     }
 
     document.getElementById('formSaidaManual').onsubmit = async (e) => {
@@ -539,16 +559,16 @@
         const motivo = document.getElementById('saidaMotivo').value;
         const p = produtosCache.find(x => x.id === pId);
 
-        if(lId === "ORIGINAL") {
-            if(p.quantidade < qtd) return alert("Saldo insuficiente!");
-            await db.collection('estoque').doc(pId).update({ quantidade: p.quantidade - qtd });
-        } else {
-            const l = lotesCache.find(x => x.id === lId);
-            if(l.quantidade < qtd) return alert("Saldo insuficiente no lote!");
-            await db.collection('lotes').doc(lId).update({ quantidade: l.quantidade - qtd });
+        // Lógica de saída unificada para priorizar lotes
+        const l = lotesCache.find(x => x.id === lId);
+        if (!l) {
+            return mostrarFeedback("Lote inválido ou não selecionado. A saída deve ser feita por lote.", "error");
         }
+
+        if(l.quantidade < qtd) return mostrarFeedback("Saldo insuficiente no lote selecionado!", 'error');
+        await db.collection('lotes').doc(lId).update({ quantidade: l.quantidade - qtd });
         await registrarLog("SAÍDA MANUAL", p.nome, qtd, motivo);
-        alert("Baixa realizada!"); e.target.reset();
+        mostrarFeedback("Baixa realizada!"); e.target.reset();
     };
 
     document.getElementById('formCadastro').onsubmit = async (e) => {
@@ -563,7 +583,7 @@
         };
         if(id) await db.collection('estoque').doc(id).update(dados);
         else await db.collection('estoque').add({...dados, quantidade: 0});
-        alert("Salvo!"); cancelarEdicao();
+        mostrarFeedback("Salvo!"); cancelarEdicao();
     };
 
     function prepararEdicao(id) {
@@ -574,7 +594,7 @@
     }
 
     function cancelarEdicao() { document.getElementById('formCadastro').reset(); document.getElementById('editId').value = ''; document.getElementById('tituloCadastro').innerHTML = `<i class="fas fa-edit"></i> Gestão de Catálogo`; document.getElementById('btnExcluirProd').classList.add('hidden'); }
-    async function excluirProduto() { const id = document.getElementById('editId').value; if(id && confirm("Excluir?")) { await db.collection('estoque').doc(id).delete(); alert("Excluído!"); cancelarEdicao(); } }
+    async function excluirProduto() { const id = document.getElementById("editId").value; if(id && confirm("Excluir?")) { await db.collection("estoque").doc(id).delete(); mostrarFeedback("Excluído!"); cancelarEdicao(); } }
 
     function carregarHistorico() {
         const dLim = new Date(); dLim.setDate(dLim.getDate() - 30);
@@ -625,18 +645,18 @@
 
     async function baixarReq(id, item, qtd) {
         const p = produtosCache.find(x => x.nome === item);
-        if(!p) return alert("Não encontrado!");
+        if(!p) return mostrarFeedback("Produto não encontrado!", 'error');
         const lotes = lotesCache.filter(l => l.produtoId === p.id && l.quantidade > 0);
         if(lotes.length > 0) {
-            const l = lotes[0]; if(l.quantidade < qtd) return alert("Saldo insuficiente no lote prioritário!");
+            const l = lotes[0]; if(l.quantidade < qtd) return mostrarFeedback("Saldo insuficiente no lote prioritário!", 'error');
             await db.collection('lotes').doc(l.id).update({ quantidade: l.quantidade - qtd });
             await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
-            await registrarLog("SAÍDA NUTRIÇÃO", item, qtd, `Lote: ${l.lote}`); alert("Baixada!");
+            await registrarLog("SAÍDA NUTRIÇÃO", item, qtd, `Lote: ${l.lote}`); mostrarFeedback("Baixada!");
         } else {
-            if(p.quantidade < qtd) return alert("Sem saldo!");
+            if(p.quantidade < qtd) return mostrarFeedback("Sem saldo!", 'error');
             await db.collection('estoque').doc(p.id).update({ quantidade: p.quantidade - qtd });
             await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
-            await registrarLog("SAÍDA NUTRIÇÃO", item, qtd); alert("Baixada!");
+            await registrarLog("SAÍDA NUTRIÇÃO", item, qtd); mostrarFeedback("Baixada!");
         }
     }
 
@@ -645,12 +665,12 @@
       if(rDiv.classList.contains('hidden')) {
         rDiv.classList.remove('hidden'); btn.innerHTML = 'FECHAR CÂMERA';
         scannerGlobal = new Html5Qrcode("reader");
-        scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => { playBeep(); abrirModalBaixa(id); }).catch(e => alert("Erro câmera: " + e));
+        scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => { playBeep(); abrirModalBaixa(id); }).catch(e => mostrarFeedback("Erro câmera: " + e, 'error'));
       } else { fecharScanner(); }
     }
     async function fecharScanner() { if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; } document.getElementById('reader').classList.add('hidden'); document.getElementById('btnToggleScanner').innerHTML = 'LIGAR CÂMERA'; }
     async function abrirModalBaixa(id) { 
-        await fecharScanner(); const doc = await db.collection('estoque').doc(id).get(); if(!doc.exists) return alert("Erro!"); 
+        await fecharScanner(); const doc = await db.collection("estoque").doc(id).get(); if(!doc.exists) return mostrarFeedback("Produto não encontrado no estoque!", 'error'); 
         const p = doc.data(); document.getElementById('baixaIdProd').value = id; document.getElementById('baixaNomeProd').innerText = p.nome;
         const lotes = lotesCache.filter(l => l.produtoId === id && l.quantidade > 0);
         const lSel = document.getElementById('baixaLoteScanner'); lSel.innerHTML = '';
@@ -664,14 +684,17 @@
     function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); }
     async function confirmarBaixaScanner() {
         const pId = document.getElementById('baixaIdProd').value; const lId = document.getElementById('baixaLoteScanner').value; const qtd = parseFloat(document.getElementById('baixaQtdScanner').value);
-        if(lId === "ORIGINAL") {
-            const p = produtosCache.find(x => x.id === pId); await db.collection('estoque').doc(pId).update({ quantidade: p.quantidade - qtd });
-            await registrarLog("SAÍDA SCANNER", p.nome, qtd);
-        } else {
-            const l = lotesCache.find(x => x.id === lId); await db.collection('lotes').doc(lId).update({ quantidade: l.quantidade - qtd });
-            const p = produtosCache.find(x => x.id === pId); await registrarLog("SAÍDA SCANNER", p.nome, qtd, `Lote: ${l.lote}`);
+        // Lógica de saída unificada para priorizar lotes
+        const l = lotesCache.find(x => x.id === lId);
+        if (!l) {
+            return mostrarFeedback("Lote inválido ou não selecionado. A saída deve ser feita por lote.", "error");
         }
-        alert("Baixa concluída!"); fecharModalBaixa();
+
+        if(l.quantidade < qtd) return mostrarFeedback("Saldo insuficiente no lote selecionado!", 'error');
+        await db.collection('lotes').doc(lId).update({ quantidade: l.quantidade - qtd });
+        const p = produtosCache.find(x => x.id === pId); 
+        await registrarLog("SAÍDA SCANNER", p.nome, qtd, `Lote: ${l.lote}`);
+        mostrarFeedback("Baixa concluída!"); fecharModalBaixa();
     }
     function gerarQR(id, nome) { document.getElementById('qrModal').classList.remove('hidden'); document.getElementById('qrTitle').innerText = nome; new QRious({ element: document.getElementById('qrCanvas'), value: id, size: 220 }); }
     function switchTab(e, id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.remove('hidden'); e.currentTarget.classList.add('active'); }
