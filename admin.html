@@ -195,8 +195,28 @@
                 window.location.href = 'index.html';
                 return;
             }
+            
+            // ✅ NOVO: Registrar acesso com timestamp
+            await registrarAcessoUsuario(user);
+            
             initAdmin();
         });
+
+        // ✅ NOVA FUNÇÃO: Registrar acesso com data/hora
+        async function registrarAcessoUsuario(user) {
+            try {
+                await db.collection('acessos_log').add({
+                    email: user.email,
+                    uid: user.uid,
+                    dataAcesso: new Date(),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    navegador: navigator.userAgent,
+                    tipo: 'login'
+                });
+            } catch (e) {
+                console.error("Erro ao registrar acesso:", e);
+            }
+        }
 
         function initAdmin() {
             renderStock();
@@ -221,8 +241,8 @@
                     tbody.innerHTML += `
                         <tr>
                             <td><strong>${p.nome}</strong></td>
-                            <td><span class="badge" style="background:#f1f5f9; color:#475569">${p.categoria}</span></td>
-                            <td style="color:${low?'red':'inherit'}; font-weight:bold">${p.quantidade}</td>
+                            <td><span class="badge" style="background:#f1f5f9; color:#475569">${p.categoria || 'N/A'}</span></td>
+                            <td><strong style="color:${low ? 'var(--danger)' : 'var(--success)'}">${p.quantidade}</strong></td>
                             <td>
                                 <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade}, '${p.nome}')" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-edit"></i></button>
                             </td>
@@ -330,14 +350,41 @@
             }
         }
 
-        function logout() { firebase.auth().signOut().then(() => window.location.href = 'index.html'); }
+        function logout() { 
+            firebase.auth().signOut().then(() => window.location.href = 'index.html'); 
+        }
 
+        // ✅ CORRIGIDO: Formulário agora salva na coleção correta "usuarios"
         document.getElementById('formNovoUsuario').onsubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('newEmail').value.trim().toLowerCase();
             const role = document.getElementById('newRole').value;
-            await db.collection('usuarios_autorizados').doc(email).set({ role, approved: true });
-            alert("Militar autorizado com sucesso!"); e.target.reset();
+            
+            try {
+                // Salvar na coleção correta
+                await db.collection('usuarios').doc(email).set({ 
+                    email: email,
+                    role: role, 
+                    approved: true,
+                    dataCriacao: new Date(),
+                    criadoPor: firebase.auth().currentUser.email
+                });
+                
+                // Registrar ação no log de movimentações
+                await db.collection('movimentacoes').add({
+                    data: new Date(),
+                    usuario: firebase.auth().currentUser.email,
+                    item: `Novo usuário autorizado: ${email}`,
+                    novaQtd: 0,
+                    tipo: 'usuario_criado',
+                    role: role
+                });
+                
+                alert("Militar autorizado com sucesso!"); 
+                e.target.reset();
+            } catch (erro) {
+                alert("Erro ao autorizar militar: " + erro.message);
+            }
         };
     </script>
 </body>
