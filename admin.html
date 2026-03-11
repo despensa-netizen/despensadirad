@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Master Admin — EstoqueSync</title>
+    <title>Master Admin — EstoqueSync PRO</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -61,6 +61,8 @@
         .btn-primary { background: var(--accent); color: white; }
         
         .critical-alert { background: #fff1f2; border-left: 4px solid var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; color: #991b1b; }
+        .warning-alert { background: #fffbeb; border-left: 4px solid var(--warning); padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.8rem; color: #92400e; }
+        
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
         .bg-cozinha { background: #dbeafe; color: #1e40af; }
         .bg-nutri { background: #dcfce7; color: #15803d; }
@@ -70,6 +72,7 @@
         /* Estilo Histórico Movimentação */
         .log-entry { font-size: 0.8rem; padding: 10px; border-bottom: 1px solid #f1f5f9; }
         .log-date { color: #94a3b8; font-size: 0.7rem; font-weight: 600; }
+        .log-type { font-size: 0.6rem; font-weight: 800; padding: 2px 5px; border-radius: 3px; margin-right: 5px; }
 
         /* Botão de Reset Oculto */
         footer { margin-top: 50px; padding: 20px; display: flex; justify-content: center; opacity: 0.1; transition: 0.5s; }
@@ -83,7 +86,7 @@
         <div style="display:flex; align-items:center; gap:15px;">
             <i class="fas fa-shield-check fa-2x" style="color:var(--accent)"></i>
             <div>
-                <h1 style="margin:0; font-size: 1.1rem;">ESTOQUESYNC MASTER</h1>
+                <h1 style="margin:0; font-size: 1.1rem;">ESTOQUESYNC MASTER <span style="font-weight:300; font-size:0.8rem;">PRO INTEGRADO</span></h1>
                 <small style="opacity:0.7">Sessão Administrativa Ativa</small>
             </div>
         </div>
@@ -119,19 +122,19 @@
             <div class="left-col">
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                        <h2><i class="fas fa-list-check"></i> Auditoria Geral de Insumos</h2>
+                        <h2><i class="fas fa-list-check"></i> Auditoria Geral de Insumos (Consolidado)</h2>
                         <button onclick="window.print()" class="btn" style="background:#f1f5f9; font-size:0.7rem;"><i class="fas fa-print"></i> RELATÓRIO</button>
                     </div>
                     <table>
                         <thead>
-                            <tr><th>Produto</th><th>Categoria</th><th>Saldo</th><th>Ações</th></tr>
+                            <tr><th>Produto</th><th>Categoria</th><th>Saldo Total</th><th>Ações</th></tr>
                         </thead>
                         <tbody id="stockBody"></tbody>
                     </table>
                 </div>
 
                 <div class="card">
-                    <h2><i class="fas fa-clock-rotate-left"></i> Histórico de Movimentação</h2>
+                    <h2><i class="fas fa-clock-rotate-left"></i> Histórico Unificado (PRO + Master)</h2>
                     <div id="movimentacaoLog" style="max-height: 400px; overflow-y: auto;">
                         <p style="font-size: 0.8rem; color: #94a3b8;">Carregando logs...</p>
                     </div>
@@ -158,7 +161,7 @@
                     <canvas id="categoryChart"></canvas>
                 </div>
                 <div class="card">
-                    <h2><i class="fas fa-triangle-exclamation" style="color:var(--danger)"></i> Baixo Estoque</h2>
+                    <h2><i class="fas fa-triangle-exclamation" style="color:var(--danger)"></i> Alertas Críticos</h2>
                     <div id="listaAlertas"></div>
                 </div>
                 <div class="card">
@@ -187,6 +190,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        let produtosCache = [];
+        let lotesCache = [];
+
         firebase.auth().onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
             const doc = await db.collection('usuarios').doc(user.uid).get();
@@ -196,13 +202,10 @@
                 return;
             }
             
-            // ✅ NOVO: Registrar acesso com timestamp
             await registrarAcessoUsuario(user);
-            
             initAdmin();
         });
 
-        // ✅ NOVA FUNÇÃO: Registrar acesso com data/hora
         async function registrarAcessoUsuario(user) {
             try {
                 await db.collection('acessos_log').add({
@@ -210,63 +213,121 @@
                     uid: user.uid,
                     dataAcesso: new Date(),
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    navegador: navigator.userAgent,
                     tipo: 'login'
                 });
-            } catch (e) {
-                console.error("Erro ao registrar acesso:", e);
-            }
+            } catch (e) { console.error(e); }
         }
 
         function initAdmin() {
-            renderStock();
+            renderConsolidado();
             renderUsers();
             renderStats();
-            renderChart();
-            renderMovimentacoes();
+            renderMovimentacoesUnificadas();
         }
 
-        function renderStock() {
-            db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-                const tbody = document.getElementById('stockBody');
-                const alertas = document.getElementById('listaAlertas');
-                tbody.innerHTML = ''; alertas.innerHTML = '';
-                document.getElementById('countEstoque').innerText = snap.size;
-
-                snap.forEach(doc => {
-                    const p = doc.data();
-                    const low = p.quantidade <= 10;
-                    if(low) alertas.innerHTML += `<div class="critical-alert">⚠️ ${p.nome} (${p.quantidade})</div>`;
-                    
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><strong>${p.nome}</strong></td>
-                            <td><span class="badge" style="background:#f1f5f9; color:#475569">${p.categoria || 'N/A'}</span></td>
-                            <td><strong style="color:${low ? 'var(--danger)' : 'var(--success)'}">${p.quantidade}</strong></td>
-                            <td>
-                                <button onclick="ajustarEstoque('${doc.id}', ${p.quantidade}, '${p.nome}')" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-edit"></i></button>
-                            </td>
-                        </tr>`;
+        // ✅ FUNÇÃO PRINCIPAL: Consolida Estoque Geral + Lotes PRO
+        function renderConsolidado() {
+            // Monitorar Estoque
+            db.collection('estoque').orderBy('nome').onSnapshot(snapEstoque => {
+                produtosCache = snapEstoque.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                
+                // Monitorar Lotes
+                db.collection('lotes').onSnapshot(snapLotes => {
+                    lotesCache = snapLotes.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                    atualizarInterfaceConsolidada();
                 });
             });
         }
 
-        // Função para monitorar movimentações
-        function renderMovimentacoes() {
-            db.collection('movimentacoes').orderBy('data', 'desc').limit(50).onSnapshot(snap => {
-                const logDiv = document.getElementById('movimentacaoLog');
-                logDiv.innerHTML = '';
-                if(snap.empty) logDiv.innerHTML = '<p style="font-size:0.8rem">Sem registros.</p>';
+        function atualizarInterfaceConsolidada() {
+            const tbody = document.getElementById('stockBody');
+            const alertas = document.getElementById('listaAlertas');
+            tbody.innerHTML = ''; alertas.innerHTML = '';
+            
+            document.getElementById('countEstoque').innerText = produtosCache.length;
 
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const dataFormatada = m.data?.toDate().toLocaleString('pt-BR') || '---';
-                    logDiv.innerHTML += `
-                        <div class="log-entry">
-                            <span class="log-date">${dataFormatada}</span><br>
-                            <strong>${m.usuario}</strong> ${m.tipo === 'ajuste' ? 'ajustou' : 'moveu'} 
-                            <strong>${m.item}</strong> para ${m.novaQtd}
-                        </div>`;
+            // Alertas de Validade (PRO)
+            const hoje = new Date();
+            const trintaDias = new Date();
+            trintaDias.setDate(hoje.getDate() + 30);
+
+            lotesCache.forEach(l => {
+                const validade = new Date(l.validade);
+                if (l.quantidade > 0) {
+                    if (validade < hoje) {
+                        alertas.innerHTML += `<div class="critical-alert">🔴 VENCIDO: ${l.nomeProd} (${l.marca}) - Val: ${l.validade}</div>`;
+                    } else if (validade < trintaDias) {
+                        alertas.innerHTML += `<div class="warning-alert">🟡 VENCENDO: ${l.nomeProd} (${l.marca}) - Val: ${l.validade}</div>`;
+                    }
+                }
+            });
+
+            // Renderizar Tabela Consolidada
+            produtosCache.forEach(p => {
+                // Soma saldo do estoque geral + saldo de todos os lotes desse produto
+                const saldoLotes = lotesCache
+                    .filter(l => l.produtoId === p.id)
+                    .reduce((acc, curr) => acc + (parseFloat(curr.quantidade) || 0), 0);
+                
+                const saldoTotal = (parseFloat(p.quantidade) || 0) + saldoLotes;
+                const low = saldoTotal <= (p.estoqueMinimo || 10);
+                
+                if(low) alertas.innerHTML += `<div class="critical-alert">⚠️ BAIXO ESTOQUE: ${p.nome} (${saldoTotal.toFixed(2)})</div>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.nome}</strong><br><small style="color:#94a3b8">${p.unidade || 'un'}</small></td>
+                        <td><span class="badge" style="background:#f1f5f9; color:#475569">${p.categoria || 'N/A'}</span></td>
+                        <td><strong style="color:${low ? 'var(--danger)' : 'var(--success)'}">${saldoTotal.toFixed(2)}</strong></td>
+                        <td>
+                            <button onclick="ajustarEstoque('${p.id}', ${p.quantidade}, '${p.nome}')" title="Ajustar Saldo Geral" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>`;
+            });
+
+            renderChartConsolidado();
+        }
+
+        // ✅ HISTÓRICO UNIFICADO: Mostra 'movimentacoes' (Master) e 'historico' (PRO)
+        function renderMovimentacoesUnificadas() {
+            const logDiv = document.getElementById('movimentacaoLog');
+            
+            // Listener para 'movimentacoes'
+            db.collection('movimentacoes').orderBy('data', 'desc').limit(25).onSnapshot(snap1 => {
+                // Listener para 'historico' (PRO)
+                db.collection('historico').orderBy('data', 'desc').limit(25).onSnapshot(snap2 => {
+                    const logs = [];
+                    
+                    snap1.forEach(doc => logs.push({ ...doc.data(), source: 'MASTER' }));
+                    snap2.forEach(doc => logs.push({ 
+                        data: doc.data().data,
+                        usuario: doc.data().user,
+                        item: doc.data().produto,
+                        novaQtd: doc.data().quantidade,
+                        tipo: doc.data().tipo,
+                        obs: doc.data().obs,
+                        source: 'PRO' 
+                    }));
+
+                    // Ordenar por data decrescente
+                    logs.sort((a, b) => b.data?.toDate() - a.data?.toDate());
+
+                    logDiv.innerHTML = '';
+                    if(logs.length === 0) logDiv.innerHTML = '<p style="font-size:0.8rem">Sem registros.</p>';
+
+                    logs.slice(0, 50).forEach(m => {
+                        const dataFormatada = m.data?.toDate().toLocaleString('pt-BR') || '---';
+                        const color = m.source === 'PRO' ? '#6366f1' : '#2563eb';
+                        
+                        logDiv.innerHTML += `
+                            <div class="log-entry">
+                                <span class="log-date">${dataFormatada}</span> 
+                                <span class="log-type" style="background:${color}; color:white">${m.source}</span><br>
+                                <strong>${m.usuario || 'Sistema'}</strong>: ${m.tipo} 
+                                <strong>${m.item}</strong> ${m.novaQtd !== undefined ? '-> ' + m.novaQtd : ''}
+                                ${m.obs ? `<br><small><i>${m.obs}</i></small>` : ''}
+                            </div>`;
+                    });
                 });
             });
         }
@@ -285,17 +346,19 @@
             });
         }
 
-        function renderChart() {
-            db.collection('estoque').onSnapshot(snap => {
-                const data = {};
-                snap.forEach(d => { const c = d.data().categoria || 'Outros'; data[c] = (data[c] || 0) + 1; });
-                const ctx = document.getElementById('categoryChart').getContext('2d');
-                if(window.mChart) window.mChart.destroy();
-                window.mChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#0f172a','#2563eb','#10b981','#f59e0b','#ef4444'] }] },
-                    options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
-                });
+        function renderChartConsolidado() {
+            const data = {};
+            produtosCache.forEach(p => { 
+                const c = p.categoria || 'Outros'; 
+                data[c] = (data[c] || 0) + 1; 
+            });
+            
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            if(window.mChart) window.mChart.destroy();
+            window.mChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#0f172a','#2563eb','#10b981','#f59e0b','#ef4444'] }] },
+                options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
             });
         }
 
@@ -304,87 +367,50 @@
         }
 
         async function ajustarEstoque(id, q, nome) {
-            const n = prompt(`Ajustar saldo de ${nome}:`, q);
+            const n = prompt(`Ajustar saldo GERAL de ${nome}:`, q);
             if(n !== null && n !== "") {
                 const novaQtd = parseFloat(n);
                 await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
                 
-                // Registrar log de ajuste
                 await db.collection('movimentacoes').add({
                     data: new Date(),
                     usuario: firebase.auth().currentUser.email,
                     item: nome,
                     novaQtd: novaQtd,
-                    tipo: 'ajuste'
+                    tipo: 'ajuste_geral'
                 });
             }
         }
 
-        // Função de Reset do Sistema (OCULTA)
         async function resetSistemaTotal() {
-            const confirm1 = confirm("⚠️ ATENÇÃO: Você está prestes a resetar os dados de estoque e requisições. Deseja continuar?");
-            if(!confirm1) return;
-
-            const confirm2 = prompt("Para confirmar o RESET TOTAL, digite 'EXECUTAR':");
-            if(confirm2 !== 'EXECUTAR') {
-                alert("Operação cancelada.");
-                return;
-            }
+            if(!confirm("⚠️ RESET TOTAL?")) return;
+            if(prompt("Digite 'EXECUTAR':") !== 'EXECUTAR') return;
 
             try {
-                // Limpar Estoque
-                const stockSnap = await db.collection('estoque').get();
-                stockSnap.forEach(doc => doc.ref.delete());
-
-                // Limpar Requisições
-                const reqSnap = await db.collection('requisicoes').get();
-                reqSnap.forEach(doc => doc.ref.delete());
-
-                // Limpar Movimentações
-                const movSnap = await db.collection('movimentacoes').get();
-                movSnap.forEach(doc => doc.ref.delete());
-
-                alert("SISTEMA RESETADO COM SUCESSO.");
-            } catch (e) {
-                alert("Erro ao resetar: " + e.message);
-            }
+                const collections = ['estoque', 'requisicoes', 'movimentacoes', 'lotes', 'historico', 'acessos_log'];
+                for (const col of collections) {
+                    const snap = await db.collection(col).get();
+                    snap.forEach(doc => doc.ref.delete());
+                }
+                alert("SISTEMA RESETADO.");
+            } catch (e) { alert("Erro: " + e.message); }
         }
 
         function logout() { 
             firebase.auth().signOut().then(() => window.location.href = 'index.html'); 
         }
 
-        // ✅ CORRIGIDO: Formulário agora salva na coleção correta "usuarios"
         document.getElementById('formNovoUsuario').onsubmit = async (e) => {
             e.preventDefault();
             const email = document.getElementById('newEmail').value.trim().toLowerCase();
             const role = document.getElementById('newRole').value;
-            
             try {
-                // Salvar na coleção correta
                 await db.collection('usuarios').doc(email).set({ 
-                    email: email,
-                    role: role, 
-                    approved: true,
-                    dataCriacao: new Date(),
-                    criadoPor: firebase.auth().currentUser.email
+                    email: email, role: role, approved: true, dataCriacao: new Date()
                 });
-                
-                // Registrar ação no log de movimentações
-                await db.collection('movimentacoes').add({
-                    data: new Date(),
-                    usuario: firebase.auth().currentUser.email,
-                    item: `Novo usuário autorizado: ${email}`,
-                    novaQtd: 0,
-                    tipo: 'usuario_criado',
-                    role: role
-                });
-                
-                alert("Militar autorizado com sucesso!"); 
+                alert("Militar autorizado!"); 
                 e.target.reset();
-            } catch (erro) {
-                alert("Erro ao autorizar militar: " + erro.message);
-            }
+            } catch (erro) { alert(erro.message); }
         };
     </script>
 </body>
