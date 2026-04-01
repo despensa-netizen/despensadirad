@@ -149,7 +149,9 @@
               <input type="number" id="saidaQtd" placeholder="0.00" step="0.01" inputmode="decimal" required>
               <label class="recebimento-label">MOTIVO/DESTINO</label>
               <input type="text" id="saidaMotivo" placeholder="Ex: Consumo Interno" required>
-              <button type="submit" class="btn btn-danger" style="width:100%; margin-top:10px;">REGISTRAR SAÍDA</button>
+              <button type="submit" class="btn btn-success" style="width:100%; margin-top:10px;">
+                <i class="fas fa-arrow-down"></i> REGISTRAR SAÍDA
+              </button>
             </form>
           </div>
           <div class="card">
@@ -248,16 +250,16 @@
                             <input type="text" id="recFornecedor" class="recebimento-input" placeholder="Distribuidora Bom Gosto" required>
                         </div>
                         <div>
-                            <label class="recebimento-label">MARCA NO LOTE</label>
-                            <input type="text" id="recMarca" class="recebimento-input" placeholder="Ex: Piracanjuba" required>
-                        </div>
-                        <div>
-                            <label class="recebimento-label">NÚMERO DO LOTE</label>
-                            <input type="text" id="recLote" class="recebimento-input" placeholder="L-12345" required>
+                            <label class="recebimento-label">MARCA/FABRICANTE</label>
+                            <input type="text" id="recMarca" class="recebimento-input" placeholder="Ex: Tio João" required>
                         </div>
                         <div>
                             <label class="recebimento-label">QUANTIDADE</label>
                             <input type="number" id="recQtd" class="recebimento-input" placeholder="0.00" step="0.01" inputmode="decimal" required>
+                        </div>
+                        <div>
+                            <label class="recebimento-label">LOTE</label>
+                            <input type="text" id="recLote" class="recebimento-input" placeholder="LOTE-2024A-123" required>
                         </div>
                         <div>
                             <label class="recebimento-label">VALIDADE</label>
@@ -303,7 +305,7 @@
         <h3><i class="fas fa-history"></i> Histórico (Últimos 30 Dias)</h3>
         <div class="table-container">
           <table>
-            <thead><tr><th>Data/Hora</th><th>Tipo</th><th>Produto</th><th>Marca</th><th>Lote</th><th>Qtd</th><th>Usuário</th></tr></thead>
+            <thead><tr><th>Data/Hora</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
             <tbody id="corpoHist"></tbody>
           </table>
         </div>
@@ -348,9 +350,9 @@
       <select id="baixaLoteScanner"></select>
       <label class="recebimento-label">QUANTIDADE</label>
       <input type="number" id="baixaQtdScanner" placeholder="0.00" step="0.01" inputmode="decimal">
-      <div style="display:flex; gap:10px; margin-top:15px;">
-        <button class="btn btn-success" style="flex:1" onclick="confirmarBaixaScanner()">CONFIRMAR</button>
-        <button class="btn btn-danger" style="flex:1" onclick="fecharModalBaixa()">CANCELAR</button>
+      <div style="display:flex; gap:10px; margin-top: 15px;">
+        <button class="btn btn-success" onclick="confirmarBaixaScanner()" style="flex:1">CONFIRMAR</button>
+        <button class="btn btn-danger" onclick="fecharModalBaixa()" style="flex:1">CANCELAR</button>
       </div>
     </div>
   </div>
@@ -400,10 +402,8 @@
       userRole = uDoc.exists ? (uDoc.data().role || 'estoque') : 'estoque';
       document.getElementById('userRoleDisplay').innerText = userRole.toUpperCase();
       if(userRole !== 'admin') { 
-        const btnCad = document.getElementById('tabBtnCadastro');
-        const btnRel = document.getElementById('tabBtnRelatorio');
-        if(btnCad) btnCad.classList.add('hidden'); 
-        if(btnRel) btnRel.classList.add('hidden'); 
+        document.getElementById('tabBtnCadastro').classList.add('hidden'); 
+        document.getElementById('tabBtnRelatorio').classList.add('hidden'); 
       }
       inicializar();
     });
@@ -419,10 +419,8 @@
 
     function preencherDataHora() {
       const agora = new Date();
-      const dataInput = document.getElementById('recDataEntrega');
-      const horaInput = document.getElementById('recHoraEntrega');
-      if(dataInput) dataInput.value = agora.toISOString().split('T')[0];
-      if(horaInput) horaInput.value = agora.toTimeString().slice(0,5);
+      document.getElementById('recDataEntrega').value = agora.toISOString().split('T')[0];
+      document.getElementById('recHoraEntrega').value = agora.toTimeString().slice(0,5);
     }
 
     // ============ MONITORAMENTO DE DADOS ============
@@ -437,20 +435,6 @@
       db.collection('lotes').orderBy('validade').onSnapshot(snap => {
         lotesCache = snap.docs.map(d => ({id: d.id, ...d.data()}));
         renderizarInterface();
-        checarAlertasValidade();
-      });
-    }
-
-    function monitorarCargas() {
-      const hj = new Date().toISOString().split('T')[0];
-      db.collection('requisicoes').where('dataUso', '==', hj).where('status', '==', 'pendente').onSnapshot(snap => {
-        const cont = document.getElementById('listaRequisicoes');
-        if(!cont) return;
-        cont.innerHTML = '';
-        snap.forEach(doc => {
-          const r = doc.data();
-          cont.innerHTML += `<div style="padding:10px; background:#fff; border:1px solid #eee; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>${r.item} (<b>${r.quantidade}</b>)</span> <button onclick="baixarReq('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success" style="min-height:auto; padding:5px 10px;"><i class="fas fa-check"></i></button></div>`;
-        });
       });
     }
 
@@ -461,73 +445,142 @@
       const tbCat = document.querySelector('#tabelaCatalogo tbody');
       const sSel = document.getElementById('saidaProdSelect');
       const rSel = document.getElementById('recProdSelect');
-
-      if(tbSaida) tbSaida.innerHTML = '';
-      if(tbInv) tbInv.innerHTML = '';
-      if(tbCat) tbCat.innerHTML = '';
-
-      const sVal = sSel ? sSel.value : '';
-      const rVal = rSel ? rSel.value : '';
-      if(sSel) sSel.innerHTML = '<option value="">Selecione...</option>';
-      if(rSel) rSel.innerHTML = '<option value="">Selecione...</option>';
+      const pAlerta = document.getElementById('painelAlertas');
+      const lAlerta = document.getElementById('listaAlertas');
+      
+      tbSaida.innerHTML = tbInv.innerHTML = tbCat.innerHTML = '';
+      sSel.innerHTML = rSel.innerHTML = '<option value="">Selecione...</option>';
+      lAlerta.innerHTML = '';
+      let alertasCount = 0;
+      const hoje = new Date(); 
+      const limite30 = new Date(); 
+      limite30.setDate(hoje.getDate() + 30);
 
       produtosCache.forEach(p => {
-        if(sSel) sSel.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
-        if(rSel) rSel.innerHTML += `<option value="${p.id}">${p.nome}</option>`;
+        const id = p.id;
+        const lotesDoProd = lotesCache.filter(l => l.produtoId === id && l.quantidade > 0);
+        const saldoTotal = (p.quantidade || 0) + lotesDoProd.reduce((a,b) => a + b.quantidade, 0);
+        const min = p.estoqueMinimo || 0;
 
-        const lotes = lotesCache.filter(l => l.produtoId === p.id && l.quantidade > 0);
-        const totalLotes = lotes.reduce((a, b) => a + parseFloat(b.quantidade || 0), 0);
-        const saldoTotal = (parseFloat(p.quantidade) || 0) + totalLotes;
-        const clsMin = saldoTotal <= (p.estoqueMinimo || 0) ? 'abaixo-minimo' : '';
+        tbSaida.innerHTML += `<tr style="background:#f8fafc"><td><b>${p.nome}</b></td><td>TOTAL</td><td><b>${saldoTotal.toFixed(2)}</b></td><td>Vários</td><td><button class="btn btn-primary" style="min-height:auto; padding:5px 10px;" onclick="gerarQR('${id}','${p.nome}')"><i class="fas fa-qrcode"></i></button></td></tr>`;
+        tbInv.innerHTML += `<tr style="background:#f8fafc"><td><b>${p.nome}</b></td><td>GERAL</td><td><b>${saldoTotal.toFixed(2)}</b></td><td><input type="number" class="input-real" data-prod-id="${id}" data-tipo="produto" value="" placeholder="Manual" inputmode="decimal"></td><td>${p.unidade}</td><td>-</td><td><button class="btn btn-success" style="min-height:auto; padding:5px 10px;" onclick="ajustarSaldoOriginal('${id}')"><i class="fas fa-check"></i></button></td></tr>`;
+        tbCat.innerHTML += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>${p.unidade}</td><td><button class="btn btn-warning" style="min-height:auto; padding:5px 10px;" onclick="prepararEdicao('${id}')">EDITAR</button></td></tr>`;
+        sSel.innerHTML += `<option value="${id}">${p.nome}</option>`;
+        rSel.innerHTML += `<option value="${id}">${p.nome}</option>`;
+        
+        lotesDoProd.forEach(l => {
+          const dVal = new Date(l.validade + 'T00:00:00');
+          let valClass = ''; 
+          let valIcon = '';
+          if (dVal < hoje) { 
+            valClass = 'val-vencido-linha'; 
+            valIcon = '<i class="fas fa-ban"></i>'; 
+          }
+          else if (dVal <= limite30) { 
+            valClass = 'val-proxima-linha'; 
+            valIcon = '<i class="fas fa-clock"></i>';
+            alertasCount++;
+            lAlerta.innerHTML += `<div class="alert-item"><span><b>${p.nome}</b> (${l.marca})</span><span style="color:#b45309; font-weight:800;">${l.validade}</span></div>`;
+          }
 
-        if(tbCat) tbCat.innerHTML += `<tr><td>${p.nome}</td><td>${p.categoria}</td><td>${p.unidade}</td><td><button class="btn btn-primary" onclick="prepararEdicao('${p.id}')" style="padding:4px 8px; min-height:auto;"><i class="fas fa-edit"></i></button> <button class="btn btn-warning" onclick="gerarQR('${p.id}','${p.nome}')" style="padding:4px 8px; min-height:auto;"><i class="fas fa-qrcode"></i></button></td></tr>`;
-
-        if(p.quantidade > 0 || lotes.length === 0) {
-          if(tbSaida) tbSaida.innerHTML += `<tr class="${clsMin}"><td><b>${p.nome}</b></td><td><small>SALDO ANTERIOR</small></td><td>${parseFloat(p.quantidade || 0).toFixed(2)} ${p.unidade}</td><td>-</td><td></td></tr>`;
-          if(tbInv) tbInv.innerHTML += `<tr><td>${p.nome}</td><td><small>SALDO ANTERIOR</small></td><td>${parseFloat(p.quantidade || 0).toFixed(2)}</td><td><input type="number" class="input-real" data-prod-id="${p.id}" placeholder="..."></td><td>${p.unidade}</td><td>-</td><td><button class="btn btn-success" onclick="ajustarSaldoProd('${p.id}')" style="padding:5px 10px; min-height:auto;"><i class="fas fa-check"></i></button></td></tr>`;
-        }
-
-        lotes.forEach(l => {
-          const dias = Math.ceil((new Date(l.validade) - new Date()) / (1000*60*60*24));
-          let vCls = '', lCls = '';
-          if(dias <= 0) { vCls = 'val-vencido-texto'; lCls = 'val-vencido-linha'; }
-          else if(dias <= 30) { vCls = 'val-proxima-texto'; lCls = 'val-proxima-linha'; }
-
-          if(tbSaida) tbSaida.innerHTML += `<tr class="${lCls} ${clsMin}"><td>${p.nome}</td><td>${l.marca}</td><td>${parseFloat(l.quantidade || 0).toFixed(2)} ${p.unidade}</td><td class="${vCls}">${l.validade}</td><td></td></tr>`;
-          if(tbInv) tbInv.innerHTML += `<tr class="${lCls}"><td>${p.nome}</td><td>${l.marca}</td><td>${parseFloat(l.quantidade || 0).toFixed(2)}</td><td><input type="number" class="input-real" data-lote-id="${l.id}" placeholder="..."></td><td>${p.unidade}</td><td class="${vCls}">${l.validade}</td><td><button class="btn btn-success" onclick="ajustarSaldoLote('${l.id}')" style="padding:5px 10px; min-height:auto;"><i class="fas fa-check"></i></button></td></tr>`;
+          tbSaida.innerHTML += `<tr class="${valClass}"><td style="padding-left:20px; opacity:0.7; font-size:0.7rem;">↳ ${l.marca}</td><td style="font-size:0.7rem;">Lote: ${l.lote}</td><td>${l.quantidade}</td><td style="font-size:0.7rem;">${valIcon} ${l.validade}</td><td>-</td></tr>`;
+          tbInv.innerHTML += `<tr class="${valClass}"><td style="padding-left:20px; opacity:0.7; font-size:0.7rem;">↳ ${l.marca}</td><td style="font-size:0.7rem;">Lote: ${l.lote}</td><td>${l.quantidade}</td><td><input type="number" class="input-real" data-lote-id="${l.id}" data-tipo="lote" value="" placeholder="Manual" inputmode="decimal"></td><td>${p.unidade}</td><td style="font-size:0.7rem;">${l.validade}</td><td><button class="btn btn-success" style="min-height:auto; padding:5px 10px;" onclick="ajustarSaldoLote('${l.id}')"><i class="fas fa-check"></i></button></td></tr>`;
         });
       });
-
-      if(sSel) sSel.value = sVal;
-      if(rSel) rSel.value = rVal;
+      pAlerta.classList.toggle('hidden', alertasCount === 0);
+      if(typeof filtrarEstoque === 'function') filtrarEstoque();
+      if(typeof filtrarCatalogo === 'function') filtrarCatalogo();
+      if(typeof filtrarInventario === 'function') filtrarInventario();
     }
 
-    function checarAlertasValidade() {
-      const lista = document.getElementById('listaAlertas');
-      const painel = document.getElementById('painelAlertas');
-      if(!lista || !painel) return;
-      lista.innerHTML = '';
-      let cont = 0;
-      lotesCache.filter(l => l.quantidade > 0).forEach(l => {
-        const dias = Math.ceil((new Date(l.validade) - new Date()) / (1000*60*60*24));
-        if(dias <= 30) {
-          cont++;
-          const p = produtosCache.find(x => x.id === l.produtoId);
-          lista.innerHTML += `<div class="alert-item"><span><b>${p ? p.nome : '?'}</b> (${l.marca})</span> <span class="${dias <= 0 ? 'val-vencido-texto' : 'val-proxima-texto'}">${dias <= 0 ? 'VENCIDO' : 'Vence em '+dias+' dias'}</span></div>`;
+    // ============ AJUSTES DE SALDO (INVENTÁRIO) ============
+    async function ajustarSaldoOriginal(id) {
+      const input = document.querySelector(`input[data-prod-id="${id}"]`);
+      if(input.value === "") return alert("Digite um valor para ajustar.");
+      const novaQtd = parseFloat(input.value);
+      const p = produtosCache.find(x => x.id === id);
+      const qtdAnterior = p.quantidade || 0;
+      if(confirm(`Confirmar ajuste de ${p.nome} de ${qtdAnterior.toFixed(2)} para ${novaQtd.toFixed(2)}?`)) {
+        await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
+        await registrarLog("AJUSTE INVENTÁRIO", p.nome, novaQtd, `De: ${qtdAnterior.toFixed(2)}`);
+        input.value = '';
+        alert("Saldo atualizado!");
+      }
+    }
+
+    async function ajustarSaldoLote(id) {
+      const input = document.querySelector(`input[data-lote-id="${id}"]`);
+      if(input.value === "") return alert("Digite um valor para ajustar.");
+      const novaQtd = parseFloat(input.value);
+      const l = lotesCache.find(x => x.id === id);
+      const p = produtosCache.find(x => x.id === l.produtoId);
+      const qtdAnterior = l.quantidade || 0;
+      if(confirm(`Confirmar ajuste do lote ${l.marca} de ${qtdAnterior.toFixed(2)} para ${novaQtd.toFixed(2)}?`)) {
+        await db.collection('lotes').doc(id).update({ quantidade: novaQtd });
+        await registrarLog("AJUSTE INVENTÁRIO", `${p.nome} (${l.marca})`, novaQtd, `De: ${qtdAnterior.toFixed(2)}`);
+        input.value = '';
+        alert("Saldo do lote atualizado!");
+      }
+    }
+
+    // ============ ATUALIZAÇÃO GERAL DO BALANÇO (CORRIGIDA) ============
+    async function atualizarBalancoGeral() {
+      const inputs = Array.from(document.querySelectorAll('.input-real')).filter(i => i.value !== "");
+      if(inputs.length === 0) return alert("Nenhum valor preenchido para atualizar.");
+      if(!confirm(`Deseja atualizar os ${inputs.length} itens preenchidos com os valores digitados?`)) return;
+      
+      let sucessos = 0;
+      let erros = 0;
+      
+      for(let input of inputs) {
+        try {
+          const pId = input.getAttribute('data-prod-id');
+          const lId = input.getAttribute('data-lote-id');
+          const val = parseFloat(input.value);
+          
+          if(pId) {
+            const p = produtosCache.find(x => x.id === pId);
+            if(!p) {
+              console.error(`Produto ${pId} não encontrado no cache`);
+              erros++;
+              continue;
+            }
+            const qtdAnterior = p.quantidade || 0;
+            await db.collection('estoque').doc(pId).update({ quantidade: val });
+            await registrarLog("AJUSTE INVENTÁRIO", p.nome, val, `De: ${qtdAnterior.toFixed(2)}`);
+            sucessos++;
+          } else if(lId) {
+            const l = lotesCache.find(x => x.id === lId);
+            if(!l) {
+              console.error(`Lote ${lId} não encontrado no cache`);
+              erros++;
+              continue;
+            }
+            const qtdAnterior = l.quantidade || 0;
+            await db.collection('lotes').doc(lId).update({ quantidade: val });
+            const p = produtosCache.find(x => x.id === l.produtoId);
+            if(p) {
+              await registrarLog("AJUSTE INVENTÁRIO", `${p.nome} (${l.marca})`, val, `De: ${qtdAnterior.toFixed(2)}`);
+            }
+            sucessos++;
+          }
+          input.value = '';
+        } catch(e) {
+          console.error("Erro ao atualizar:", e);
+          erros++;
         }
-      });
-      painel.classList.toggle('hidden', cont === 0);
+      }
+      
+      alert(`Balanço atualizado! Sucessos: ${sucessos}, Erros: ${erros}`);
     }
 
     // ============ REGISTRO DE LOG ============
-    async function registrarLog(tipo, produto, qtd, obs = "", marca = "-", lote = "-") {
+    async function registrarLog(tipo, produto, qtd, obs = "") {
       try {
         await db.collection('historico').add({ 
           data: new Date(), 
           tipo, 
           produto, 
-          marca,
-          lote,
           quantidade: parseFloat(qtd) || 0, 
           obs, 
           user: auth.currentUser ? auth.currentUser.email : 'Sistema' 
@@ -537,93 +590,7 @@
       }
     }
 
-    // ============ SAÍDAS ============
-    function checarPrioridadePEPS(prodId) {
-      const alerta = document.getElementById('pepsAlertaBaixa');
-      const lSel = document.getElementById('saidaLoteSelect');
-      if(!alerta || !lSel) return;
-      alerta.classList.add('hidden'); 
-      lSel.innerHTML = '<option value="">Selecione o Lote...</option>';
-      if(!prodId) return;
-      
-      const lotes = lotesCache.filter(l => l.produtoId === prodId && l.quantidade > 0);
-      if(lotes.length > 0) {
-        lotes.sort((a, b) => new Date(a.validade) - new Date(b.validade));
-        alerta.innerHTML = `<i class="fas fa-exclamation-circle"></i> PRIORIDADE: Retire o lote <b>${lotes[0].marca}</b> (${lotes[0].validade})`;
-        alerta.classList.remove('hidden');
-        lotes.forEach(l => {
-          lSel.innerHTML += `<option value="${l.id}">${l.marca} (Val: ${l.validade}) - Saldo: ${l.quantidade}</option>`;
-        });
-      }
-      lSel.innerHTML += `<option value="ORIGINAL">SALDO ANTERIOR (Geral)</option>`;
-    }
-
-    document.getElementById('formSaidaManual').onsubmit = async (e) => {
-      e.preventDefault();
-      const pId = document.getElementById('saidaProdSelect').value;
-      const lId = document.getElementById('saidaLoteSelect').value;
-      const qtd = parseFloat(document.getElementById('saidaQtd').value);
-      const motivo = document.getElementById('saidaMotivo').value;
-      const p = produtosCache.find(x => x.id === pId);
-
-      if(!p) return alert("Produto não encontrado!");
-      if(qtd <= 0) return alert("Quantidade deve ser maior que zero!");
-
-      const lotes = lotesCache.filter(l => l.produtoId === pId && l.quantidade > 0);
-      if(lotes.length > 0 && lId === "ORIGINAL") {
-        alert("⚠️ Há lotes disponíveis! Você deve usar o lote com validade mais próxima primeiro (PEPS).");
-        return;
-      }
-
-      if(lId === "ORIGINAL") {
-        if(p.quantidade < qtd) return alert("Saldo insuficiente!");
-        await db.collection('estoque').doc(pId).update({ quantidade: p.quantidade - qtd });
-        await registrarLog("SAÍDA MANUAL", p.nome, qtd, motivo, "-", "-");
-      } else {
-        const l = lotesCache.find(x => x.id === lId);
-        if(!l) return alert("Lote não encontrado!");
-        const lotesOrdenados = [...lotes].sort((a, b) => new Date(a.validade) - new Date(b.validade));
-        if(l.id !== lotesOrdenados[0].id) {
-          if(!confirm(`⚠️ Aviso: O lote ${lotesOrdenados[0].marca} (${lotesOrdenados[0].validade}) vence antes. Deseja continuar mesmo assim?`)) return;
-        }
-        if(l.quantidade < qtd) return alert("Saldo insuficiente no lote!");
-        await db.collection('lotes').doc(lId).update({ quantidade: l.quantidade - qtd });
-        await registrarLog("SAÍDA MANUAL", p.nome, qtd, motivo, l.marca, l.lote);
-      }
-      alert("Baixa realizada!");
-      e.target.reset();
-      checarPrioridadePEPS('');
-    };
-
-    async function baixarReq(id, item, qtd) {
-      const p = produtosCache.find(x => x.nome === item);
-      if(!p) return alert("Não encontrado!");
-      
-      let qtdRestante = qtd;
-      const lotes = lotesCache.filter(l => l.produtoId === p.id && l.quantidade > 0);
-      lotes.sort((a, b) => new Date(a.validade) - new Date(b.validade));
-      
-      for(let l of lotes) {
-        if(qtdRestante <= 0) break;
-        const qtdDescontar = Math.min(qtdRestante, l.quantidade);
-        await db.collection('lotes').doc(l.id).update({ quantidade: l.quantidade - qtdDescontar });
-        await registrarLog("SAÍDA NUTRIÇÃO", item, qtdDescontar, "Baixa Requisição", l.marca, l.lote);
-        qtdRestante -= qtdDescontar;
-      }
-      
-      if(qtdRestante > 0) {
-        if(p.quantidade < qtdRestante) {
-          alert("⚠️ Saldo insuficiente mesmo após usar todos os lotes!");
-          return;
-        }
-        await db.collection('estoque').doc(p.id).update({ quantidade: p.quantidade - qtdRestante });
-        await registrarLog("SAÍDA NUTRIÇÃO", item, qtdRestante, "Saldo Geral", "-", "-");
-      }
-      await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
-      alert("Baixada!");
-    }
-
-    // ============ RECEBIMENTO ============
+    // ============ RECEBIMENTO DE LOTES ============
     document.getElementById('formRecebimento').onsubmit = async (e) => {
       e.preventDefault();
       const prodId = document.getElementById('recProdSelect').value;
@@ -644,229 +611,100 @@
       };
       
       await db.collection('lotes').add(dados);
-      await registrarLog("RECEBIMENTO", p.nome, dados.quantidade, `Marca: ${dados.marca} | Lote: ${dados.lote}`, dados.marca, dados.lote);
+      await registrarLog("RECEBIMENTO", p.nome, dados.quantidade, `Marca: ${dados.marca} | Lote: ${dados.lote}`);
       alert("Recebimento registrado!");
       e.target.reset(); 
       preencherDataHora();
     };
 
-    // ============ INVENTÁRIO ============
-    async function ajustarSaldoProd(id) {
-      const input = document.querySelector(`input[data-prod-id="${id}"]`);
-      if(!input || input.value === "") return alert("Digite um valor.");
-      const novaQtd = parseFloat(input.value);
-      const p = produtosCache.find(x => x.id === id);
-      const qtdAnterior = p.quantidade || 0;
-      if(confirm(`Confirmar ajuste de ${p.nome} para ${novaQtd.toFixed(2)}?`)) {
-        await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
-        await registrarLog("AJUSTE INVENTÁRIO", p.nome, novaQtd, `De: ${qtdAnterior.toFixed(2)}`, "-", "-");
-        input.value = '';
-        alert("Atualizado!");
-      }
-    }
-
-    async function ajustarSaldoLote(id) {
-      const input = document.querySelector(`input[data-lote-id="${id}"]`);
-      if(!input || input.value === "") return alert("Digite um valor.");
-      const novaQtd = parseFloat(input.value);
-      const l = lotesCache.find(x => x.id === id);
-      const p = produtosCache.find(x => x.id === l.produtoId);
-      const qtdAnterior = l.quantidade || 0;
-      if(confirm(`Confirmar ajuste do lote ${l.marca} para ${novaQtd.toFixed(2)}?`)) {
-        await db.collection('lotes').doc(id).update({ quantidade: novaQtd });
-        await registrarLog("AJUSTE INVENTÁRIO", p.nome, novaQtd, `De: ${qtdAnterior.toFixed(2)}`, l.marca, l.lote);
-        input.value = '';
-        alert("Atualizado!");
-      }
-    }
-
-    async function atualizarBalancoGeral() {
-      const inputs = Array.from(document.querySelectorAll('.input-real')).filter(i => i.value !== "");
-      if(inputs.length === 0) return alert("Nada preenchido.");
-      if(!confirm(`Atualizar ${inputs.length} itens?`)) return;
-      for(let input of inputs) {
-        const pId = input.getAttribute('data-prod-id');
-        const lId = input.getAttribute('data-lote-id');
-        const val = parseFloat(input.value);
-        if(pId) {
-          const p = produtosCache.find(x => x.id === pId);
-          await db.collection('estoque').doc(pId).update({ quantidade: val });
-          await registrarLog("AJUSTE INVENTÁRIO", p.nome, val, "Balanço Geral", "-", "-");
-        } else if(lId) {
-          const l = lotesCache.find(x => x.id === lId);
-          const p = produtosCache.find(x => x.id === l.produtoId);
-          await db.collection('lotes').doc(lId).update({ quantidade: val });
-          await registrarLog("AJUSTE INVENTÁRIO", p.nome, val, "Balanço Geral", l.marca, l.lote);
-        }
-        input.value = '';
-      }
-      alert("Balanço atualizado!");
-    }
-
-    // ============ HISTÓRICO ============
-    function carregarHistorico() {
-      const dLim = new Date();
-      dLim.setDate(dLim.getDate() - 30);
-      let query = db.collection('historico').where('data', '>=', dLim).orderBy('data', 'desc').limit(itemsPerPage);
-      if (currentPage > 1 && pagesHistory[currentPage - 1]) {
-        query = query.startAfter(pagesHistory[currentPage - 1]);
-      }
-      query.onSnapshot(snap => {
-        const tb = document.getElementById('corpoHist');
-        if(!tb) return;
-        tb.innerHTML = '';
-        if (snap.empty) {
-          tb.innerHTML = '<tr><td colspan="7" style="text-align:center">Sem movimentação.</td></tr>';
-          return;
-        }
-        if (snap.docs.length === itemsPerPage) {
-          pagesHistory[currentPage] = snap.docs[snap.docs.length - 1];
-        }
-        snap.forEach(doc => {
-          const h = doc.data();
-          let cls = h.tipo.includes('SAÍDA') ? 'badge-saida' : (h.tipo.includes('ENTRADA') || h.tipo.includes('RECEBIMENTO') ? 'badge-entrada' : 'badge-ajuste');
-          const dataFormatada = h.data && h.data.toDate ? h.data.toDate().toLocaleString() : 'Data inválida';
-          tb.innerHTML += `<tr>
-            <td>${dataFormatada}</td>
-            <td><span class="badge ${cls}">${h.tipo}</span></td>
-            <td>${h.produto}</td>
-            <td>${h.marca || '-'}</td>
-            <td>${h.lote || '-'}</td>
-            <td>${parseFloat(h.quantidade || 0).toFixed(2)}</td>
-            <td>${h.user ? h.user.split('@')[0] : 'Sist'}</td>
-          </tr>`;
-        });
-        const curPageDisp = document.getElementById('currentPageDisplay');
-        const btnPrev = document.getElementById('btnPrevPage');
-        const btnNext = document.getElementById('btnNextPage');
-        if(curPageDisp) curPageDisp.innerText = currentPage;
-        if(btnPrev) btnPrev.disabled = (currentPage === 1);
-        if(btnNext) btnNext.disabled = (snap.docs.length < itemsPerPage);
-      });
-    }
-
-    function paginarHistorico(dir) {
-      if(dir === -1 && currentPage > 1) currentPage--;
-      else if(dir === 1) currentPage++;
-      carregarHistorico();
-    }
-
-    // ============ RELATÓRIO COMPRAS ============
-    async function gerarRelatorioCompras() {
-      const corpo = document.getElementById('corpoRelatorio');
-      if(!corpo) return;
-      corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Consolidando...</td></tr>';
-      const dLim = new Date();
-      dLim.setDate(dLim.getDate() - 30);
-      try {
-        const hSnap = await db.collection('historico').where('data', '>=', dLim).get();
-        const cons = {};
-        hSnap.forEach(doc => {
-          const h = doc.data();
-          if (h.tipo.includes('SAÍDA')) {
-            cons[h.produto] = (cons[h.produto] || 0) + parseFloat(h.quantidade || 0);
-          }
-        });
-        corpo.innerHTML = '';
-        produtosCache.forEach(p => {
-          const c = cons[p.nome] || 0;
-          const salLotes = lotesCache.filter(l => l.produtoId === p.id).reduce((a,b) => a + parseFloat(b.quantidade || 0), 0);
-          const salTotal = (parseFloat(p.quantidade) || 0) + salLotes;
-          let st = salTotal <= p.estoqueMinimo ? '<span class="badge badge-saida">URGENTE</span>' : (salTotal < c ? '<span class="badge badge-ajuste">EM BREVE</span>' : '<span class="badge badge-entrada">OK</span>');
-          corpo.innerHTML += `<tr><td><b>${p.nome}</b></td><td>${c.toFixed(2)}</td><td>${salTotal.toFixed(2)}</td><td>${st}</td></tr>`;
-        });
-      } catch (e) {
-        console.error("Erro ao gerar relatório:", e);
-        corpo.innerHTML = '<tr><td colspan="4">Erro ao carregar.</td></tr>';
-      }
-    }
-
-    // ============ SCANNER ============
-    async function toggleScannerGlobal() {
-      const rDiv = document.getElementById('reader');
-      const btn = document.getElementById('btnToggleScanner');
-      if(!rDiv || !btn) return;
-      if(rDiv.classList.contains('hidden')) {
-        rDiv.classList.remove('hidden');
-        btn.innerHTML = 'FECHAR CÂMERA';
-        scannerGlobal = new Html5Qrcode("reader");
-        scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => {
-          playBeep();
-          abrirModalBaixa(id);
-        }).catch(e => alert("Erro câmera: " + e));
-      } else {
-        fecharScanner();
-      }
-    }
-
-    async function fecharScanner() {
-      if(scannerGlobal) {
-        await scannerGlobal.stop();
-        scannerGlobal = null;
-      }
-      const rDiv = document.getElementById('reader');
-      const btn = document.getElementById('btnToggleScanner');
-      if(rDiv) rDiv.classList.add('hidden');
-      if(btn) btn.innerHTML = 'LIGAR CÂMERA';
-    }
-
-    async function abrirModalBaixa(id) {
-      await fecharScanner();
-      const doc = await db.collection('estoque').doc(id).get();
-      if(!doc.exists) return alert("Erro!");
-      const p = doc.data();
-      document.getElementById('baixaIdProd').value = id;
-      document.getElementById('baixaNomeProd').innerText = p.nome;
+    // ============ PRIORIDADE PEPS (CORRIGIDA) ============
+    function checarPrioridadePEPS(prodId) {
+      const alerta = document.getElementById('pepsAlertaBaixa');
+      const lSel = document.getElementById('saidaLoteSelect');
+      alerta.classList.add('hidden'); 
+      lSel.innerHTML = '<option value="">Selecione o Lote...</option>';
+      if(!prodId) return;
       
-      const lotes = lotesCache.filter(l => l.produtoId === id && l.quantidade > 0);
-      lotes.sort((a, b) => new Date(a.validade) - new Date(b.validade));
-      
-      const lSel = document.getElementById('baixaLoteScanner');
-      const a = document.getElementById('pepsAlertaScanner');
-      if(lSel) lSel.innerHTML = '';
-      if(a) a.classList.add('hidden');
+      const lotes = lotesCache.filter(l => l.produtoId === prodId && l.quantidade > 0);
       
       if(lotes.length > 0) {
-        if(a) {
-          a.innerHTML = `<i class="fas fa-lightbulb"></i> PRIORIDADE: Lote <b>${lotes[0].marca}</b> (${lotes[0].validade})`;
-          a.classList.remove('hidden');
-        }
-        lotes.forEach(l => { if(lSel) lSel.innerHTML += `<option value="${l.id}">${l.marca} (Val: ${l.validade})</option>`; });
-      } else {
-        if(lSel) lSel.innerHTML = '<option value="ORIGINAL">SALDO ANTERIOR</option>';
+        // Ordena por data de validade (PEPS)
+        lotes.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+        
+        alerta.innerHTML = `<i class="fas fa-exclamation-circle"></i> PRIORIDADE: Retire o lote <b>${lotes[0].marca}</b> (${lotes[0].validade})`;
+        alerta.classList.remove('hidden');
+        
+        // Popula select com lotes ordenados
+        lotes.forEach(l => {
+          lSel.innerHTML += `<option value="${l.id}">${l.marca} (Val: ${l.validade}) - Saldo: ${l.quantidade}</option>`;
+        });
       }
-      document.getElementById('modalBaixa').classList.remove('hidden');
+      lSel.innerHTML += `<option value="ORIGINAL">SALDO ANTERIOR (Geral)</option>`;
     }
 
-    function fecharModalBaixa() {
-      document.getElementById('modalBaixa').classList.add('hidden');
-    }
-
-    async function confirmarBaixaScanner() {
-      const pId = document.getElementById('baixaIdProd').value;
-      const lId = document.getElementById('baixaLoteScanner').value;
-      const qtd = parseFloat(document.getElementById('baixaQtdScanner').value);
-      if(qtd <= 0) return alert("Quantidade deve ser maior que zero!");
+    // ============ SAÍDA MANUAL (CORRIGIDA COM VALIDAÇÃO PEPS) ============
+    document.getElementById('formSaidaManual').onsubmit = async (e) => {
+      e.preventDefault();
+      const pId = document.getElementById('saidaProdSelect').value;
+      const lId = document.getElementById('saidaLoteSelect').value;
+      const qtd = parseFloat(document.getElementById('saidaQtd').value);
+      const motivo = document.getElementById('saidaMotivo').value;
       const p = produtosCache.find(x => x.id === pId);
+
       if(!p) return alert("Produto não encontrado!");
+      if(qtd <= 0) return alert("Quantidade deve ser maior que zero!");
+
+      const lotes = lotesCache.filter(l => l.produtoId === pId && l.quantidade > 0);
       
+      // Se houver lotes e o usuário tentou usar o saldo anterior, bloqueia
+      if(lotes.length > 0 && lId === "ORIGINAL") {
+        alert("⚠️ Há lotes disponíveis! Você deve usar o lote com validade mais próxima primeiro (PEPS).");
+        return;
+      }
+
       if(lId === "ORIGINAL") {
         if(p.quantidade < qtd) return alert("Saldo insuficiente!");
         await db.collection('estoque').doc(pId).update({ quantidade: p.quantidade - qtd });
-        await registrarLog("SAÍDA SCANNER", p.nome, qtd, "Scanner", "-", "-");
+        await registrarLog("SAÍDA MANUAL", p.nome, qtd, motivo);
       } else {
         const l = lotesCache.find(x => x.id === lId);
         if(!l) return alert("Lote não encontrado!");
+        
+        // Valida se o lote selecionado é realmente o mais próximo do vencimento
+        const lotePrioritario = lotes[0];
+        if(l.id !== lotePrioritario.id) {
+          const confirma = confirm(`⚠️ Aviso: O lote ${lotePrioritario.marca} (${lotePrioritario.validade}) vence antes. Deseja continuar mesmo assim?`);
+          if(!confirma) return;
+        }
+        
         if(l.quantidade < qtd) return alert("Saldo insuficiente no lote!");
         await db.collection('lotes').doc(lId).update({ quantidade: l.quantidade - qtd });
-        await registrarLog("SAÍDA SCANNER", p.nome, qtd, "Scanner", l.marca, l.lote);
+        await registrarLog("SAÍDA MANUAL", p.nome, qtd, `Lote: ${l.lote} | ${motivo}`);
       }
-      alert("Baixa concluída!");
-      document.getElementById('baixaQtdScanner').value = '';
-      fecharModalBaixa();
-    }
+      
+      alert("Baixa realizada!");
+      e.target.reset();
+      document.getElementById('saidaProdSelect').value = '';
+      document.getElementById('saidaLoteSelect').innerHTML = '<option value="">Selecione o Lote...</option>';
+    };
 
-    // ============ GESTÃO DE CATÁLOGO ============
+    // ============ CADASTRO DE PRODUTOS ============
+    document.getElementById('formCadastro').onsubmit = async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const dados = {
+        nome: document.getElementById('cadNome').value,
+        categoria: document.getElementById('cadCat').value,
+        unidade: document.getElementById('cadUn').value,
+        local: document.getElementById('cadLocal').value,
+        estoqueMinimo: parseFloat(document.getElementById('cadMin').value)
+      };
+      if(id) await db.collection('estoque').doc(id).update(dados);
+      else await db.collection('estoque').add({...dados, quantidade: 0});
+      alert("Salvo!");
+      cancelarEdicao();
+    };
+
     function prepararEdicao(id) {
       const p = produtosCache.find(x => x.id === id);
       if(!p) return alert("Produto não encontrado!");
@@ -897,21 +735,202 @@
       }
     }
 
-    document.getElementById('formCadastro').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('editId').value;
-      const dados = {
-        nome: document.getElementById('cadNome').value,
-        categoria: document.getElementById('cadCat').value,
-        unidade: document.getElementById('cadUn').value,
-        local: document.getElementById('cadLocal').value,
-        estoqueMinimo: parseFloat(document.getElementById('cadMin').value)
-      };
-      if(id) await db.collection('estoque').doc(id).update(dados);
-      else await db.collection('estoque').add({...dados, quantidade: 0});
-      alert("Salvo!");
-      cancelarEdicao();
-    };
+    // ============ HISTÓRICO ============
+    function carregarHistorico() {
+      const dLim = new Date();
+      dLim.setDate(dLim.getDate() - 30);
+      let query = db.collection('historico').where('data', '>=', dLim).orderBy('data', 'desc').limit(itemsPerPage);
+      if (currentPage > 1 && pagesHistory[currentPage - 1]) {
+        query = query.startAfter(pagesHistory[currentPage - 1]);
+      }
+      query.onSnapshot(snap => {
+        const tb = document.getElementById('corpoHist');
+        tb.innerHTML = '';
+        if (snap.empty) {
+          tb.innerHTML = '<tr><td colspan="5" style="text-align:center">Sem movimentação.</td></tr>';
+          return;
+        }
+        if (snap.docs.length === itemsPerPage) {
+          pagesHistory[currentPage] = snap.docs[snap.docs.length - 1];
+        }
+        snap.forEach(doc => {
+          const h = doc.data();
+          let cls = h.tipo.includes('SAÍDA') ? 'badge-saida' : (h.tipo.includes('ENTRADA') || h.tipo.includes('RECEBIMENTO') ? 'badge-entrada' : 'badge-ajuste');
+          const dataFormatada = h.data && h.data.toDate ? h.data.toDate().toLocaleString() : 'Data inválida';
+          tb.innerHTML += `<tr><td>${dataFormatada}</td><td><span class="badge ${cls}">${h.tipo}</span></td><td>${h.produto}</td><td>${parseFloat(h.quantidade || 0).toFixed(2)}</td><td>${h.user ? h.user.split('@')[0] : 'Sist'}</td></tr>`;
+        });
+        document.getElementById('currentPageDisplay').innerText = currentPage;
+        document.getElementById('btnPrevPage').disabled = (currentPage === 1);
+        document.getElementById('btnNextPage').disabled = (snap.docs.length < itemsPerPage);
+      });
+    }
+
+    function paginarHistorico(dir) {
+      if(dir === -1 && currentPage > 1) currentPage--;
+      else if(dir === 1) currentPage++;
+      carregarHistorico();
+    }
+
+    // ============ RELATÓRIO DE COMPRAS ============
+    async function gerarRelatorioCompras() {
+      const corpo = document.getElementById('corpoRelatorio');
+      corpo.innerHTML = '<tr><td colspan="4" style="text-align:center">Consolidando...</td></tr>';
+      const dLim = new Date();
+      dLim.setDate(dLim.getDate() - 30);
+      try {
+        const hSnap = await db.collection('historico').where('data', '>=', dLim).get();
+        const cons = {};
+        hSnap.forEach(doc => {
+          const h = doc.data();
+          if (h.tipo.includes('SAÍDA')) {
+            cons[h.produto] = (cons[h.produto] || 0) + parseFloat(h.quantidade || 0);
+          }
+        });
+        corpo.innerHTML = '';
+        produtosCache.forEach(p => {
+          const c = cons[p.nome] || 0;
+          const salLotes = lotesCache.filter(l => l.produtoId === p.id).reduce((a,b) => a + parseFloat(b.quantidade || 0), 0);
+          const salTotal = (parseFloat(p.quantidade) || 0) + salLotes;
+          let st = salTotal <= p.estoqueMinimo ? '<span class="badge badge-saida">URGENTE</span>' : (salTotal < c ? '<span class="badge badge-ajuste">EM BREVE</span>' : '<span class="badge badge-entrada">OK</span>');
+          corpo.innerHTML += `<tr><td><b>${p.nome}</b></td><td>${c.toFixed(2)}</td><td>${salTotal.toFixed(2)}</td><td>${st}</td></tr>`;
+        });
+      } catch (e) {
+        console.error("Erro ao gerar relatório:", e);
+        corpo.innerHTML = '<tr><td colspan="4">Erro ao carregar.</td></tr>';
+      }
+    }
+
+    // ============ MONITORAMENTO DE REQUISIÇÕES ============
+    function monitorarCargas() {
+      const hj = new Date().toISOString().split('T')[0];
+      db.collection('requisicoes').where('dataUso', '==', hj).where('status', '==', 'pendente').onSnapshot(snap => {
+        const cont = document.getElementById('listaRequisicoes');
+        cont.innerHTML = '';
+        snap.forEach(doc => {
+          const r = doc.data();
+          cont.innerHTML += `<div style="padding:10px; background:#fff; border:1px solid #eee; border-radius:8px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>${r.item} (<b>${r.quantidade}</b>)</span> <button onclick="baixarReq('${doc.id}','${r.item}',${r.quantidade})" class="btn btn-success" style="min-height:auto; padding:5px 10px;"><i class="fas fa-check"></i></button></div>`;
+        });
+      });
+    }
+
+    // ============ BAIXA DE REQUISIÇÕES (CORRIGIDA COM PEPS) ============
+    async function baixarReq(id, item, qtd) {
+      const p = produtosCache.find(x => x.nome === item);
+      if(!p) return alert("Não encontrado!");
+      
+      let qtdRestante = qtd;
+      const lotes = lotesCache.filter(l => l.produtoId === p.id && l.quantidade > 0);
+      
+      // Ordena por data de validade (PEPS)
+      lotes.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+      
+      // Tenta descontar dos lotes primeiro
+      for(let l of lotes) {
+        if(qtdRestante <= 0) break;
+        const qtdDescontar = Math.min(qtdRestante, l.quantidade);
+        await db.collection('lotes').doc(l.id).update({ quantidade: l.quantidade - qtdDescontar });
+        await registrarLog("SAÍDA NUTRIÇÃO", item, qtdDescontar, `Lote: ${l.lote}`);
+        qtdRestante -= qtdDescontar;
+      }
+      
+      // Se ainda restar quantidade, desconta do saldo geral
+      if(qtdRestante > 0) {
+        if(p.quantidade < qtdRestante) {
+          alert("⚠️ Saldo insuficiente mesmo após usar todos os lotes!");
+          return;
+        }
+        await db.collection('estoque').doc(p.id).update({ quantidade: p.quantidade - qtdRestante });
+        await registrarLog("SAÍDA NUTRIÇÃO", item, qtdRestante, "Saldo Geral");
+      }
+      
+      await db.collection('requisicoes').doc(id).update({ status: 'concluido' });
+      alert("Baixada!");
+    }
+
+    // ============ SCANNER ============
+    async function toggleScannerGlobal() {
+      const rDiv = document.getElementById('reader');
+      const btn = document.getElementById('btnToggleScanner');
+      if(rDiv.classList.contains('hidden')) {
+        rDiv.classList.remove('hidden');
+        btn.innerHTML = 'FECHAR CÂMERA';
+        scannerGlobal = new Html5Qrcode("reader");
+        scannerGlobal.start({ facingMode: "environment" }, { fps: 15, qrbox: 250 }, (id) => {
+          playBeep();
+          abrirModalBaixa(id);
+        }).catch(e => alert("Erro câmera: " + e));
+      } else {
+        fecharScanner();
+      }
+    }
+
+    async function fecharScanner() {
+      if(scannerGlobal) {
+        await scannerGlobal.stop();
+        scannerGlobal = null;
+      }
+      document.getElementById('reader').classList.add('hidden');
+      document.getElementById('btnToggleScanner').innerHTML = 'LIGAR CÂMERA';
+    }
+
+    async function abrirModalBaixa(id) {
+      await fecharScanner();
+      const doc = await db.collection('estoque').doc(id).get();
+      if(!doc.exists) return alert("Erro!");
+      const p = doc.data();
+      document.getElementById('baixaIdProd').value = id;
+      document.getElementById('baixaNomeProd').innerText = p.nome;
+      
+      const lotes = lotesCache.filter(l => l.produtoId === id && l.quantidade > 0);
+      lotes.sort((a, b) => new Date(a.validade) - new Date(b.validade));
+      
+      const lSel = document.getElementById('baixaLoteScanner');
+      lSel.innerHTML = '';
+      const a = document.getElementById('pepsAlertaScanner');
+      a.classList.add('hidden');
+      
+      if(lotes.length > 0) {
+        a.innerHTML = `<i class="fas fa-lightbulb"></i> PRIORIDADE: Lote <b>${lotes[0].marca}</b> (${lotes[0].validade})`;
+        a.classList.remove('hidden');
+        lotes.forEach(l => lSel.innerHTML += `<option value="${l.id}">${l.marca} (Val: ${l.validade})</option>`);
+      } else {
+        lSel.innerHTML = '<option value="ORIGINAL">SALDO ANTERIOR</option>';
+      }
+      document.getElementById('modalBaixa').classList.remove('hidden');
+    }
+
+    function fecharModalBaixa() {
+      document.getElementById('modalBaixa').classList.add('hidden');
+    }
+
+    async function confirmarBaixaScanner() {
+      const pId = document.getElementById('baixaIdProd').value;
+      const lId = document.getElementById('baixaLoteScanner').value;
+      const qtd = parseFloat(document.getElementById('baixaQtdScanner').value);
+      
+      if(qtd <= 0) return alert("Quantidade deve ser maior que zero!");
+      
+      const p = produtosCache.find(x => x.id === pId);
+      if(!p) return alert("Produto não encontrado!");
+      
+      const lotes = lotesCache.filter(l => l.produtoId === pId && l.quantidade > 0);
+      
+      if(lId === "ORIGINAL") {
+        if(p.quantidade < qtd) return alert("Saldo insuficiente!");
+        await db.collection('estoque').doc(pId).update({ quantidade: p.quantidade - qtd });
+        await registrarLog("SAÍDA SCANNER", p.nome, qtd);
+      } else {
+        const l = lotesCache.find(x => x.id === lId);
+        if(!l) return alert("Lote não encontrado!");
+        if(l.quantidade < qtd) return alert("Saldo insuficiente no lote!");
+        await db.collection('lotes').doc(lId).update({ quantidade: l.quantidade - qtd });
+        await registrarLog("SAÍDA SCANNER", p.nome, qtd, `Lote: ${l.lote}`);
+      }
+      
+      alert("Baixa concluída!");
+      document.getElementById('baixaQtdScanner').value = '';
+      fecharModalBaixa();
+    }
 
     function gerarQR(id, nome) {
       document.getElementById('qrModal').classList.remove('hidden');
