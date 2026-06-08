@@ -42,6 +42,13 @@
     .header-almoco { background: #dcfce7; color: #166534; }
     .header-janta { background: #e0e7ff; color: #3730a3; }
 
+    .req-item { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+    .req-item.completo { background: #f0fdf4; }
+    .req-item.pendente { background: #fffbeb; }
+
+    .checkbox-item { width: 20px; height: 20px; cursor: pointer; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+    .checkbox-item.checked { background: var(--success); border-color: var(--success); color: white; }
+
     .btn { cursor: pointer; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-size: 0.7rem; text-transform: uppercase; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
@@ -87,6 +94,7 @@
   <div class="container">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Cargas & Saídas</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-requisicoes')"><i class="fas fa-check-square"></i> Requisições (Novo!)</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão de Produtos</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-loading"></i> Entradas</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
@@ -94,6 +102,7 @@
       <button class="tab-btn" onclick="switchTab(event, 'tab-planejamento')"><i class="fas fa-chart-line"></i> Consumo/Compras</button>
     </div>
 
+    <!-- TAB 1: SAÍDAS (ORIGINAL) -->
     <div id="tab-saidas" class="tab-content">
       <div class="grid-layout">
         <aside>
@@ -112,13 +121,8 @@
               <button type="submit" class="btn btn-warning" style="width:100%">Confirmar Baixa</button>
             </form>
           </div>
-          <div class="card">
-            <h3><i class="fas fa-bell"></i> Requisições do Dia</h3>
-            <div id="listaRequisicoes"></div>
-          </div>
         </aside>
         <section>
-          <div id="alertaRequisicoes" style="display:none;"></div>
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
               <h3><i class="fas fa-warehouse"></i> Saldo Atual</h3>
@@ -133,6 +137,15 @@
       </div>
     </div>
 
+    <!-- TAB 2: REQUISIÇÕES (NOVO) -->
+    <div id="tab-requisicoes" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-check-square"></i> Requisições do Dia - Marque os Itens Separados</h3>
+        <div id="listaRequisicoesDia"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: CADASTRO (ORIGINAL) -->
     <div id="tab-cadastro" class="tab-content hidden">
       <div class="card" style="max-width: 650px; margin: auto;">
         <h3 id="tituloCadastro"><i class="fas fa-edit"></i> Novo Produto</h3>
@@ -170,36 +183,7 @@
       </div>
     </div>
 
-    <div id="tab-historico" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-history"></i> Movimentações Recentes</h3>
-        <table id="tabelaHist">
-          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
-          <tbody id="corpoHist"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tab-planejamento" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-chart-bar"></i> Previsão de Compra (30d)</h3>
-        <table id="tabelaConsumo">
-          <thead><tr><th>Produto</th><th>Total Saídas</th><th>Média Diária</th><th>Sugestão Compra</th></tr></thead>
-          <tbody id="corpoConsumo"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tab-inventario" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-check-double"></i> Ajuste de Balanço</h3>
-        <table id="tabelaInv">
-          <thead><tr><th>Produto</th><th>Sistema</th><th>Real</th><th>Ação</th></tr></thead>
-          <tbody id="corpoInv"></tbody>
-        </table>
-      </div>
-    </div>
-
+    <!-- TAB 4: ENTRADA (ORIGINAL) -->
     <div id="tab-entrada" class="tab-content hidden">
       <div class="card" style="max-width: 500px; margin: auto;">
         <h3><i class="fas fa-truck-loading"></i> Entrada de Material</h3>
@@ -210,6 +194,39 @@
           <input type="date" id="entVal" required>
           <button type="submit" class="btn btn-success" style="width:100%">Confirmar Entrada</button>
         </form>
+      </div>
+    </div>
+
+    <!-- TAB 5: INVENTÁRIO (ORIGINAL) -->
+    <div id="tab-inventario" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-check-double"></i> Ajuste de Balanço</h3>
+        <table id="tabelaInv">
+          <thead><tr><th>Produto</th><th>Sistema</th><th>Real</th><th>Ação</th></tr></thead>
+          <tbody id="corpoInv"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 6: HISTÓRICO (ORIGINAL) -->
+    <div id="tab-historico" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-history"></i> Movimentações Recentes</h3>
+        <table id="tabelaHist">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Usuário</th></tr></thead>
+          <tbody id="corpoHist"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 7: PLANEJAMENTO (ORIGINAL) -->
+    <div id="tab-planejamento" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-chart-bar"></i> Previsão de Compra (30d)</h3>
+        <table id="tabelaConsumo">
+          <thead><tr><th>Produto</th><th>Total Saídas</th><th>Média Diária</th><th>Sugestão Compra</th></tr></thead>
+          <tbody id="corpoConsumo"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -264,11 +281,12 @@
 
     function initApp() {
       renderEstoque();
-      monitorarCargas();
+      monitorarRequisicoes();
       carregarHistorico();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
+    // ===== FUNÇÕES ORIGINAIS (MANTIDAS) =====
     async function toggleScannerGlobal() {
       const readerDiv = document.getElementById('reader');
       const btn = document.getElementById('btnToggleScanner');
@@ -375,52 +393,6 @@
         const nome = row.cells[0].textContent.toLowerCase();
         row.style.display = nome.includes(filtro) ? '' : 'none';
       });
-    }
-
-    function monitorarCargas() {
-      const hojeIso = new Date().toISOString().split('T')[0];
-      
-      db.collection('requisicoes')
-        .where('dataUso', '==', hojeIso)
-        .onSnapshot(snap => {
-          const div = document.getElementById('listaRequisicoes');
-          div.innerHTML = '';
-
-          if(snap.empty) {
-            div.innerHTML = '<p style="font-size: 0.8rem; color: #94a3b8;">Nenhuma requisição para hoje.</p>';
-            return;
-          }
-
-          const porTurno = {};
-          snap.forEach(doc => {
-            const r = doc.data();
-            if(!porTurno[r.turno]) porTurno[r.turno] = [];
-            porTurno[r.turno].push(r);
-          });
-
-          const turnoOrder = ['CAFE', 'ALMOCO', 'JANTA'];
-          const turnoLabels = { CAFE: 'Café da Manhã', ALMOCO: 'Almoço', JANTA: 'Jantar' };
-          const turnoColors = { CAFE: 'header-cafe', ALMOCO: 'header-almoco', JANTA: 'header-janta' };
-
-          turnoOrder.forEach(turno => {
-            if(porTurno[turno]) {
-              div.innerHTML += `<div class="req-group">
-                <div class="req-header ${turnoColors[turno]}">${turnoLabels[turno]}</div>`;
-              
-              porTurno[turno].forEach(r => {
-                div.innerHTML += `<div style="padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 0.75rem;">
-                  <strong>${r.item}</strong> - ${r.quantidade} ${r.status === 'pendente' ? '⏳' : '✓'}
-                </div>`;
-              });
-
-              div.innerHTML += `</div>`;
-            }
-          });
-
-          const alerta = document.getElementById('alertaRequisicoes');
-          alerta.innerHTML = `<div class="alert alert-info"><i class="fas fa-info-circle"></i> ${snap.size} requisição(ões) automática(s) gerada(s) pela nutricionista.</div>`;
-          alerta.style.display = 'block';
-        });
     }
 
     function carregarHistorico() {
@@ -563,6 +535,62 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.remove('hidden');
       event.currentTarget.classList.add('active');
+    }
+
+    // ===== NOVA FUNÇÃO: MONITORAR REQUISIÇÕES COM CHECKBOXES =====
+    function monitorarRequisicoes() {
+      const hojeIso = new Date().toISOString().split('T')[0];
+      
+      db.collection('requisicoes')
+        .where('dataUso', '==', hojeIso)
+        .onSnapshot(snap => {
+          const div = document.getElementById('listaRequisicoesDia');
+          div.innerHTML = '';
+
+          if(snap.empty) {
+            div.innerHTML = '<p style="font-size: 0.8rem; color: #94a3b8;">Nenhuma requisição para hoje.</p>';
+            return;
+          }
+
+          const porTurno = {};
+          snap.forEach(doc => {
+            const r = doc.data();
+            if(!porTurno[r.turno]) porTurno[r.turno] = [];
+            porTurno[r.turno].push({ id: doc.id, ...r });
+          });
+
+          const turnoOrder = ['CAFE', 'ALMOCO', 'JANTA'];
+          const turnoLabels = { CAFE: 'Café da Manhã', ALMOCO: 'Almoço', JANTA: 'Jantar' };
+          const turnoColors = { CAFE: 'header-cafe', ALMOCO: 'header-almoco', JANTA: 'header-janta' };
+
+          turnoOrder.forEach(turno => {
+            if(porTurno[turno]) {
+              div.innerHTML += `<div class="req-group">
+                <div class="req-header ${turnoColors[turno]}">${turnoLabels[turno]}</div>`;
+              
+              porTurno[turno].forEach(r => {
+                const isCompleto = r.itemStatus === 'completo';
+                div.innerHTML += `<div class="req-item ${isCompleto ? 'completo' : 'pendente'}">
+                  <div class="checkbox-item ${isCompleto ? 'checked' : ''}" onclick="marcarRequisicao('${r.id}', ${!isCompleto})">
+                    ${isCompleto ? '<i class="fas fa-check"></i>' : ''}
+                  </div>
+                  <div style="flex:1;">
+                    <strong>${r.item}</strong> - ${r.quantidade}
+                  </div>
+                  <span style="font-size:0.7rem; color:#64748b;">${isCompleto ? '✓ OK' : '⏳ Pendente'}</span>
+                </div>`;
+              });
+
+              div.innerHTML += `</div>`;
+            }
+          });
+        });
+    }
+
+    async function marcarRequisicao(id, completo) {
+      await db.collection('requisicoes').doc(id).update({
+        itemStatus: completo ? 'completo' : 'pendente'
+      });
     }
 
     renderCatalogo();
