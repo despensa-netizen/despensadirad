@@ -29,7 +29,6 @@
     .tab-btn { padding: 12px 20px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; font-size: 0.85rem; text-transform: uppercase; }
     .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-    /* Grid de Refeições do Dia */
     .grid-refeicoes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
     @media (max-width: 900px) { .grid-refeicoes { grid-template-columns: 1fr; } }
 
@@ -54,8 +53,12 @@
 
     .hidden { display: none !important; }
 
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: white; padding: 25px; border-radius: 15px; max-width: 550px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+    .alert { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; }
+    .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--accent); }
+
+    .btn { cursor: pointer; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-size: 0.7rem; text-transform: uppercase; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-success { background: var(--success); color: white; }
   </style>
 </head>
 <body>
@@ -79,6 +82,8 @@
     </div>
 
     <div id="tab-producao" class="tab-content">
+      <div id="alertaRequisicoes" style="display:none;"></div>
+      
       <div class="grid-refeicoes" id="containerRefeicoes">
         <div class="card-refeicao cafe">
           <span class="tipo-label" style="color:var(--cafe)">Café da Manhã</span>
@@ -118,7 +123,7 @@
        <div class="card">
           <h3><i class="fas fa-history"></i> Log de Pedidos Recentes</h3>
           <table id="tabelaHistoricoCozinha">
-            <thead><tr><th>Data</th><th>Item</th><th>Qtd</th><th>Status</th></tr></thead>
+            <thead><tr><th>Data</th><th>Item</th><th>Qtd</th><th>Tipo</th><th>Status</th></tr></thead>
             <tbody></tbody>
           </table>
        </div>
@@ -161,27 +166,24 @@
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
-    // NOVA FUNÇÃO: Busca o que foi programado pelo Nutricionista para hoje
     function monitorarProgramacaoRancho() {
-      // Busca requisições que tenham o detalhe do dia/turno
       db.collection('requisicoes')
         .where('dataUso', '==', hojeIso)
         .onSnapshot(snap => {
           const tb = document.querySelector('#tabelaMateriaisHoje tbody');
           tb.innerHTML = '';
           
-          // Auxiliares para nomes dos pratos
           let nomesRefeicoes = { Cafe: 'Não informado', Almoco: 'Não informado', Janta: 'Não informado' };
+          let contadorRequisicoes = 0;
 
           snap.forEach(doc => {
             const r = doc.data();
             const statusCls = r.status === 'pendente' ? 'status-pendente' : 'status-liberado';
             
-            // Extrai o nome do prato se estiver no campo 'detalhe'
             if(r.detalhe) {
-                if(r.detalhe.includes('Cafe')) nomesRefeicoes.Cafe = r.detalhe.split('(')[1]?.replace(')','') || 'Carga Café';
-                if(r.detalhe.includes('Almoco')) nomesRefeicoes.Almoco = r.detalhe.split('(')[1]?.replace(')','') || 'Carga Almoço';
-                if(r.detalhe.includes('Janta')) nomesRefeicoes.Janta = r.detalhe.split('(')[1]?.replace(')','') || 'Carga Janta';
+                if(r.detalhe.includes('Café')) nomesRefeicoes.Cafe = r.detalhe.split('(')[1]?.replace(')','') || 'Carga Café';
+                if(r.detalhe.includes('Almoço')) nomesRefeicoes.Almoco = r.detalhe.split('(')[1]?.replace(')','') || 'Carga Almoço';
+                if(r.detalhe.includes('Jantar')) nomesRefeicoes.Janta = r.detalhe.split('(')[1]?.replace(')','') || 'Carga Jantar';
             }
 
             tb.innerHTML += `<tr>
@@ -190,12 +192,19 @@
               <td>${r.detalhe || 'Geral'}</td>
               <td><span class="status ${statusCls}">${r.status.toUpperCase()}</span></td>
             </tr>`;
+            
+            contadorRequisicoes++;
           });
 
-          // Atualiza os cards grandes do topo
           document.getElementById('p-cafe').innerText = nomesRefeicoes.Cafe;
           document.getElementById('p-almoco').innerText = nomesRefeicoes.Almoco;
           document.getElementById('p-janta').innerText = nomesRefeicoes.Janta;
+
+          if(contadorRequisicoes > 0) {
+            const alerta = document.getElementById('alertaRequisicoes');
+            alerta.innerHTML = `<div class="alert alert-info"><i class="fas fa-check-circle"></i> ${contadorRequisicoes} item(ns) requisitado(s) automaticamente pela nutricionista para hoje.</div>`;
+            alerta.style.display = 'block';
+          }
         });
     }
 
@@ -219,7 +228,9 @@
         tb.innerHTML = '';
         snap.forEach(doc => {
           const r = doc.data();
-          tb.innerHTML += `<tr><td>${r.dataUso}</td><td>${r.item}</td><td>${r.quantidade}</td><td>${r.status}</td></tr>`;
+          const dataFormatada = new Date(r.dataUso).toLocaleDateString('pt-BR');
+          const tipo = r.tipo === 'AVULSA/URGENTE' ? '🚨 URGENTE' : '📋 Programada';
+          tb.innerHTML += `<tr><td>${dataFormatada}</td><td>${r.item}</td><td>${r.quantidade}</td><td>${tipo}</td><td><span class="status ${r.status === 'pendente' ? 'status-pendente' : 'status-liberado'}">${r.status.toUpperCase()}</span></td></tr>`;
         });
       });
     }
@@ -242,7 +253,8 @@
         solicitante: auth.currentUser.email,
         dataSolicitacao: new Date()
       });
-      alert("Pedido enviado!"); e.target.reset();
+      alert("Pedido enviado!"); 
+      e.target.reset();
     };
   </script>
 </body>
