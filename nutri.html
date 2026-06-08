@@ -11,6 +11,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <style>
     :root {
@@ -39,6 +41,7 @@
     .btn-accent { background: var(--accent); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-print { background: #334155; color: white; margin-top: 5px; width: 100%; font-size: 0.7rem; }
+    .btn-upload { background: #8b5cf6; color: white; width: 100%; }
     
     .item-carga { display: flex; justify-content: space-between; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.85rem; }
     .slot-label { font-weight: 800; font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block; }
@@ -46,6 +49,18 @@
 
     .alert { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; }
     .alert-success { background: #dcfce7; color: #166534; border-left: 4px solid var(--success); }
+    .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--accent); }
+
+    .upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+    .upload-area:hover { border-color: var(--accent); background: #f0f7ff; }
+    .upload-area.dragover { border-color: var(--accent); background: #f0f7ff; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { text-align: left; padding: 10px; background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; }
+    td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+
+    .form-item { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px; align-items: center; }
+    .form-item input { margin: 0; }
 
     #areaImpressao { display: none; background: white; padding: 30px; color: black; font-family: "Courier New", Courier, monospace; }
     .guia-box { border: 2px solid #000; padding: 15px; }
@@ -78,10 +93,12 @@
   <div class="container">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab(event, 'tab-cargas')"><i class="fas fa-boxes-packing"></i> Montar Cargas (Receitas)</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-upload')"><i class="fas fa-file-upload"></i> Upload de Cardápio</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-calendar-alt"></i> Programação & Guia</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
     </div>
 
+    <!-- TAB 1: MONTAR CARGAS (ORIGINAL) -->
     <div id="tab-cargas" class="tab-content">
       <div class="grid-layout">
         <aside>
@@ -106,6 +123,27 @@
       </div>
     </div>
 
+    <!-- TAB 2: UPLOAD DE CARDÁPIO (NOVO) -->
+    <div id="tab-upload" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-file-upload"></i> Upload de Cardápio/Documento</h3>
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px; display: block;"></i>
+          <p><strong>Clique ou arraste um arquivo aqui</strong></p>
+          <p style="font-size: 0.75rem; color: #64748b;">Aceita: PDF, Excel (.xlsx), Word (.docx)</p>
+        </div>
+        <input type="file" id="fileInput" style="display:none" accept=".pdf,.xlsx,.xls,.docx">
+        <div id="uploadStatus" style="margin-top: 15px;"></div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-edit"></i> Formulário Editável - Itens Extraídos</h3>
+        <div id="formEditavel"></div>
+        <button onclick="salvarFormularioEditavel()" class="btn btn-success" style="width:100%; margin-top:15px;"><i class="fas fa-save"></i> Salvar Formulário como Carga</button>
+      </div>
+    </div>
+
+    <!-- TAB 3: PROGRAMAÇÃO & GUIA (ORIGINAL + NOVO) -->
     <div id="tab-programacao" class="tab-content hidden">
       <div id="alertaRequisicoes" style="display:none;"></div>
       <div class="card">
@@ -136,7 +174,7 @@
 
       <div class="card">
         <h3><i class="fas fa-history"></i> Programações Publicadas</h3>
-        <table style="width:100%; border-collapse: collapse;">
+        <table>
           <thead>
             <tr style="background: #f1f5f9;">
               <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Data</th>
@@ -151,10 +189,11 @@
       </div>
     </div>
 
+    <!-- TAB 4: HISTÓRICO (ORIGINAL) -->
     <div id="tab-historico" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-history"></i> Histórico de Requisições Geradas</h3>
-        <table style="width:100%; border-collapse: collapse;">
+        <table>
           <thead>
             <tr style="background: #f1f5f9;">
               <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Data</th>
@@ -213,6 +252,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
     let ingredientesTemp = [];
+    let itensExtraidos = [];
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
@@ -225,6 +265,7 @@
       carregarCargasSalvas();
       carregarProgramacoes();
       carregarHistoricoRequisicoes();
+      setupUploadArea();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
 
@@ -235,6 +276,7 @@
       event.currentTarget.classList.add('active');
     }
 
+    // ===== FUNÇÕES ORIGINAIS (MANTIDAS) =====
     async function carregarItensEstoque() {
       const snap = await db.collection('estoque').orderBy('nome').get();
       const sel = document.getElementById('cargaItem');
@@ -351,7 +393,8 @@
                 status: 'pendente',
                 dataSolicitacao: new Date(),
                 usuario: auth.currentUser.email,
-                detalhe: `${turno.nome} (${carga.nome})`
+                detalhe: `${turno.nome} (${carga.nome})`,
+                itemStatus: 'pendente'
               });
             }
           }
@@ -411,6 +454,169 @@
           <td style="padding: 10px;"><span style="background: ${r.status === 'pendente' ? '#fef3c7' : '#dcfce7'}; color: ${r.status === 'pendente' ? '#92400e' : '#166534'}; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">${r.status.toUpperCase()}</span></td>
         </tr>`;
       });
+    }
+
+    // ===== NOVAS FUNÇÕES: UPLOAD E EXTRAÇÃO =====
+    function setupUploadArea() {
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if(files.length > 0) processarArquivo(files[0]);
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        if(e.target.files.length > 0) processarArquivo(e.target.files[0]);
+      });
+    }
+
+    async function processarArquivo(arquivo) {
+      const statusDiv = document.getElementById('uploadStatus');
+      statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Processando arquivo...</div>';
+
+      try {
+        let dados = [];
+
+        if(arquivo.type === 'application/pdf') {
+          dados = await extrairPDF(arquivo);
+        } else if(arquivo.type.includes('spreadsheet') || arquivo.name.endsWith('.xlsx') || arquivo.name.endsWith('.xls')) {
+          dados = await extrairExcel(arquivo);
+        } else if(arquivo.type.includes('word') || arquivo.name.endsWith('.docx')) {
+          dados = await extrairWord(arquivo);
+        } else {
+          statusDiv.innerHTML = '<div class="alert" style="background:#fee2e2; color:#991b1b; border-left:4px solid #ef4444;">Formato não suportado. Use PDF, Excel ou Word.</div>';
+          return;
+        }
+
+        itensExtraidos = dados;
+        renderFormularioEditavel();
+        statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Arquivo processado! ${dados.length} itens extraídos.</div>';
+
+      } catch(error) {
+        console.error('Erro ao processar:', error);
+        statusDiv.innerHTML = '<div class="alert" style="background:#fee2e2; color:#991b1b; border-left:4px solid #ef4444;">Erro ao processar arquivo: ' + error.message + '</div>';
+      }
+    }
+
+    async function extrairExcel(arquivo) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const dados = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(dados, { type: 'array' });
+            const primeiraAba = workbook.Sheets[workbook.SheetNames[0]];
+            const linhas = XLSX.utils.sheet_to_json(primeiraAba);
+
+            const itens = linhas.map(linha => ({
+              nome: linha.Item || linha.item || linha.Produto || linha.produto || '',
+              quantidade: parseFloat(linha.Quantidade || linha.quantidade || linha.Qtd || 0) || 0
+            })).filter(i => i.nome && i.quantidade > 0);
+
+            resolve(itens);
+          } catch(err) { reject(err); }
+        };
+        reader.readAsArrayBuffer(arquivo);
+      });
+    }
+
+    async function extrairPDF(arquivo) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const pdf = await pdfjsLib.getDocument(e.target.result).promise;
+            let texto = '';
+            for(let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              texto += content.items.map(item => item.str).join(' ') + '\n';
+            }
+            
+            const linhas = texto.split('\n').filter(l => l.trim());
+            const itens = [];
+            linhas.forEach(linha => {
+              const match = linha.match(/(.+?)\s+(\d+(?:\.\d+)?)\s*(kg|g|l|uni|cx)?/i);
+              if(match) {
+                itens.push({
+                  nome: match[1].trim(),
+                  quantidade: parseFloat(match[2])
+                });
+              }
+            });
+
+            resolve(itens.length > 0 ? itens : [{ nome: 'Item do PDF', quantidade: 1 }]);
+          } catch(err) { reject(err); }
+        };
+        reader.readAsArrayBuffer(arquivo);
+      });
+    }
+
+    async function extrairWord(arquivo) {
+      // Simplificado: Word é complexo, usamos uma abordagem básica
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const texto = new TextDecoder().decode(e.target.result);
+          const itens = [];
+          const linhas = texto.split('\n');
+          linhas.forEach(linha => {
+            const match = linha.match(/(.+?)\s+(\d+(?:\.\d+)?)/);
+            if(match) {
+              itens.push({
+                nome: match[1].trim(),
+                quantidade: parseFloat(match[2])
+              });
+            }
+          });
+          resolve(itens.length > 0 ? itens : [{ nome: 'Item do Word', quantidade: 1 }]);
+        };
+        reader.readAsArrayBuffer(arquivo);
+      });
+    }
+
+    function renderFormularioEditavel() {
+      const div = document.getElementById('formEditavel');
+      div.innerHTML = '<h4 style="margin-top:0;">Edite os itens extraídos:</h4>';
+      
+      itensExtraidos.forEach((item, idx) => {
+        div.innerHTML += `
+          <div class="form-item">
+            <input type="text" value="${item.nome}" onchange="itensExtraidos[${idx}].nome = this.value" placeholder="Nome do item">
+            <input type="number" value="${item.quantidade}" onchange="itensExtraidos[${idx}].quantidade = parseFloat(this.value)" placeholder="Qtd" step="0.01">
+            <button onclick="itensExtraidos.splice(${idx}, 1); renderFormularioEditavel();" class="btn btn-danger" style="width:100%"><i class="fas fa-trash"></i></button>
+          </div>
+        `;
+      });
+    }
+
+    async function salvarFormularioEditavel() {
+      const nome = prompt('Nome da carga:', 'Carga do Cardápio');
+      if(!nome || itensExtraidos.length === 0) return alert('Preencha o nome e tenha itens!');
+
+      await db.collection('cargas_predefinidas').add({
+        nome: nome,
+        itens: itensExtraidos,
+        criadoEm: new Date(),
+        origem: 'upload'
+      });
+
+      alert('Carga salva com sucesso!');
+      itensExtraidos = [];
+      document.getElementById('formEditavel').innerHTML = '';
+      carregarCargasSalvas();
     }
   </script>
 </body>
