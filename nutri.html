@@ -299,20 +299,55 @@
       const linhas = texto.split('\n');
 
       linhas.forEach(linha => {
-        const partes = linha.split('\t').map(p => p.trim()).filter(p => p);
-        if (partes.length >= 2) {
-          const item = partes[0];
-          const unidade = partes[1];
-          const quantidade = parseFloat(partes[2]) || 1;
+        // Remover linhas vazias e linhas que são apenas cabeçalhos
+        if (!linha.trim()) return;
+        
+        // Tentar separar por tabulação primeiro
+        let partes = linha.split('\t').map(p => p.trim()).filter(p => p);
+        
+        // Se não tiver tabulação, tentar por espaços múltiplos
+        if (partes.length < 2) {
+          partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(p => p);
+        }
+        
+        // Se ainda não tiver pelo menos 2 partes, pular
+        if (partes.length < 2) return;
 
-          if (!isNaN(quantidade)) {
-            itensProcessados.push({ item, unidade, quantidade });
+        // Procurar por um número na linha
+        let quantidade = null;
+        let quantidadeIdx = -1;
+        
+        for (let i = 0; i < partes.length; i++) {
+          const num = parseFloat(partes[i]);
+          if (!isNaN(num) && num > 0) {
+            quantidade = num;
+            quantidadeIdx = i;
+            break;
           }
         }
+
+        // Se não encontrou quantidade, pular
+        if (quantidade === null) return;
+
+        // Primeira parte é o item
+        const item = partes[0];
+        
+        // Unidade é a segunda parte (se não for um número)
+        let unidade = 'uni';
+        if (partes.length > 1 && isNaN(parseFloat(partes[1]))) {
+          unidade = partes[1];
+        }
+
+        // Validar que o item não é um cabeçalho ou data
+        if (item.toUpperCase() === 'MATERIAL' || item.toUpperCase() === 'SÁBADO' || item.toUpperCase() === 'DOMINGO' || item.match(/^\d{1,2}\/\d{1,2}/)) {
+          return;
+        }
+
+        itensProcessados.push({ item, unidade, quantidade });
       });
 
       if (itensProcessados.length === 0) {
-        mostrarAlerta('alertaImport', 'Nenhum item foi extraído. Verifique o formato!', 'danger');
+        mostrarAlerta('alertaImport', 'Nenhum item foi extraído. Verifique o formato! Certifique-se de que há quantidades numéricas.', 'danger');
         return;
       }
 
