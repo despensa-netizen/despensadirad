@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync Nutrição — Gestão de Rancho & Guia de Remessa</title>
+  <title>EstoqueSync Nutrição — Cardápio & Cargas</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,69 +11,64 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <style>
     :root {
-      --primary: #1e293b; --accent: #2563eb; --bg: #f8fafc; --card: #ffffff;
+      --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; --card: #ffffff;
       --text: #1e293b; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-      --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+      --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --military: #334155;
     }
 
     body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-    nav { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+    nav { background: var(--military); color: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
     
-    .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; }
-    .tab-btn { padding: 12px 20px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; white-space: nowrap; }
+    .container { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
+    
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); }
+    .tab-btn { padding: 12px 20px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; font-size: 0.85rem; text-transform: uppercase; }
     .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-    .grid-layout { display: grid; grid-template-columns: 400px 1fr; gap: 1.5rem; }
-    @media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
-
     .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
-    .card h3 { margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; color: var(--primary); font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--bg); padding-bottom: 10px; }
+    .card h3 { margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; color: var(--military); font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--bg); padding-bottom: 10px; }
 
-    input, select, textarea { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; }
-    
-    .btn { padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
-    .btn-accent { background: var(--accent); color: white; }
+    .btn { cursor: pointer; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-size: 0.75rem; text-transform: uppercase; }
+    .btn-primary { background: var(--accent); color: white; }
     .btn-success { background: var(--success); color: white; }
-    .btn-print { background: #334155; color: white; margin-top: 5px; width: 100%; font-size: 0.7rem; }
-    .btn-upload { background: #8b5cf6; color: white; width: 100%; }
-    
-    .item-carga { display: flex; justify-content: space-between; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; font-size: 0.85rem; }
-    .slot-label { font-weight: 800; font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block; }
-    .hidden { display: none !important; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: #92400e; }
+    .btn:hover { opacity: 0.9; }
 
-    .alert { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; }
-    .alert-success { background: #dcfce7; color: #166534; border-left: 4px solid var(--success); }
-    .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--accent); }
-
-    .upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
-    .upload-area:hover { border-color: var(--accent); background: #f0f7ff; }
-    .upload-area.dragover { border-color: var(--accent); background: #f0f7ff; }
+    textarea { width: 100%; min-height: 150px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-family: monospace; font-size: 0.85rem; box-sizing: border-box; }
+    input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; padding: 10px; background: #f1f5f9; font-size: 0.75rem; text-transform: uppercase; }
-    td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+    th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.7rem; color: #64748b; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
-    .form-item { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px; align-items: center; }
-    .form-item input { margin: 0; }
+    .grid-cargas { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .card-carga { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border-left: 4px solid var(--accent); }
+    .card-carga h4 { margin: 0 0 10px 0; color: var(--primary); }
+    .card-carga-itens { font-size: 0.8rem; color: #64748b; line-height: 1.6; }
+    .card-carga-btn { display: flex; gap: 8px; margin-top: 12px; }
+    .card-carga-btn button { flex: 1; padding: 8px; font-size: 0.7rem; }
 
-    #areaImpressao { display: none; background: white; padding: 30px; color: black; font-family: "Courier New", Courier, monospace; }
-    .guia-box { border: 2px solid #000; padding: 15px; }
-    .guia-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px; padding-bottom: 10px; }
-    .guia-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .guia-table th, .guia-table td { border: 1px solid #000; padding: 5px; font-size: 11px; text-align: left; }
-    .guia-footer { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; text-align: center; }
-    .assinatura-linha { border-top: 1px solid #000; margin-top: 35px; font-size: 10px; }
+    .hidden { display: none !important; }
+    .alert { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; }
+    .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--accent); }
+    .alert-success { background: #dcfce7; color: #166534; border-left: 4px solid var(--success); }
+    .alert-danger { background: #fee2e2; color: #991b1b; border-left: 4px solid var(--danger); }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.8rem; color: var(--military); }
+
+    .item-lista { display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 8px; }
+    .item-lista input { margin: 0; flex: 1; }
+    .item-lista button { padding: 6px 10px; font-size: 0.7rem; }
 
     @media print {
       body * { visibility: hidden; }
-      #areaImpressao, #areaImpressao * { visibility: visible; }
-      #areaImpressao { display: block !important; position: absolute; left: 0; top: 0; width: 100%; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea { position: absolute; left: 0; top: 0; width: 100%; }
     }
   </style>
 </head>
@@ -81,160 +76,182 @@
 
   <nav>
     <div style="display:flex; align-items:center; gap:12px;">
-      <i class="fas fa-apple-whole fa-lg"></i>
+      <i class="fas fa-utensils fa-lg"></i>
       <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">NUTRIÇÃO</span></h2>
     </div>
-    <div style="display:flex; align-items:center; gap:20px;">
-      <span id="userMail" style="font-size: 0.75rem; opacity: 0.8;"></span>
-      <button id="logoutBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; padding:5px 15px; border-radius:6px; cursor:pointer;">SAIR</button>
+    <div style="display:flex; align-items:center; gap:15px;">
+      <span id="userDisplay" style="font-size: 0.75rem; font-weight: 600;"></span>
+      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
     </div>
   </nav>
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'tab-cargas')"><i class="fas fa-boxes-packing"></i> Montar Cargas (Receitas)</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-upload')"><i class="fas fa-file-upload"></i> Upload de Cardápio</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-calendar-alt"></i> Programação & Guia</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-import')"><i class="fas fa-paste"></i> Importar Cardápio (NOVO!)</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-cargas')"><i class="fas fa-layer-group"></i> Montar Cargas</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-calendar-check"></i> Programação & Guia</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
     </div>
 
-    <!-- TAB 1: MONTAR CARGAS (ORIGINAL) -->
-    <div id="tab-cargas" class="tab-content">
-      <div class="grid-layout">
-        <aside>
-          <div class="card">
-            <h3><i class="fas fa-plus-circle"></i> Nova Carga/Prato</h3>
-            <input type="text" id="cargaNome" placeholder="Ex: Almoço Padrão">
-            <div style="display:flex; gap:5px;">
-              <select id="cargaItem" style="margin:0"></select>
-              <input type="number" id="cargaQtd" placeholder="Qtd" style="width:80px; margin:0">
-              <button onclick="addIngrediente()" class="btn btn-accent"><i class="fas fa-plus"></i></button>
-            </div>
-            <div id="listaIngredientesTemp" style="margin: 15px 0;"></div>
-            <button onclick="salvarCarga()" class="btn btn-success" style="width:100%"><i class="fas fa-save"></i> Salvar Carga</button>
-          </div>
-        </aside>
-        <section>
-          <div class="card">
-            <h3><i class="fas fa-list"></i> Minhas Cargas Salvas</h3>
-            <div id="gridCargas" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;"></div>
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <!-- TAB 2: UPLOAD DE CARDÁPIO (NOVO) -->
-    <div id="tab-upload" class="tab-content hidden">
+    <!-- TAB 1: IMPORTAR CARDÁPIO (NOVO) -->
+    <div id="tab-import" class="tab-content">
       <div class="card">
-        <h3><i class="fas fa-file-upload"></i> Upload de Cardápio/Documento</h3>
-        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-          <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px; display: block;"></i>
-          <p><strong>Clique ou arraste um arquivo aqui</strong></p>
-          <p style="font-size: 0.75rem; color: #64748b;">Aceita: PDF, Excel (.xlsx), Word (.docx)</p>
+        <h3><i class="fas fa-download"></i> Importar Cardápio do PDF</h3>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
+          <strong>Como usar:</strong> Abra seu PDF de requisição, copie a tabela de itens e cole aqui. O sistema vai processar automaticamente!
+        </p>
+        
+        <div class="form-group">
+          <label>Cole os dados da tabela aqui:</label>
+          <textarea id="textareaImport" placeholder="Cole a tabela do PDF aqui. Exemplo:&#10;Café&#9;kg&#9;1.5&#10;Leite em pó&#9;kg&#9;2&#10;Manteiga&#9;kg&#9;0.5"></textarea>
+          <button onclick="processarTexto()" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+            <i class="fas fa-magic"></i> Processar Dados
+          </button>
         </div>
-        <input type="file" id="fileInput" style="display:none" accept=".pdf,.xlsx,.xls,.docx">
-        <div id="uploadStatus" style="margin-top: 15px;"></div>
-      </div>
 
-      <div class="card">
-        <h3><i class="fas fa-edit"></i> Formulário Editável - Itens Extraídos</h3>
-        <div id="formEditavel"></div>
-        <button onclick="salvarFormularioEditavel()" class="btn btn-success" style="width:100%; margin-top:15px;"><i class="fas fa-save"></i> Salvar Formulário como Carga</button>
+        <div id="alertaImport"></div>
+
+        <div id="formularioProcessado" class="hidden">
+          <h3 style="margin-top: 20px;"><i class="fas fa-check-circle"></i> Itens Extraídos</h3>
+          <div id="listaItensProcessados"></div>
+          
+          <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Nome da Carga:</label>
+            <input type="text" id="nomeCargaImport" placeholder="Ex: Café da Manhã - 10/06/2025" style="margin-bottom: 15px;">
+            
+            <button onclick="salvarCargaImportada()" class="btn btn-success" style="width: 100%;">
+              <i class="fas fa-save"></i> Salvar como Carga
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- TAB 3: PROGRAMAÇÃO & GUIA (ORIGINAL + NOVO) -->
+    <!-- TAB 2: MONTAR CARGAS (ORIGINAL) -->
+    <div id="tab-cargas" class="tab-content hidden">
+      <div class="card">
+        <h3><i class="fas fa-plus-circle"></i> Montar Nova Carga (Receita)</h3>
+        <form id="formCarga">
+          <div class="form-group">
+            <label>Nome da Carga:</label>
+            <input type="text" id="nomeCarga" placeholder="Ex: Café da Manhã - 10/06" required>
+          </div>
+
+          <div class="form-group">
+            <label>Selecione Itens do Estoque:</label>
+            <div id="selectorItens"></div>
+          </div>
+
+          <div id="itensSelecionados"></div>
+
+          <button type="submit" class="btn btn-success" style="width: 100%;">
+            <i class="fas fa-check"></i> Salvar Carga
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-layer-group"></i> Cargas Salvas</h3>
+        <div class="grid-cargas" id="gridCargas"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PROGRAMAÇÃO & GUIA (ORIGINAL) -->
     <div id="tab-programacao" class="tab-content hidden">
-      <div id="alertaRequisicoes" style="display:none;"></div>
       <div class="card">
-        <h3><i class="fas fa-calendar-check"></i> Planejamento & Emissão de Guia</h3>
-        <div style="display: grid; grid-template-columns: 200px 1fr 1fr 1fr; gap: 15px; align-items: start; background: #f1f5f9; padding: 15px; border-radius: 12px;">
-          <div>
-            <label>Data de Uso</label>
-            <input type="date" id="progData" style="margin:0">
+        <h3><i class="fas fa-calendar-check"></i> Programação Diária</h3>
+        <form id="formProgramacao">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label>Data:</label>
+              <input type="date" id="dataProg" required>
+            </div>
+            <div class="form-group">
+              <label>Café da Manhã:</label>
+              <select id="cargaCafe" required></select>
+            </div>
+            <div class="form-group">
+              <label>Almoço:</label>
+              <select id="cargaAlmoco" required></select>
+            </div>
           </div>
-          <div>
-            <span class="slot-label">Café da Manhã</span>
-            <select id="progCafe" class="sel-carga" style="margin:0"></select>
-            <button onclick="imprimirGuiaTurno('progCafe', 'Café')" class="btn btn-print"><i class="fas fa-print"></i> Imprimir Guia</button>
+          <div class="form-group">
+            <label>Jantar:</label>
+            <select id="cargaJanta" required></select>
           </div>
-          <div>
-            <span class="slot-label">Almoço</span>
-            <select id="progAlmoco" class="sel-carga" style="margin:0"></select>
-            <button onclick="imprimirGuiaTurno('progAlmoco', 'Almoço')" class="btn btn-print"><i class="fas fa-print"></i> Imprimir Guia</button>
-          </div>
-          <div>
-            <span class="slot-label">Jantar</span>
-            <select id="progJanta" class="sel-carga" style="margin:0"></select>
-            <button onclick="imprimirGuiaTurno('progJanta', 'Jantar')" class="btn btn-print"><i class="fas fa-print"></i> Imprimir Guia</button>
-          </div>
-        </div>
-        <button onclick="publicarProgramacao()" class="btn btn-accent" style="margin-top: 15px; width: 100%;"><i class="fas fa-paper-plane"></i> Publicar e Enviar para Despensa</button>
+          <button type="submit" class="btn btn-success" style="width: 100%;">
+            <i class="fas fa-send"></i> Publicar e Enviar para Despensa
+          </button>
+        </form>
       </div>
 
       <div class="card">
-        <h3><i class="fas fa-history"></i> Programações Publicadas</h3>
-        <table>
-          <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Data</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Café</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Almoço</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Jantar</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Status</th>
+        <h3><i class="fas fa-file-pdf"></i> Gerar Guia de Remessa</h3>
+        <form id="formGuia">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+              <label>Data:</label>
+              <input type="date" id="dataGuia" required>
+            </div>
+            <div class="form-group">
+              <label>Turno:</label>
+              <select id="turnoGuia" required>
+                <option value="">Selecione...</option>
+                <option value="CAFÉ DA MANHÃ">Café da Manhã</option>
+                <option value="ALMOÇO">Almoço</option>
+                <option value="JANTAR">Jantar</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-warning" style="width: 100%;">
+            <i class="fas fa-print"></i> Gerar e Imprimir
+          </button>
+        </form>
+      </div>
+
+      <div id="printArea" class="hidden">
+        <div style="width: 210mm; height: 297mm; padding: 20mm; font-family: Arial, sans-serif; font-size: 11px; line-height: 1.4;">
+          <div style="text-align: center; margin-bottom: 10px;">
+            <strong>DIRAD SEÇÃO DE SUBSISTÊNCIA</strong>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+            <tr>
+              <td style="border: 1px solid #000; padding: 5px; font-weight: bold;">Data: <span id="printData"></span></td>
+              <td style="border: 1px solid #000; padding: 5px; font-weight: bold;">Turno: <span id="printTurno"></span></td>
             </tr>
-          </thead>
-          <tbody id="tabelaProgramacoes"></tbody>
-        </table>
+          </table>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f0f0f0;">
+                <th style="border: 1px solid #000; padding: 5px; text-align: left;">Material/Gênero</th>
+                <th style="border: 1px solid #000; padding: 5px; width: 60px;">UND</th>
+                <th style="border: 1px solid #000; padding: 5px; width: 80px;">Previsão</th>
+                <th style="border: 1px solid #000; padding: 5px; width: 80px;">Entregue</th>
+              </tr>
+            </thead>
+            <tbody id="printItens"></tbody>
+          </table>
+          <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div style="text-align: center;">
+              <div style="border-top: 1px solid #000; padding-top: 5px; margin-top: 40px;">Responsável pela Entrega</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="border-top: 1px solid #000; padding-top: 5px; margin-top: 40px;">Responsável pelo Recebimento</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- TAB 4: HISTÓRICO (ORIGINAL) -->
     <div id="tab-historico" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-history"></i> Histórico de Requisições Geradas</h3>
-        <table>
-          <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Data</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Item</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Qtd</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Turno</th>
-              <th style="padding: 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase;">Status</th>
-            </tr>
-          </thead>
-          <tbody id="tabelaHistoricoRequisicoes"></tbody>
+        <h3><i class="fas fa-history"></i> Histórico de Programações</h3>
+        <table id="tabelaHistorico">
+          <thead><tr><th>Data</th><th>Café</th><th>Almoço</th><th>Jantar</th><th>Status</th></tr></thead>
+          <tbody></tbody>
         </table>
       </div>
-    </div>
-  </div>
-
-  <div id="areaImpressao">
-    <div class="guia-box">
-        <div class="guia-header">
-            <h4 style="margin:0">MINISTÉRIO DA DEFESA</h4>
-            <h4 style="margin:0">EXÉRCITO BRASILEIRO</h4>
-            <h3 style="margin:10px 0">GUIA DE REMESSA DE GÊNEROS</h3>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;">
-            <span><strong>DATA:</strong> <span id="p_data">__/__/____</span></span>
-            <span><strong>TURNO:</strong> <span id="p_turno">__________</span></span>
-        </div>
-        <table class="guia-table">
-            <thead>
-                <tr>
-                    <th>DESCRIÇÃO DO MATERIAL / GÊNERO</th>
-                    <th style="width:60px">UNID</th>
-                    <th style="width:80px">QTD SOLIC.</th>
-                    <th style="width:80px">QTD ENTREG.</th>
-                </tr>
-            </thead>
-            <tbody id="p_itens"></tbody>
-        </table>
-        <div class="guia-footer">
-            <div><div class="assinatura-linha">FISCAL DE DIA / RESPONSÁVEL</div></div>
-            <div><div class="assinatura-linha">FIEL DE RANCHO / ESTOQUISTA</div></div>
-        </div>
     </div>
   </div>
 
@@ -251,22 +268,280 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-    let ingredientesTemp = [];
-    let itensExtraidos = [];
+
+    let itensProcessados = [];
+    let carregaSelecionada = null;
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
-      document.getElementById('userMail').innerText = user.email;
-      initNutricao();
+      document.getElementById('userDisplay').innerText = user.email.toUpperCase();
+      initNutricionista();
     });
 
-    function initNutricao() {
-      carregarItensEstoque();
-      carregarCargasSalvas();
-      carregarProgramacoes();
-      carregarHistoricoRequisicoes();
-      setupUploadArea();
+    function initNutricionista() {
+      carregarEstoque();
+      carregarCargas();
+      carregarHistorico();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
+      document.getElementById('dataProg').valueAsDate = new Date();
+      document.getElementById('dataGuia').valueAsDate = new Date();
+    }
+
+    // ===== NOVA FUNÇÃO: PROCESSAR TEXTO COLADO =====
+    function processarTexto() {
+      const texto = document.getElementById('textareaImport').value.trim();
+      if (!texto) {
+        mostrarAlerta('alertaImport', 'Cole o texto da tabela primeiro!', 'danger');
+        return;
+      }
+
+      itensProcessados = [];
+      const linhas = texto.split('\n');
+
+      linhas.forEach(linha => {
+        const partes = linha.split('\t').map(p => p.trim()).filter(p => p);
+        if (partes.length >= 2) {
+          const item = partes[0];
+          const unidade = partes[1];
+          const quantidade = parseFloat(partes[2]) || 1;
+
+          if (!isNaN(quantidade)) {
+            itensProcessados.push({ item, unidade, quantidade });
+          }
+        }
+      });
+
+      if (itensProcessados.length === 0) {
+        mostrarAlerta('alertaImport', 'Nenhum item foi extraído. Verifique o formato!', 'danger');
+        return;
+      }
+
+      mostrarAlerta('alertaImport', `✓ ${itensProcessados.length} item(ns) extraído(s) com sucesso!`, 'success');
+      renderizarItensProcessados();
+      document.getElementById('formularioProcessado').classList.remove('hidden');
+    }
+
+    function renderizarItensProcessados() {
+      const div = document.getElementById('listaItensProcessados');
+      div.innerHTML = '';
+
+      itensProcessados.forEach((item, idx) => {
+        div.innerHTML += `
+          <div class="item-lista">
+            <input type="text" value="${item.item}" onchange="itensProcessados[${idx}].item = this.value">
+            <input type="text" value="${item.unidade}" style="width: 80px;" onchange="itensProcessados[${idx}].unidade = this.value">
+            <input type="number" value="${item.quantidade}" step="0.01" style="width: 100px;" onchange="itensProcessados[${idx}].quantidade = parseFloat(this.value)">
+            <button type="button" onclick="itensProcessados.splice(${idx}, 1); renderizarItensProcessados();" class="btn btn-danger">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    async function salvarCargaImportada() {
+      const nome = document.getElementById('nomeCargaImport').value.trim();
+      if (!nome) {
+        alert('Digite um nome para a carga!');
+        return;
+      }
+
+      if (itensProcessados.length === 0) {
+        alert('Nenhum item para salvar!');
+        return;
+      }
+
+      try {
+        await db.collection('cargas').add({
+          nome: nome,
+          itens: itensProcessados,
+          dataCriacao: new Date(),
+          usuario: auth.currentUser.email
+        });
+
+        mostrarAlerta('alertaImport', `✓ Carga "${nome}" salva com sucesso!`, 'success');
+        document.getElementById('textareaImport').value = '';
+        document.getElementById('nomeCargaImport').value = '';
+        document.getElementById('formularioProcessado').classList.add('hidden');
+        itensProcessados = [];
+        carregarCargas();
+      } catch (erro) {
+        mostrarAlerta('alertaImport', 'Erro ao salvar: ' + erro.message, 'danger');
+      }
+    }
+
+    function mostrarAlerta(elementId, mensagem, tipo) {
+      const div = document.getElementById(elementId);
+      div.innerHTML = `<div class="alert alert-${tipo}"><i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i> ${mensagem}</div>`;
+    }
+
+    // ===== FUNÇÕES ORIGINAIS (MANTIDAS) =====
+    async function carregarEstoque() {
+      const snap = await db.collection('estoque').orderBy('nome').get();
+      const selector = document.getElementById('selectorItens');
+      selector.innerHTML = '';
+
+      snap.forEach(doc => {
+        const item = doc.data();
+        selector.innerHTML += `
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" id="item-${doc.id}" value="${doc.id}" onchange="atualizarSelecionados()">
+            <label for="item-${doc.id}" style="margin: 0; cursor: pointer; flex: 1;">${item.nome} (${item.unidade})</label>
+            <input type="number" id="qtd-${doc.id}" step="0.01" placeholder="Qtd" style="width: 80px; margin: 0;" min="0">
+          </div>
+        `;
+      });
+    }
+
+    function atualizarSelecionados() {
+      const div = document.getElementById('itensSelecionados');
+      div.innerHTML = '';
+      const checkboxes = document.querySelectorAll('#selectorItens input[type="checkbox"]:checked');
+      
+      if (checkboxes.length === 0) return;
+
+      checkboxes.forEach(cb => {
+        const qtd = document.getElementById('qtd-' + cb.value).value;
+        if (qtd) {
+          const label = document.querySelector(`label[for="item-${cb.value}"]`).textContent;
+          div.innerHTML += `<div style="padding: 8px; background: #f0f9ff; border-radius: 6px; margin-bottom: 8px; font-size: 0.85rem;"><strong>${label}</strong> - ${qtd}</div>`;
+        }
+      });
+    }
+
+    document.getElementById('formCarga').onsubmit = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nomeCarga').value;
+      const checkboxes = document.querySelectorAll('#selectorItens input[type="checkbox"]:checked');
+      const itens = [];
+
+      checkboxes.forEach(cb => {
+        const qtd = parseFloat(document.getElementById('qtd-' + cb.value).value);
+        if (qtd > 0) {
+          const label = document.querySelector(`label[for="item-${cb.value}"]`).textContent;
+          itens.push({ item: label, quantidade: qtd });
+        }
+      });
+
+      if (itens.length === 0) {
+        alert('Selecione pelo menos um item!');
+        return;
+      }
+
+      await db.collection('cargas').add({ nome, itens, dataCriacao: new Date(), usuario: auth.currentUser.email });
+      alert('Carga salva!');
+      e.target.reset();
+      carregarCargas();
+    };
+
+    async function carregarCargas() {
+      const snap = await db.collection('cargas').orderBy('dataCriacao', 'desc').get();
+      const grid = document.getElementById('gridCargas');
+      const selects = [document.getElementById('cargaCafe'), document.getElementById('cargaAlmoco'), document.getElementById('cargaJanta')];
+
+      grid.innerHTML = '';
+      selects.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
+
+      snap.forEach(doc => {
+        const carga = doc.data();
+        const itemsHtml = carga.itens.map(i => `<div>• ${i.item} - ${i.quantidade}</div>`).join('');
+
+        grid.innerHTML += `
+          <div class="card-carga">
+            <h4>${carga.nome}</h4>
+            <div class="card-carga-itens">${itemsHtml}</div>
+            <div class="card-carga-btn">
+              <button onclick="editarCarga('${doc.id}')" class="btn btn-primary"><i class="fas fa-edit"></i> Editar</button>
+              <button onclick="deletarCarga('${doc.id}')" class="btn btn-danger"><i class="fas fa-trash"></i> Deletar</button>
+            </div>
+          </div>
+        `;
+
+        selects.forEach(s => s.innerHTML += `<option value="${doc.id}">${carga.nome}</option>`);
+      });
+    }
+
+    async function deletarCarga(id) {
+      if (confirm('Tem certeza?')) {
+        await db.collection('cargas').doc(id).delete();
+        carregarCargas();
+      }
+    }
+
+    document.getElementById('formProgramacao').onsubmit = async (e) => {
+      e.preventDefault();
+      const data = document.getElementById('dataProg').value;
+      const cafe = document.getElementById('cargaCafe').value;
+      const almoco = document.getElementById('cargaAlmoco').value;
+      const janta = document.getElementById('cargaJanta').value;
+
+      const docCafe = await db.collection('cargas').doc(cafe).get();
+      const docAlmoco = await db.collection('cargas').doc(almoco).get();
+      const docJanta = await db.collection('cargas').doc(janta).get();
+
+      const itensRequisicao = [
+        ...docCafe.data().itens.map(i => ({ ...i, turno: 'CAFE', detalhe: `Café da Manhã (${docCafe.data().nome})` })),
+        ...docAlmoco.data().itens.map(i => ({ ...i, turno: 'ALMOCO', detalhe: `Almoço (${docAlmoco.data().nome})` })),
+        ...docJanta.data().itens.map(i => ({ ...i, turno: 'JANTA', detalhe: `Jantar (${docJanta.data().nome})` }))
+      ];
+
+      for (const item of itensRequisicao) {
+        await db.collection('requisicoes').add({
+          item: item.item,
+          quantidade: item.quantidade,
+          turno: item.turno,
+          detalhe: item.detalhe,
+          dataUso: data,
+          itemStatus: 'pendente',
+          dataSolicitacao: new Date()
+        });
+      }
+
+      await db.collection('programacoes').add({
+        data, cafe, almoco, janta, dataCriacao: new Date(), usuario: auth.currentUser.email
+      });
+
+      alert('Programação publicada! Requisições enviadas para a despensa.');
+      carregarHistorico();
+    };
+
+    document.getElementById('formGuia').onsubmit = async (e) => {
+      e.preventDefault();
+      const data = document.getElementById('dataGuia').value;
+      const turno = document.getElementById('turnoGuia').value;
+
+      const snap = await db.collection('requisicoes').where('dataUso', '==', data).get();
+      const itens = [];
+
+      snap.forEach(doc => {
+        const r = doc.data();
+        if (r.turno === (turno === 'CAFÉ DA MANHÃ' ? 'CAFE' : turno === 'ALMOÇO' ? 'ALMOCO' : 'JANTA')) {
+          itens.push(r);
+        }
+      });
+
+      document.getElementById('printData').innerText = new Date(data).toLocaleDateString('pt-BR');
+      document.getElementById('printTurno').innerText = turno;
+
+      const tbody = document.getElementById('printItens');
+      tbody.innerHTML = '';
+      itens.forEach(i => {
+        tbody.innerHTML += `<tr><td style="border: 1px solid #000; padding: 5px;">${i.item}</td><td style="border: 1px solid #000; padding: 5px;">${i.quantidade}</td><td style="border: 1px solid #000; padding: 5px;"></td><td style="border: 1px solid #000; padding: 5px;"></td></tr>`;
+      });
+
+      setTimeout(() => window.print(), 100);
+    };
+
+    async function carregarHistorico() {
+      const snap = await db.collection('programacoes').orderBy('dataCriacao', 'desc').limit(10).get();
+      const tbody = document.querySelector('#tabelaHistorico tbody');
+      tbody.innerHTML = '';
+
+      snap.forEach(doc => {
+        const p = doc.data();
+        const data = new Date(p.data).toLocaleDateString('pt-BR');
+        tbody.innerHTML += `<tr><td>${data}</td><td>${p.cafe}</td><td>${p.almoco}</td><td>${p.janta}</td><td><span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">✓ Publicada</span></td></tr>`;
+      });
     }
 
     function switchTab(event, id) {
@@ -274,349 +549,6 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.remove('hidden');
       event.currentTarget.classList.add('active');
-    }
-
-    // ===== FUNÇÕES ORIGINAIS (MANTIDAS) =====
-    async function carregarItensEstoque() {
-      const snap = await db.collection('estoque').orderBy('nome').get();
-      const sel = document.getElementById('cargaItem');
-      sel.innerHTML = '<option value="">Selecione...</option>';
-      snap.forEach(doc => { sel.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`; });
-    }
-
-    function addIngrediente() {
-      const item = document.getElementById('cargaItem').value;
-      const qtd = document.getElementById('cargaQtd').value;
-      if(!item || !qtd) return;
-      ingredientesTemp.push({ nome: item, qtd: parseFloat(qtd) });
-      renderIngredientesTemp();
-      document.getElementById('cargaQtd').value = '';
-    }
-
-    function renderIngredientesTemp() {
-      const div = document.getElementById('listaIngredientesTemp');
-      div.innerHTML = ingredientesTemp.map((ing, idx) => `
-        <div class="item-carga">
-          <span>${ing.nome} - <b>${ing.qtd}</b></span>
-          <i class="fas fa-times" style="color:red; cursor:pointer" onclick="ingredientesTemp.splice(${idx},1); renderIngredientesTemp();"></i>
-        </div>
-      `).join('');
-    }
-
-    async function salvarCarga() {
-      const nome = document.getElementById('cargaNome').value;
-      if(!nome || ingredientesTemp.length === 0) return alert("Preencha o nome e adicione itens!");
-      await db.collection('cargas_predefinidas').add({ nome, itens: ingredientesTemp, criadoEm: new Date() });
-      alert("Carga salva!");
-      document.getElementById('cargaNome').value = '';
-      ingredientesTemp = [];
-      renderIngredientesTemp();
-      carregarCargasSalvas();
-    }
-
-    async function carregarCargasSalvas() {
-      const snap = await db.collection('cargas_predefinidas').get();
-      const grid = document.getElementById('gridCargas');
-      const selects = document.querySelectorAll('.sel-carga');
-      grid.innerHTML = '';
-      let options = '<option value="">Pular Turno</option>';
-      snap.forEach(doc => {
-        const c = doc.data();
-        options += `<option value="${doc.id}">${c.nome}</option>`;
-        grid.innerHTML += `<div class="card" style="margin:0; padding:10px; font-size:0.8rem;"><strong>${c.nome}</strong></div>`;
-      });
-      selects.forEach(s => s.innerHTML = options);
-    }
-
-    async function imprimirGuiaTurno(selectId, turnoNome) {
-        const idCarga = document.getElementById(selectId).value;
-        const data = document.getElementById('progData').value;
-        if(!idCarga) return alert("Selecione uma carga primeiro!");
-        if(!data) return alert("Selecione a data!");
-
-        const doc = await db.collection('cargas_predefinidas').doc(idCarga).get();
-        const carga = doc.data();
-
-        document.getElementById('p_data').innerText = data.split('-').reverse().join('/');
-        document.getElementById('p_turno').innerText = turnoNome.toUpperCase();
-        
-        const tbody = document.getElementById('p_itens');
-        tbody.innerHTML = '';
-        carga.itens.forEach(it => {
-            tbody.innerHTML += `<tr><td>${it.nome.toUpperCase()}</td><td>UN/KG</td><td>${it.qtd}</td><td>_______</td></tr>`;
-        });
-
-        window.print();
-    }
-
-    async function publicarProgramacao() {
-      const data = document.getElementById('progData').value;
-      if(!data) return alert("Selecione a data!");
-
-      const cafe = document.getElementById('progCafe').value;
-      const almoco = document.getElementById('progAlmoco').value;
-      const janta = document.getElementById('progJanta').value;
-
-      if(!cafe && !almoco && !janta) return alert("Selecione pelo menos uma carga!");
-
-      try {
-        await db.collection('programacoes').add({
-          data: data,
-          cafe: cafe || null,
-          almoco: almoco || null,
-          janta: janta || null,
-          dataCriacao: new Date(),
-          usuario: auth.currentUser.email,
-          status: 'publicada'
-        });
-
-        const turnos = [
-          { id: cafe, nome: 'Café da Manhã', sigla: 'CAFE' },
-          { id: almoco, nome: 'Almoço', sigla: 'ALMOCO' },
-          { id: janta, nome: 'Jantar', sigla: 'JANTA' }
-        ];
-
-        for (const turno of turnos) {
-          if (turno.id) {
-            const cargaDoc = await db.collection('cargas_predefinidas').doc(turno.id).get();
-            const carga = cargaDoc.data();
-
-            for (const item of carga.itens) {
-              await db.collection('requisicoes').add({
-                dataUso: data,
-                turno: turno.sigla,
-                turnoNome: turno.nome,
-                cargaId: turno.id,
-                cargaNome: carga.nome,
-                item: item.nome,
-                quantidade: item.qtd,
-                status: 'pendente',
-                dataSolicitacao: new Date(),
-                usuario: auth.currentUser.email,
-                detalhe: `${turno.nome} (${carga.nome})`,
-                itemStatus: 'pendente'
-              });
-            }
-          }
-        }
-
-        const alerta = document.getElementById('alertaRequisicoes');
-        alerta.innerHTML = `<div class="alert alert-success"><i class="fas fa-check-circle"></i> Programação publicada! Requisições geradas automaticamente para o estoque.</div>`;
-        alerta.style.display = 'block';
-        setTimeout(() => { alerta.style.display = 'none'; }, 5000);
-
-        document.getElementById('progCafe').value = '';
-        document.getElementById('progAlmoco').value = '';
-        document.getElementById('progJanta').value = '';
-
-        carregarProgramacoes();
-        carregarHistoricoRequisicoes();
-
-      } catch (error) {
-        console.error('Erro ao publicar:', error);
-        alert('Erro ao publicar programação: ' + error.message);
-      }
-    }
-
-    async function carregarProgramacoes() {
-      const snap = await db.collection('programacoes').orderBy('dataCriacao', 'desc').limit(20).get();
-      const tbody = document.getElementById('tabelaProgramacoes');
-      tbody.innerHTML = '';
-
-      snap.forEach(doc => {
-        const p = doc.data();
-        const dataFormatada = new Date(p.data).toLocaleDateString('pt-BR');
-        
-        tbody.innerHTML += `<tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 10px;">${dataFormatada}</td>
-          <td style="padding: 10px;">${p.cafe ? '✓' : '-'}</td>
-          <td style="padding: 10px;">${p.almoco ? '✓' : '-'}</td>
-          <td style="padding: 10px;">${p.janta ? '✓' : '-'}</td>
-          <td style="padding: 10px;"><span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">PUBLICADA</span></td>
-        </tr>`;
-      });
-    }
-
-    async function carregarHistoricoRequisicoes() {
-      const snap = await db.collection('requisicoes').orderBy('dataSolicitacao', 'desc').limit(50).get();
-      const tbody = document.getElementById('tabelaHistoricoRequisicoes');
-      tbody.innerHTML = '';
-
-      snap.forEach(doc => {
-        const r = doc.data();
-        const dataFormatada = new Date(r.dataUso).toLocaleDateString('pt-BR');
-        
-        tbody.innerHTML += `<tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 10px;">${dataFormatada}</td>
-          <td style="padding: 10px;">${r.item}</td>
-          <td style="padding: 10px;">${r.quantidade}</td>
-          <td style="padding: 10px;">${r.turnoNome}</td>
-          <td style="padding: 10px;"><span style="background: ${r.status === 'pendente' ? '#fef3c7' : '#dcfce7'}; color: ${r.status === 'pendente' ? '#92400e' : '#166534'}; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">${r.status.toUpperCase()}</span></td>
-        </tr>`;
-      });
-    }
-
-    // ===== NOVAS FUNÇÕES: UPLOAD E EXTRAÇÃO =====
-    function setupUploadArea() {
-      const uploadArea = document.getElementById('uploadArea');
-      const fileInput = document.getElementById('fileInput');
-
-      uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-      });
-
-      uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-      });
-
-      uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if(files.length > 0) processarArquivo(files[0]);
-      });
-
-      fileInput.addEventListener('change', (e) => {
-        if(e.target.files.length > 0) processarArquivo(e.target.files[0]);
-      });
-    }
-
-    async function processarArquivo(arquivo) {
-      const statusDiv = document.getElementById('uploadStatus');
-      statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Processando arquivo...</div>';
-
-      try {
-        let dados = [];
-
-        if(arquivo.type === 'application/pdf') {
-          dados = await extrairPDF(arquivo);
-        } else if(arquivo.type.includes('spreadsheet') || arquivo.name.endsWith('.xlsx') || arquivo.name.endsWith('.xls')) {
-          dados = await extrairExcel(arquivo);
-        } else if(arquivo.type.includes('word') || arquivo.name.endsWith('.docx')) {
-          dados = await extrairWord(arquivo);
-        } else {
-          statusDiv.innerHTML = '<div class="alert" style="background:#fee2e2; color:#991b1b; border-left:4px solid #ef4444;">Formato não suportado. Use PDF, Excel ou Word.</div>';
-          return;
-        }
-
-        itensExtraidos = dados;
-        renderFormularioEditavel();
-        statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Arquivo processado! ${dados.length} itens extraídos.</div>';
-
-      } catch(error) {
-        console.error('Erro ao processar:', error);
-        statusDiv.innerHTML = '<div class="alert" style="background:#fee2e2; color:#991b1b; border-left:4px solid #ef4444;">Erro ao processar arquivo: ' + error.message + '</div>';
-      }
-    }
-
-    async function extrairExcel(arquivo) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const dados = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(dados, { type: 'array' });
-            const primeiraAba = workbook.Sheets[workbook.SheetNames[0]];
-            const linhas = XLSX.utils.sheet_to_json(primeiraAba);
-
-            const itens = linhas.map(linha => ({
-              nome: linha.Item || linha.item || linha.Produto || linha.produto || '',
-              quantidade: parseFloat(linha.Quantidade || linha.quantidade || linha.Qtd || 0) || 0
-            })).filter(i => i.nome && i.quantidade > 0);
-
-            resolve(itens);
-          } catch(err) { reject(err); }
-        };
-        reader.readAsArrayBuffer(arquivo);
-      });
-    }
-
-    async function extrairPDF(arquivo) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          try {
-            const pdf = await pdfjsLib.getDocument(e.target.result).promise;
-            let texto = '';
-            for(let i = 1; i <= pdf.numPages; i++) {
-              const page = await pdf.getPage(i);
-              const content = await page.getTextContent();
-              texto += content.items.map(item => item.str).join(' ') + '\n';
-            }
-            
-            const linhas = texto.split('\n').filter(l => l.trim());
-            const itens = [];
-            linhas.forEach(linha => {
-              const match = linha.match(/(.+?)\s+(\d+(?:\.\d+)?)\s*(kg|g|l|uni|cx)?/i);
-              if(match) {
-                itens.push({
-                  nome: match[1].trim(),
-                  quantidade: parseFloat(match[2])
-                });
-              }
-            });
-
-            resolve(itens.length > 0 ? itens : [{ nome: 'Item do PDF', quantidade: 1 }]);
-          } catch(err) { reject(err); }
-        };
-        reader.readAsArrayBuffer(arquivo);
-      });
-    }
-
-    async function extrairWord(arquivo) {
-      // Simplificado: Word é complexo, usamos uma abordagem básica
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const texto = new TextDecoder().decode(e.target.result);
-          const itens = [];
-          const linhas = texto.split('\n');
-          linhas.forEach(linha => {
-            const match = linha.match(/(.+?)\s+(\d+(?:\.\d+)?)/);
-            if(match) {
-              itens.push({
-                nome: match[1].trim(),
-                quantidade: parseFloat(match[2])
-              });
-            }
-          });
-          resolve(itens.length > 0 ? itens : [{ nome: 'Item do Word', quantidade: 1 }]);
-        };
-        reader.readAsArrayBuffer(arquivo);
-      });
-    }
-
-    function renderFormularioEditavel() {
-      const div = document.getElementById('formEditavel');
-      div.innerHTML = '<h4 style="margin-top:0;">Edite os itens extraídos:</h4>';
-      
-      itensExtraidos.forEach((item, idx) => {
-        div.innerHTML += `
-          <div class="form-item">
-            <input type="text" value="${item.nome}" onchange="itensExtraidos[${idx}].nome = this.value" placeholder="Nome do item">
-            <input type="number" value="${item.quantidade}" onchange="itensExtraidos[${idx}].quantidade = parseFloat(this.value)" placeholder="Qtd" step="0.01">
-            <button onclick="itensExtraidos.splice(${idx}, 1); renderFormularioEditavel();" class="btn btn-danger" style="width:100%"><i class="fas fa-trash"></i></button>
-          </div>
-        `;
-      });
-    }
-
-    async function salvarFormularioEditavel() {
-      const nome = prompt('Nome da carga:', 'Carga do Cardápio');
-      if(!nome || itensExtraidos.length === 0) return alert('Preencha o nome e tenha itens!');
-
-      await db.collection('cargas_predefinidas').add({
-        nome: nome,
-        itens: itensExtraidos,
-        criadoEm: new Date(),
-        origem: 'upload'
-      });
-
-      alert('Carga salva com sucesso!');
-      itensExtraidos = [];
-      document.getElementById('formEditavel').innerHTML = '';
-      carregarCargasSalvas();
     }
   </script>
 </body>
