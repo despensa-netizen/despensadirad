@@ -133,25 +133,35 @@
     <!-- TAB 2: MONTAR CARGAS (COM VALIDAÇÃO) -->
     <div id="tab-cargas" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-plus-circle"></i> Criar Nova Receita</h3>
+        <h3><i class="fas fa-plus-circle"></i> Criar Nova Receita Agrupada</h3>
         <form id="formCarga">
-          <div style="display:grid; grid-template-columns: 1fr 200px; gap:15px; align-items:end;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr 200px; gap:15px; align-items:end;">
             <div>
-              <label style="font-weight:600; font-size:0.8rem;">Nome da Receita:</label>
-              <input type="text" id="nomeCarga" placeholder="Ex: Arroz com Feijão e Bife" required>
+              <label style="font-weight:600; font-size:0.8rem;">Nome da Carga Geral:</label>
+              <input type="text" id="nomeCarga" placeholder="Ex: Almoço Completo" required>
+            </div>
+            <div>
+              <label style="font-weight:600; font-size:0.8rem;">Nome do Prato (Grupo):</label>
+              <input type="text" id="nomePratoAtual" placeholder="Ex: Arroz">
             </div>
             <div style="margin-bottom:12px;">
-              <button type="submit" class="btn btn-success" style="width: 100%;">
-                <i class="fas fa-save"></i> Salvar
+              <button type="button" onclick="adicionarGrupoPrato()" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-plus"></i> Add Grupo
               </button>
             </div>
           </div>
 
-          <div class="form-group">
+          <div id="gruposCarga" style="margin-top:15px;"></div>
+
+          <div class="form-group" style="margin-top:20px;">
             <label style="font-weight:600; font-size:0.8rem;">Pesquisar Itens no Estoque:</label>
             <input type="text" id="buscaItensCarga" placeholder="Filtrar produtos..." onkeyup="renderSelectorItens()">
-            <div id="selectorItens" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #f8fafc;"></div>
+            <div id="selectorItens" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #f8fafc;"></div>
           </div>
+          
+          <button type="submit" class="btn btn-success" style="width: 100%; margin-top:10px;">
+            <i class="fas fa-save"></i> SALVAR RECEITA COMPLETA
+          </button>
         </form>
       </div>
 
@@ -268,31 +278,56 @@
     </div>
   </div>
 
-  <!-- ÁREA DE IMPRESSÃO (OCULTA) -->
+  <!-- ÁREA DE IMPRESSÃO (ESTILO MILITAR FIEL) -->
   <div id="printArea" class="hidden">
-    <div style="width: 210mm; padding: 20mm; font-family: Arial, sans-serif;">
-      <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
-        <h2 style="margin:0">GUIA DE REMESSA DE GÊNEROS</h2>
-        <p style="margin:5px 0">SEÇÃO DE SUBSISTÊNCIA - ESTOQUESYNC PRO</p>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-        <span><strong>DATA:</strong> <span id="printData"></span></span>
-        <span><strong>TURNO:</strong> <span id="printTurno"></span></span>
-      </div>
-      <table style="width:100%; border-collapse: collapse;">
+    <div style="width: 210mm; font-family: 'Arial', sans-serif; color: #000; padding: 10mm;">
+      <!-- Cabeçalho Superior -->
+      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">
+        <tr>
+          <td style="width: 30%; border: 1px solid #000; padding: 5px; text-align: center;"></td>
+          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 14px;" id="printData">05/06/2026</td>
+          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center;">
+            <div style="font-size: 10px; font-weight: bold;">PREVISÃO:</div>
+            <div style="font-size: 14px; font-weight: bold;" id="printPrevCount">30</div>
+          </td>
+          <td style="width: 40%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 16px;" id="printTurno">Almoço</td>
+        </tr>
+      </table>
+
+      <!-- Bloco de Assinaturas e Autorização -->
+      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
+        <tr>
+          <td style="width: 30%; border: 1px solid #000; padding: 15px 5px; text-align: center; vertical-align: middle;">
+            <div style="font-size: 9px; font-weight: bold; text-decoration: underline; margin-bottom: 15px;">RESP. PELA PREVISÃO</div>
+            <div style="font-size: 8px; font-weight: bold;">POSTO/GRAD-NOME DE GUERRA<br>RESPONSÁVEL PELO PEDIDO</div>
+          </td>
+          <td style="width: 70%; border: 1px solid #000; padding: 10px; text-align: center;">
+            <div style="font-size: 11px; font-weight: bold; text-decoration: underline; margin-bottom: 10px;">FORNECIMENTO AUTORIZADO</div>
+            <div style="font-size: 12px; font-weight: bold; margin-top: 15px;">________________________________________________<br>Lira 2T Qocon NUT Adj SSUB</div>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Tabela de Itens -->
+      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
         <thead>
-          <tr style="background:#eee">
-            <th style="border:1px solid #000; padding:8px;">ITEM / GÊNERO</th>
-            <th style="border:1px solid #000; padding:8px; width:100px;">QTD PREV.</th>
-            <th style="border:1px solid #000; padding:8px; width:100px;">CONFERIDO</th>
+          <tr style="text-align: center; font-size: 10px; font-weight: bold;">
+            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 35%;">MATERIAL / GÊNERO<br>ALIMENTÍCIO</td>
+            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 10%;">UND</td>
+            <td colspan="1" style="border: 1px solid #000; padding: 5px; width: 15%;">PREVISÃO</td>
+            <td colspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">AJUSTES</td>
+            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">SAÍDA REAL</td>
+          </tr>
+          <tr style="text-align: center; font-size: 9px; font-weight: bold;">
+            <td style="border: 1px solid #000; padding: 3px;">INICIAL</td>
+            <td style="border: 1px solid #000; padding: 3px;">EXTRA(+)</td>
+            <td style="border: 1px solid #000; padding: 3px;">REDUÇÃO(-)</td>
           </tr>
         </thead>
-        <tbody id="printItens"></tbody>
+        <tbody id="printItens" style="font-size: 11px;">
+          <!-- Linhas serão inseridas aqui via JS -->
+        </tbody>
       </table>
-      <div style="margin-top:50px; display:grid; grid-template-columns: 1fr 1fr; gap:50px; text-align:center;">
-        <div><div style="border-top:1px solid #000; padding-top:5px;">Encarregado da Despensa</div></div>
-        <div><div style="border-top:1px solid #000; padding-top:5px;">Cozinheiro de Dia</div></div>
-      </div>
     </div>
   </div>
 
@@ -315,6 +350,7 @@
     let programacoesCache = [];
     let dataCalendario = new Date();
     let charts = {};
+    let gruposAtuais = [];
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
@@ -355,23 +391,68 @@
       reader.readAsArrayBuffer(file);
     }
 
+    let colunasDisponiveis = [];
+    let dadosBrutosExcel = [];
+
     function processarExcelInteligente(dados) {
       if (dados.length === 0) return;
+      dadosBrutosExcel = dados;
       
-      // Mapeamento de termos comuns
       const keys = Object.keys(dados[0]);
-      let colItem = keys.find(k => /item|produto|nome|descrição/i.test(k));
-      let colQtd = keys.find(k => /qtd|quantidade|quant|valor/i.test(k));
+      colunasDisponiveis = keys;
+
+      // Dicionário expandido para Subsistência Militar
+      let colItem = keys.find(k => /item|produto|nome|descrição|gênero|genero|material|especificação/i.test(k));
+      let colQtd = keys.find(k => /qtd|quantidade|quant|valor|prev|previsão|total/i.test(k));
 
       if (!colItem || !colQtd) {
-        document.getElementById('alertaImport').innerHTML = `<div class="alert alert-danger">Não foi possível identificar as colunas de Item ou Quantidade automaticamente.</div>`;
+        exibirSeletorColunas(keys);
         return;
       }
 
-      itensProcessados = dados.map(d => ({
-        item: String(d[colItem]).trim(),
-        quantidade: parseFloat(String(d[colQtd]).replace(',', '.')) || 0
-      })).filter(i => i.quantidade > 0);
+      mapearEProcessar(colItem, colQtd);
+    }
+
+    function exibirSeletorColunas(keys) {
+      const alerta = document.getElementById('alertaImport');
+      let options = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+      
+      alerta.innerHTML = `
+        <div class="alert alert-warning">
+          <p><strong>Quase lá!</strong> Não identifiquei as colunas automaticamente. Por favor, selecione abaixo:</p>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+            <div>
+              <label style="font-size:0.7rem; font-weight:bold;">Coluna do ITEM:</label>
+              <select id="selColItem">${options}</select>
+            </div>
+            <div>
+              <label style="font-size:0.7rem; font-weight:bold;">Coluna da QTD:</label>
+              <select id="selColQtd">${options}</select>
+            </div>
+          </div>
+          <button onclick="confirmarMapeamentoManual()" class="btn btn-primary" style="width:100%; margin-top:10px;">Confirmar Seleção</button>
+        </div>
+      `;
+    }
+
+    function confirmarMapeamentoManual() {
+      const colItem = document.getElementById('selColItem').value;
+      const colQtd = document.getElementById('selColQtd').value;
+      mapearEProcessar(colItem, colQtd);
+    }
+
+    function mapearEProcessar(colItem, colQtd) {
+      document.getElementById('alertaImport').innerHTML = `<div class="alert alert-success">Colunas identificadas: <b>${colItem}</b> e <b>${colQtd}</b></div>`;
+      
+      itensProcessados = dadosBrutosExcel.map(d => {
+        let valorRaw = String(d[colQtd] || 0);
+        // Limpeza de valores (remove R$, espaços, e trata vírgula decimal)
+        let valorLimpo = valorRaw.replace(/[R$\s]/g, '').replace(',', '.');
+        return {
+          item: String(d[colItem] || '').trim(),
+          quantidade: parseFloat(valorLimpo) || 0
+        };
+      }).filter(i => i.item && i.quantidade > 0);
 
       renderItensImportados();
     }
@@ -433,22 +514,32 @@
       selects.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
 
       cargasCache.forEach(carga => {
-        const validacao = verificarDisponibilidade(carga.itens);
-        const statusHtml = validacao.critico 
-          ? `<span class="stock-badge stock-error"><i class="fas fa-exclamation-triangle"></i> Falta Estoque</span>`
-          : `<span class="stock-badge stock-ok"><i class="fas fa-check"></i> Tudo OK</span>`;
+        // Compatibilidade com versões anteriores (itens vs grupos)
+        let todosItens = [];
+        if (carga.grupos) {
+          carga.grupos.forEach(g => todosItens.push(...g.itens));
+        } else if (carga.itens) {
+          todosItens = carga.itens;
+        }
 
-        const itensHtml = carga.itens.map(i => {
-          const v = validacao.log.find(l => l.item === i.item);
-          return `<div style="color: ${v.ok ? 'inherit' : 'var(--danger)'}">• ${i.item} (${i.quantidade}) ${v.ok ? '' : '[!]'}</div>`;
-        }).join('');
+        const validacao = verificarDisponibilidade(todosItens);
+        const statusHtml = validacao.critico 
+          ? `<span class="stock-badge stock-error">⚠️ Falta</span>`
+          : `<span class="stock-badge stock-ok">✅ OK</span>`;
+
+        let contentHtml = '';
+        if (carga.grupos) {
+          contentHtml = carga.grupos.map(g => `<strong>${g.nome}</strong>: ${g.itens.length} itens`).join('<br>');
+        } else {
+          contentHtml = `${todosItens.length} itens individuais`;
+        }
 
         grid.innerHTML += `
           <div class="card-carga" style="border-left-color: ${validacao.critico ? 'var(--danger)' : 'var(--success)'}">
             <h4>${carga.nome} ${statusHtml}</h4>
-            <div class="card-carga-itens">${itensHtml}</div>
+            <div class="card-carga-itens" style="margin-bottom:10px;">${contentHtml}</div>
             <div class="card-carga-btn">
-              <button onclick="deletarCarga('${carga.id}')" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+              <button onclick="deletarCarga('${carga.id}')" class="btn btn-danger" style="padding:5px;"><i class="fas fa-trash"></i></button>
             </div>
           </div>
         `;
@@ -618,20 +709,66 @@
       input.style.display = cb.checked ? 'block' : 'none';
     }
 
-    document.getElementById('formCarga').onsubmit = async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('nomeCarga').value;
-      const itens = [];
+    function adicionarGrupoPrato() {
+      const nomeGrupo = document.getElementById('nomePratoAtual').value;
+      if (!nomeGrupo) return alert("Digite o nome do prato!");
+      
+      const itensSelecionados = [];
       document.querySelectorAll('#selectorItens input[type="checkbox"]:checked').forEach(cb => {
         const id = cb.value;
         const qtd = parseFloat(document.getElementById('qtd-' + id).value);
-        const label = document.querySelector(`label[for="item-${id}"]`).textContent.split(' (')[0];
-        if (qtd > 0) itens.push({ item: label, quantidade: qtd });
+        const prod = produtosCache.find(p => p.id === id);
+        if (qtd > 0) {
+          itensSelecionados.push({ item: prod.nome, quantidade: qtd, unidade: prod.unidade || 'kg' });
+        }
       });
 
-      if (itens.length === 0) return alert("Selecione itens!");
-      await db.collection('cargas').add({ nome, itens, dataCriacao: new Date(), usuario: auth.currentUser.email });
-      alert("Receita salva!");
+      if (itensSelecionados.length === 0) return alert("Selecione itens para este prato!");
+
+      gruposAtuais.push({ nome: nomeGrupo, itens: itensSelecionados });
+      renderGruposCarga();
+      
+      // Limpar campos
+      document.getElementById('nomePratoAtual').value = '';
+      document.querySelectorAll('#selectorItens input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+        document.getElementById('qtd-' + cb.value).style.display = 'none';
+      });
+    }
+
+    function renderGruposCarga() {
+      const container = document.getElementById('gruposCarga');
+      container.innerHTML = '';
+      gruposAtuais.forEach((g, idx) => {
+        container.innerHTML += `
+          <div style="background:#fff; border:1px solid var(--accent); border-radius:8px; padding:10px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent); margin-bottom:5px;">
+              <span>${g.nome}</span>
+              <button type="button" onclick="gruposAtuais.splice(${idx},1); renderGruposCarga()" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button>
+            </div>
+            <div style="font-size:0.75rem; color:#64748b;">
+              ${g.itens.map(i => `${i.item} (${i.quantidade} ${i.unidade})`).join(' | ')}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    document.getElementById('formCarga').onsubmit = async (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nomeCarga').value;
+      if (gruposAtuais.length === 0) return alert("Adicione pelo menos um prato à carga!");
+      
+      await db.collection('cargas').add({ 
+        nome, 
+        grupos: gruposAtuais, 
+        dataCriacao: new Date(), 
+        usuario: auth.currentUser.email 
+      });
+      
+      alert("Receita Completa salva!");
+      gruposAtuais = [];
+      renderGruposCarga();
       e.target.reset();
       carregarCargas();
     };
@@ -643,26 +780,40 @@
       const almocoId = document.getElementById('cargaAlmoco').value;
       const jantaId = document.getElementById('cargaJanta').value;
 
-      const cafe = cargasCache.find(c => c.id === cafeId);
-      const almoco = cargasCache.find(c => c.id === almocoId);
-      const janta = cargasCache.find(c => c.id === jantaId);
-
-      const todasRequisicoes = [
-        ...cafe.itens.map(i => ({ ...i, turno: 'CAFE', detalhe: `Café: ${cafe.nome}` })),
-        ...almoco.itens.map(i => ({ ...i, turno: 'ALMOCO', detalhe: `Almoço: ${almoco.nome}` })),
-        ...janta.itens.map(i => ({ ...i, turno: 'JANTA', detalhe: `Jantar: ${janta.nome}` }))
+      const turnos = [
+        { id: cafeId, tag: 'CAFE', nome: 'Café' },
+        { id: almocoId, tag: 'ALMOCO', nome: 'Almoço' },
+        { id: jantaId, tag: 'JANTA', nome: 'Jantar' }
       ];
 
-      for (const r of todasRequisicoes) {
-        await db.collection('requisicoes').add({
-          item: r.item,
-          quantidade: r.quantidade,
-          turno: r.turno,
-          detalhe: r.detalhe,
-          dataUso: data,
-          status: 'pendente',
-          dataSolicitacao: new Date()
-        });
+      for (const t of turnos) {
+        const carga = cargasCache.find(c => c.id === t.id);
+        if (!carga) continue;
+
+        let itensParaEnviar = [];
+        if (carga.grupos) {
+          carga.grupos.forEach(g => {
+            g.itens.forEach(it => {
+              itensParaEnviar.push({ ...it, detalhe: `${t.nome}: ${carga.nome} (${g.nome})` });
+            });
+          });
+        } else {
+          carga.itens.forEach(it => {
+            itensParaEnviar.push({ ...it, detalhe: `${t.nome}: ${carga.nome}` });
+          });
+        }
+
+        for (const it of itensParaEnviar) {
+          await db.collection('requisicoes').add({
+            item: it.item,
+            quantidade: it.quantidade,
+            turno: t.tag,
+            detalhe: it.detalhe,
+            dataUso: data,
+            status: 'pendente',
+            dataSolicitacao: new Date()
+          });
+        }
       }
 
       await db.collection('programacoes').add({
@@ -677,19 +828,62 @@
     document.getElementById('formGuia').onsubmit = async (e) => {
       e.preventDefault();
       const data = document.getElementById('dataGuia').value;
-      const turno = document.getElementById('turnoGuia').value;
+      const turnoTag = document.getElementById('turnoGuia').value;
       
-      const snap = await db.collection('requisicoes').where('dataUso', '==', data).where('turno', '==', turno).get();
-      const itens = snap.docs.map(doc => doc.data());
+      // Buscar a programação do dia para saber qual carga foi usada
+      const progSnap = await db.collection('programacoes').where('data', '==', data).get();
+      if (progSnap.empty) return alert("Nenhuma programação encontrada para esta data!");
+      
+      const prog = progSnap.docs[0].data();
+      const cargaId = turnoTag === 'CAFE' ? prog.cafe : turnoTag === 'ALMOCO' ? prog.almoco : prog.janta;
+      const carga = cargasCache.find(c => c.id === cargaId);
 
-      document.getElementById('printData').innerText = new Date(data).toLocaleDateString('pt-BR');
-      document.getElementById('printTurno').innerText = turno === 'CAFE' ? 'CAFÉ DA MANHÃ' : turno === 'ALMOCO' ? 'ALMOÇO' : 'JANTAR';
+      if (!carga) return alert("Carga não encontrada!");
+
+      document.getElementById('printData').innerText = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR');
+      document.getElementById('printTurno').innerText = turnoTag === 'CAFE' ? 'Café da Manhã' : turnoTag === 'ALMOCO' ? 'Almoço' : 'Jantar';
       
       const tbody = document.getElementById('printItens');
       tbody.innerHTML = '';
-      itens.forEach(i => {
-        tbody.innerHTML += `<tr><td style="border:1px solid #000; padding:8px;">${i.item}</td><td style="border:1px solid #000; padding:8px; text-align:center;">${i.quantidade}</td><td style="border:1px solid #000; padding:8px;"></td></tr>`;
-      });
+
+      if (carga.grupos) {
+        carga.grupos.forEach((g, idx) => {
+          // Linha de Cabeçalho do Prato (Verde ou Coral)
+          const bgColor = idx % 2 === 0 ? '#d9ead3' : '#f4cccc';
+          tbody.innerHTML += `
+            <tr style="background: ${bgColor}; font-weight: bold; text-align: center;">
+              <td colspan="6" style="border: 1px solid #000; padding: 5px;">${g.nome}</td>
+            </tr>
+          `;
+          // Itens do Prato
+          g.itens.forEach(it => {
+            tbody.innerHTML += `
+              <tr>
+                <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
+                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade || 'kg'}</td>
+                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
+                <td style="border: 1px solid #000; padding: 5px;"></td>
+                <td style="border: 1px solid #000; padding: 5px;"></td>
+                <td style="border: 1px solid #000; padding: 5px;"></td>
+              </tr>
+            `;
+          });
+        });
+      } else {
+        // Fallback para cargas antigas sem grupos
+        carga.itens.forEach(it => {
+          tbody.innerHTML += `
+            <tr>
+              <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
+              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade || 'kg'}</td>
+              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
+              <td style="border: 1px solid #000; padding: 5px;"></td>
+              <td style="border: 1px solid #000; padding: 5px;"></td>
+              <td style="border: 1px solid #000; padding: 5px;"></td>
+            </tr>
+          `;
+        });
+      }
 
       window.print();
     };
