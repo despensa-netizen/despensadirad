@@ -346,7 +346,7 @@
       dados.forEach((linha, idx) => {
         if (!linha || linha.length < 2) return;
 
-        // Procurar por um número na linha
+        // Procurar por um número na linha (quantidade)
         let quantidade = null;
         let quantidadeIdx = -1;
 
@@ -366,17 +366,23 @@
         
         // Validar que não é cabeçalho
         if (item.toUpperCase() === 'MATERIAL' || item.toUpperCase() === 'ITEM' || 
-            item.toUpperCase() === 'PRODUTO' || item.match(/^(SÁBADO|DOMINGO|DATA|TURNO)/i)) {
+            item.toUpperCase() === 'PRODUTO' || item.toUpperCase() === 'GÊNERO' || item.toUpperCase() === 'ALIMENTO' ||
+            item.match(/^(SÁBADO|DOMINGO|DATA|TURNO|QUANTIDADE|UNIDADE|UND|QTD)/i)) {
           return;
         }
 
+        // Tentar extrair unidade da segunda coluna
         let unidade = 'uni';
-        if (linha.length > 1 && isNaN(parseFloat(linha[1]))) {
-          unidade = String(linha[1]).trim();
+        if (linha.length > 1) {
+          const col2 = String(linha[1]).trim();
+          // Se a segunda coluna não for um número, é a unidade
+          if (col2 && isNaN(parseFloat(col2)) && col2.length < 10) {
+            unidade = col2;
+          }
         }
 
         if (item && item.length > 0) {
-          itensProcessados.push({ item, unidade, quantidade });
+          itensProcessados.push({ item, unidade: unidade || 'uni', quantidade });
         }
       });
 
@@ -411,31 +417,43 @@
     async function salvarCargaImportada() {
       const nome = document.getElementById('nomeCargaImport').value.trim();
       if (!nome) {
-        alert('Digite um nome para a carga!');
+        mostrarAlerta('alertaImport', 'Digite um nome para a carga!', 'danger');
         return;
       }
 
       if (itensProcessados.length === 0) {
-        alert('Nenhum item para salvar!');
+        mostrarAlerta('alertaImport', 'Nenhum item para salvar!', 'danger');
         return;
       }
 
       try {
+        const itensValidados = itensProcessados.map(i => ({
+          item: String(i.item || '').trim(),
+          unidade: String(i.unidade || 'uni').trim(),
+          quantidade: parseFloat(i.quantidade) || 0
+        })).filter(i => i.item && i.quantidade > 0);
+
+        if (itensValidados.length === 0) {
+          mostrarAlerta('alertaImport', 'Nenhum item valido para salvar!', 'danger');
+          return;
+        }
+
         await db.collection('cargas').add({
           nome: nome,
-          itens: itensProcessados,
-          dataCriacao: new Date(),
+          itens: itensValidados,
+          dataCriacao: firebase.firestore.FieldValue.serverTimestamp(),
           usuario: auth.currentUser.email
         });
 
-        mostrarAlerta('alertaImport', `✓ Carga "${nome}" salva com sucesso!`, 'success');
+        mostrarAlerta('alertaImport', 'Carga salva com sucesso!', 'success');
         document.getElementById('fileInput').value = '';
         document.getElementById('nomeCargaImport').value = '';
         document.getElementById('formularioProcessado').classList.add('hidden');
         itensProcessados = [];
-        carregarCargas();
+        setTimeout(() => carregarCargas(), 500);
       } catch (erro) {
-        mostrarAlerta('alertaImport', 'Erro ao salvar: ' + erro.message, 'danger');
+        console.error('Erro ao salvar:', erro);
+        mostrarAlerta('alertaImport', 'Erro ao salvar. Verifique as permissoes do Firebase.', 'danger');
       }
     }
 
