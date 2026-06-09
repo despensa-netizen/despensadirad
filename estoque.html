@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync — Despensa Integral PRO</title>
+  <title>EstoqueSync — Despensa Integral</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -72,6 +72,9 @@
     .badge-saida { background: #fee2e2; color: #991b1b; }
     .badge-entrada { background: #dcfce7; color: #166534; }
 
+    .alert { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; }
+    .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--accent); }
+
     @media print { body * { visibility: hidden; } #qrModal, #qrModal * { visibility: visible; } #qrModal { position: absolute; left: 0; top: 0; background: white; } }
   </style>
 </head>
@@ -93,13 +96,13 @@
       <button class="tab-btn active" onclick="switchTab(event, 'tab-saidas')"><i class="fas fa-barcode"></i> Cargas & Saídas</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-requisicoes')"><i class="fas fa-check-square"></i> Requisições Nutrição</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-cadastro')"><i class="fas fa-plus-circle"></i> Gestão de Produtos</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-loading"></i> Recebimento (Entrada)</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-entrada')"><i class="fas fa-truck-loading"></i> Entradas</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-inventario')"><i class="fas fa-clipboard-check"></i> Inventário</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-planejamento')"><i class="fas fa-chart-line"></i> Consumo/Compras</button>
     </div>
 
-    <!-- TAB 1: SAÍDAS -->
+    <!-- TAB 1: SAÍDAS (ORIGINAL) -->
     <div id="tab-saidas" class="tab-content">
       <div class="grid-layout">
         <aside>
@@ -137,12 +140,12 @@
     <!-- TAB 2: REQUISIÇÕES (INTEGRADO) -->
     <div id="tab-requisicoes" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-check-square"></i> Requisições da Nutrição</h3>
+        <h3><i class="fas fa-check-square"></i> Requisições do Dia - Marque os Itens Separados</h3>
         <div id="listaRequisicoesDia"></div>
       </div>
     </div>
 
-    <!-- TAB 3: CADASTRO -->
+    <!-- TAB 3: CADASTRO (ORIGINAL) -->
     <div id="tab-cadastro" class="tab-content hidden">
       <div class="card" style="max-width: 650px; margin: auto;">
         <h3 id="tituloCadastro"><i class="fas fa-edit"></i> Novo Produto</h3>
@@ -180,10 +183,10 @@
       </div>
     </div>
 
-    <!-- TAB 4: RECEBIMENTO (LAYOUT RESTAURADO) -->
+    <!-- TAB 4: ENTRADA (LAYOUT RESTAURADO) -->
     <div id="tab-entrada" class="tab-content hidden">
       <div class="card" style="max-width: 600px; margin: auto;">
-        <h3><i class="fas fa-truck-loading"></i> Recebimento de Material</h3>
+        <h3><i class="fas fa-truck-loading"></i> Entrada de Material</h3>
         <form id="formEntrada">
           <label>Produto:</label>
           <select id="entProdSelect" required></select>
@@ -204,12 +207,12 @@
             <div><label>Hora do Recebimento:</label><input type="time" id="entHoraRec" required></div>
           </div>
 
-          <button type="submit" class="btn btn-success" style="width:100%; margin-top:15px; padding:15px;">CONFIRMAR RECEBIMENTO</button>
+          <button type="submit" class="btn btn-success" style="width:100%; margin-top:15px; padding:15px;">Confirmar Entrada</button>
         </form>
       </div>
     </div>
 
-    <!-- TAB 5: INVENTÁRIO -->
+    <!-- TAB 5: INVENTÁRIO (ORIGINAL) -->
     <div id="tab-inventario" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-check-double"></i> Ajuste de Balanço</h3>
@@ -220,18 +223,18 @@
       </div>
     </div>
 
-    <!-- TAB 6: HISTÓRICO -->
+    <!-- TAB 6: HISTÓRICO (ORIGINAL) -->
     <div id="tab-historico" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-history"></i> Movimentações Recentes</h3>
         <table id="tabelaHist">
-          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Marca</th><th>Fornecedor</th></tr></thead>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Produto</th><th>Qtd</th><th>Marca</th><th>Fornecedor</th><th>Usuário</th></tr></thead>
           <tbody id="corpoHist"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- TAB 7: PLANEJAMENTO -->
+    <!-- TAB 7: PLANEJAMENTO (ORIGINAL) -->
     <div id="tab-planejamento" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-chart-bar"></i> Previsão de Compra (30d)</h3>
@@ -243,7 +246,6 @@
     </div>
   </div>
 
-  <!-- MODAIS -->
   <div id="qrModal" class="hidden">
     <div class="qr-box">
       <h3 id="qrTitle"></h3>
@@ -257,13 +259,16 @@
 
   <div id="modalBaixa" class="hidden">
     <div class="baixa-box">
-      <h3 id="baixaNomeProd"></h3>
-      <p id="baixaInfoSaldo"></p>
+      <h3 id="baixaNomeProd" style="margin-bottom:5px; color:var(--primary);"></h3>
+      <p id="baixaInfoSaldo" style="font-size:0.8rem; color:#64748b; margin-bottom:20px;"></p>
+      
       <input type="hidden" id="baixaIdProd">
-      <input type="number" id="baixaQtdInput" step="0.01" placeholder="0.00">
+      <label style="font-size:0.7rem; font-weight:bold; display:block; text-align:left;">QTD DE SAÍDA:</label>
+      <input type="number" id="baixaQtdInput" step="0.01" placeholder="0.00" style="font-size:1.5rem; text-align:center;">
+      
       <div style="display:flex; gap:10px; margin-top:10px;">
         <button onclick="confirmarBaixaScanner()" class="btn btn-success" style="flex:1">CONFIRMAR</button>
-        <button onclick="document.getElementById('modalBaixa').classList.add('hidden')" class="btn btn-danger" style="flex:1">CANCELAR</button>
+        <button onclick="fecharModalBaixa()" class="btn btn-danger" style="flex:1">CANCELAR</button>
       </div>
     </div>
   </div>
@@ -281,21 +286,177 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    let scannerGlobal, produtos = [];
+    let scannerGlobal;
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
       document.getElementById('userDisplay').innerText = user.email.toUpperCase();
-      init();
+      initApp();
     });
 
-    async function init() {
-      monitorarEstoque();
-      monitorarHistorico();
+    function initApp() {
+      renderEstoque();
       monitorarRequisicoes();
+      carregarHistorico();
       document.getElementById('entDataRec').valueAsDate = new Date();
       document.getElementById('entHoraRec').value = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+      document.getElementById('logoutBtn').onclick = () => auth.signOut();
     }
+
+    // ===== FUNÇÕES ORIGINAIS (MANTIDAS) =====
+    async function toggleScannerGlobal() {
+      const readerDiv = document.getElementById('reader');
+      const btn = document.getElementById('btnToggleScanner');
+      if(readerDiv.classList.contains('hidden')) {
+        readerDiv.classList.remove('hidden');
+        btn.innerHTML = '<i class="fas fa-times"></i> FECHAR CÂMERA';
+        scannerGlobal = new Html5Qrcode("reader");
+        scannerGlobal.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (id) => abrirModalBaixa(id))
+        .catch(() => alert("Erro ao abrir câmera."));
+      } else { fecharScanner(); }
+    }
+
+    async function fecharScanner() {
+        if(scannerGlobal) { await scannerGlobal.stop(); scannerGlobal = null; }
+        document.getElementById('reader').classList.add('hidden');
+        document.getElementById('btnToggleScanner').innerHTML = '<i class="fas fa-qrcode"></i> ABRIR CÂMERA';
+    }
+
+    function abrirModalBaixa(id) {
+      db.collection('estoque').doc(id).get().then(doc => {
+        if(doc.exists) {
+          const p = doc.data();
+          document.getElementById('baixaIdProd').value = id;
+          document.getElementById('baixaNomeProd').innerText = p.nome;
+          document.getElementById('baixaInfoSaldo').innerText = `Saldo: ${p.quantidade} ${p.unidade}`;
+          document.getElementById('modalBaixa').classList.remove('hidden');
+          document.getElementById('baixaQtdInput').focus();
+        }
+      });
+    }
+
+    async function confirmarBaixaScanner() {
+      const id = document.getElementById('baixaIdProd').value;
+      const qtd = parseFloat(document.getElementById('baixaQtdInput').value);
+      if(!qtd) return alert("Digite a quantidade!");
+      const doc = await db.collection('estoque').doc(id).get();
+      const p = doc.data();
+      const novaQtd = p.quantidade - qtd;
+      await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
+      await db.collection('movimentacoes').add({ tipo: 'saida', item: p.nome, qtdAnterior: p.quantidade, novaQtd: novaQtd, usuario: auth.currentUser.email, data: new Date(), motivo: 'Scanner' });
+      fecharModalBaixa(); fecharScanner(); renderEstoque();
+    }
+
+    function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); document.getElementById('baixaQtdInput').value = ''; }
+
+    function renderEstoque() {
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        const tbody = document.querySelector('#tabelaEstoque tbody');
+        const select = document.getElementById('saidaProdSelect');
+        const entSelect = document.getElementById('entProdSelect');
+        tbody.innerHTML = ''; select.innerHTML = ''; entSelect.innerHTML = '';
+        snap.forEach(doc => {
+          const p = doc.data();
+          const low = p.quantidade <= p.minimo;
+          tbody.innerHTML += `<tr class="${low ? 'abaixo-minimo' : ''}"><td>${p.nome}</td><td>${p.quantidade}</td><td>${p.local || '-'}</td><td>${p.categoria || '-'}</td><td>${p.validade || '-'}</td><td><button onclick="gerarQR('${doc.id}', '${p.nome}')" class="btn" style="background:none; color:var(--accent)"><i class="fas fa-qrcode"></i></button></td></tr>`;
+          select.innerHTML += `<option value="${doc.id}">${p.nome}</option>`;
+          entSelect.innerHTML += `<option value="${doc.id}">${p.nome}</option>`;
+        });
+        renderInventario(snap);
+      });
+    }
+
+    function renderInventario(snap) {
+      const tbody = document.getElementById('corpoInv');
+      tbody.innerHTML = '';
+      snap.forEach(doc => {
+        const p = doc.data();
+        tbody.innerHTML += `<tr><td>${p.nome}</td><td>${p.quantidade}</td><td><input type="number" id="inv-${doc.id}" placeholder="Real" style="width:80px; margin:0"></td><td><button onclick="ajustarEstoque('${doc.id}')" class="btn btn-success">Ajustar</button></td></tr>`;
+      });
+    }
+
+    async function ajustarEstoque(id) {
+      const real = parseFloat(document.getElementById('inv-'+id).value);
+      const doc = await db.collection('estoque').doc(id).get();
+      const p = doc.data();
+      await db.collection('estoque').doc(id).update({ quantidade: real });
+      await db.collection('movimentacoes').add({ tipo: 'ajuste', item: p.nome, qtdAnterior: p.quantidade, novaQtd: real, usuario: auth.currentUser.email, data: new Date() });
+      alert("Ajustado!");
+    }
+
+    function gerarQR(id, nome) {
+      document.getElementById('qrTitle').innerText = nome;
+      new QRious({ element: document.getElementById('qrCanvas'), value: id, size: 300 });
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function filtrarEstoque() {
+      const filtro = document.getElementById('buscaEstoque').value.toLowerCase();
+      document.querySelectorAll('#tabelaEstoque tbody tr').forEach(row => {
+        row.style.display = row.cells[0].textContent.toLowerCase().includes(filtro) ? '' : 'none';
+      });
+    }
+
+    function carregarHistorico() {
+      db.collection('movimentacoes').orderBy('data', 'desc').limit(30).onSnapshot(snap => {
+        const tbody = document.getElementById('corpoHist');
+        tbody.innerHTML = snap.docs.map(doc => {
+          const m = doc.data();
+          const data = m.data?.toDate().toLocaleString('pt-BR') || '---';
+          return `<tr><td>${data}</td><td><span class="badge ${m.tipo === 'saida' ? 'badge-saida' : 'badge-entrada'}">${m.tipo}</span></td><td>${m.item}</td><td>${m.novaQtd - m.qtdAnterior}</td><td>${m.marca || '-'}</td><td>${m.fornecedor || '-'}</td><td>${m.usuario}</td></tr>`;
+        }).join('');
+      });
+    }
+
+    document.getElementById('formSaidaManual').onsubmit = async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('saidaProdSelect').value;
+      const qtd = parseFloat(document.getElementById('saidaQtd').value);
+      const doc = await db.collection('estoque').doc(id).get();
+      const p = doc.data();
+      const novaQtd = p.quantidade - qtd;
+      await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
+      await db.collection('movimentacoes').add({ tipo: 'saida', item: p.nome, qtdAnterior: p.quantidade, novaQtd: novaQtd, motivo: document.getElementById('saidaMotivo').value, usuario: auth.currentUser.email, data: new Date() });
+      alert("Saída registrada!"); e.target.reset();
+    };
+
+    document.getElementById('formEntrada').onsubmit = async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('entProdSelect').value;
+      const qtd = parseFloat(document.getElementById('entQtd').value);
+      const marca = document.getElementById('entMarca').value;
+      const forn = document.getElementById('entFornecedor').value;
+      const doc = await db.collection('estoque').doc(id).get();
+      const p = doc.data();
+      const novaQtd = p.quantidade + qtd;
+      await db.collection('estoque').doc(id).update({ quantidade: novaQtd, validade: document.getElementById('entVal').value, marca: marca });
+      await db.collection('movimentacoes').add({ tipo: 'entrada', item: p.nome, qtdAnterior: p.quantidade, novaQtd: novaQtd, marca: marca, fornecedor: forn, usuario: auth.currentUser.email, data: new Date() });
+      alert("Entrada registrada!"); e.target.reset();
+    };
+
+    document.getElementById('formCadastro').onsubmit = async (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('editId').value;
+      const dados = { nome: document.getElementById('cadNome').value, categoria: document.getElementById('cadCat').value, unidade: document.getElementById('cadUn').value, local: document.getElementById('cadLocal').value, minimo: parseFloat(document.getElementById('cadMin').value), validade: document.getElementById('cadVal').value };
+      if(editId) { await db.collection('estoque').doc(editId).update(dados); cancelarEdicao(); }
+      else { dados.quantidade = 0; await db.collection('estoque').add(dados); }
+      e.target.reset(); renderCatalogo();
+    };
+
+    async function renderCatalogo() {
+      const snap = await db.collection('estoque').orderBy('nome').get();
+      document.getElementById('corpoCatalogo').innerHTML = snap.docs.map(doc => `<tr><td>${doc.data().nome}</td><td>${doc.data().local || '-'}</td><td><button onclick="editarProduto('${doc.id}')" class="btn" style="background:none; color:var(--accent)"><i class="fas fa-edit"></i></button><button onclick="deletarProduto('${doc.id}')" class="btn" style="background:none; color:var(--danger)"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+    }
+
+    async function editarProduto(id) {
+      const doc = await db.collection('estoque').doc(id).get();
+      const p = doc.data();
+      document.getElementById('editId').value = id; document.getElementById('cadNome').value = p.nome; document.getElementById('cadCat').value = p.categoria; document.getElementById('cadUn').value = p.unidade; document.getElementById('cadLocal').value = p.local; document.getElementById('cadMin').value = p.minimo; document.getElementById('cadVal').value = p.validade;
+      document.getElementById('tituloCadastro').innerText = '✏️ Editar Produto'; document.getElementById('btnCancelEdit').classList.remove('hidden');
+    }
+
+    function cancelarEdicao() { document.getElementById('editId').value = ''; document.getElementById('formCadastro').reset(); document.getElementById('tituloCadastro').innerText = '➕ Novo Produto'; document.getElementById('btnCancelEdit').classList.add('hidden'); }
+    async function deletarProduto(id) { if(confirm("Tem certeza?")) { await db.collection('estoque').doc(id).delete(); renderCatalogo(); } }
 
     function switchTab(event, id) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
@@ -305,240 +466,41 @@
       if(id === 'tab-planejamento') calcularPlanejamento();
     }
 
-    function monitorarEstoque() {
-      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
-        produtos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderEstoque();
-        renderCatalogo();
-        renderEntradaSelect();
-        renderInventario();
-      });
+    async function calcularPlanejamento() {
+      const snap = await db.collection('movimentacoes').where('tipo', '==', 'saida').get();
+      const resumo = {};
+      snap.forEach(doc => { const m = doc.data(); resumo[m.item] = (resumo[m.item] || 0) + (m.qtdAnterior - m.novaQtd); });
+      document.getElementById('corpoConsumo').innerHTML = Object.entries(resumo).map(([item, total]) => `<tr><td>${item}</td><td>${total.toFixed(2)}</td><td>${(total/30).toFixed(2)}</td><td>${(total*1.2).toFixed(2)}</td></tr>`).join('');
     }
 
-    function renderEstoque() {
-      const tbody = document.querySelector('#tabelaEstoque tbody');
-      tbody.innerHTML = '';
-      produtos.forEach(p => {
-        const isBaixo = p.quantidade <= (p.minimo || 5);
-        tbody.innerHTML += `<tr class="${isBaixo ? 'abaixo-minimo' : ''}">
-          <td>${p.nome}</td>
-          <td>${p.quantidade} ${p.unidade || ''}</td>
-          <td>${p.local || '-'}</td>
-          <td>${p.categoria || '-'}</td>
-          <td>${p.validade || '-'}</td>
-          <td><button onclick="gerarQR('${p.id}', '${p.nome}')" class="btn btn-primary" style="padding:4px 8px;"><i class="fas fa-qrcode"></i></button></td>
-        </tr>`;
-      });
-    }
-
-    function renderCatalogo() {
-      const tbody = document.getElementById('corpoCatalogo');
-      tbody.innerHTML = produtos.map(p => `<tr>
-        <td>${p.nome}</td>
-        <td>${p.local || '-'}</td>
-        <td>
-          <button onclick="editarProduto('${p.id}')" class="btn btn-warning" style="padding:4px 8px;"><i class="fas fa-edit"></i></button>
-          <button onclick="deletarProduto('${p.id}')" class="btn btn-danger" style="padding:4px 8px;"><i class="fas fa-trash"></i></button>
-        </td>
-      </tr>`).join('');
-    }
-
-    function renderEntradaSelect() {
-      const s1 = document.getElementById('entProdSelect');
-      const s2 = document.getElementById('saidaProdSelect');
-      const opt = '<option value="">Selecione...</option>' + produtos.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
-      s1.innerHTML = opt; s2.innerHTML = opt;
-    }
-
-    function renderInventario() {
-      const tbody = document.getElementById('corpoInv');
-      tbody.innerHTML = produtos.map(p => `<tr>
-        <td>${p.nome}</td>
-        <td>${p.quantidade}</td>
-        <td><input type="number" id="inv-${p.id}" placeholder="Real" style="width:80px; margin:0"></td>
-        <td><button onclick="ajustarEstoque('${p.id}')" class="btn btn-success">Ajustar</button></td>
-      </tr>`).join('');
-    }
-
-    // --- REQUISIÇÕES (INTEGRADO) ---
+    // ===== INTEGRAÇÃO NUTRIÇÃO =====
     function monitorarRequisicoes() {
       db.collection('requisicoes').where('status', '==', 'Pendente').onSnapshot(snap => {
         const div = document.getElementById('listaRequisicoesDia');
         div.innerHTML = '';
-        if(snap.empty) { div.innerHTML = '<p>Nenhuma requisição pendente.</p>'; return; }
-
         const grupos = {};
-        snap.forEach(doc => {
-          const r = doc.data();
-          const key = `${r.data} - ${r.turno}`;
-          if(!grupos[key]) grupos[key] = [];
-          grupos[key].push({ id: doc.id, ...r });
-        });
-
+        snap.forEach(doc => { const r = doc.data(); const key = `${r.data} - ${r.turno}`; if(!grupos[key]) grupos[key] = []; grupos[key].push({id: doc.id, ...r}); });
         for(const key in grupos) {
           const turnoClass = key.includes('CAFÉ') ? 'header-cafe' : (key.includes('ALMOÇO') ? 'header-almoco' : 'header-janta');
           let html = `<div class="req-group"><div class="req-header ${turnoClass}"><span>${key}</span></div>`;
-          grupos[key].forEach(r => {
-            html += `<div class="req-item">
-              <div class="checkbox-item" onclick="confirmarBaixaRequisicao('${r.id}', '${r.item}', ${r.quantidade})"><i class="fas fa-check"></i></div>
-              <div style="flex:1;"><strong>${r.item}</strong> - ${r.quantidade} ${r.unidade || ''}</div>
-            </div>`;
-          });
+          grupos[key].forEach(r => { html += `<div class="req-item"><div class="checkbox-item" onclick="darBaixaRequisicao('${r.id}', '${r.item}', ${r.quantidade})"><i class="fas fa-check"></i></div><div style="flex:1;"><strong>${r.item}</strong> - ${r.quantidade}</div></div>`; });
           div.innerHTML += html + '</div>';
         }
       });
     }
 
-    async function confirmarBaixaRequisicao(id, itemNome, qtd) {
-      const p = produtos.find(prod => prod.nome.toLowerCase() === itemNome.toLowerCase());
-      if(!p) return alert("Produto não encontrado no estoque!");
-      if(confirm(`Confirmar saída de ${qtd} de ${itemNome}?`)) {
-        await db.collection('estoque').doc(p.id).update({ quantidade: p.quantidade - qtd });
+    async function darBaixaRequisicao(id, item, qtd) {
+      const snap = await db.collection('estoque').where('nome', '==', item).get();
+      if(snap.empty) return alert("Produto não encontrado!");
+      const doc = snap.docs[0]; const p = doc.data();
+      if(confirm(`Baixar ${qtd} de ${item}?`)) {
+        await db.collection('estoque').doc(doc.id).update({ quantidade: p.quantidade - qtd });
         await db.collection('requisicoes').doc(id).update({ status: 'Concluído' });
-        await registrarHistorico('SAÍDA (NUTRIÇÃO)', itemNome, qtd);
+        await db.collection('movimentacoes').add({ tipo: 'saida', item: item, qtdAnterior: p.quantidade, novaQtd: p.quantidade - qtd, motivo: 'Nutrição', usuario: auth.currentUser.email, data: new Date() });
       }
     }
 
-    // --- ENTRADA ---
-    document.getElementById('formEntrada').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('entProdSelect').value;
-      const marca = document.getElementById('entMarca').value;
-      const fornecedor = document.getElementById('entFornecedor').value;
-      const qtd = parseFloat(document.getElementById('entQtd').value);
-      const val = document.getElementById('entVal').value;
-      const p = produtos.find(prod => prod.id === id);
-      
-      await db.collection('estoque').doc(id).update({ 
-        quantidade: p.quantidade + qtd, 
-        marca: marca, 
-        validade: val 
-      });
-      
-      await db.collection('historico').add({
-        data: `${document.getElementById('entDataRec').value} ${document.getElementById('entHoraRec').value}`,
-        tipo: 'ENTRADA',
-        produto: p.nome,
-        quantidade: qtd,
-        marca: marca,
-        fornecedor: fornecedor,
-        usuario: auth.currentUser.email
-      });
-      alert("Entrada registrada!"); e.target.reset();
-    };
-
-    // --- OUTRAS FUNÇÕES ---
-    async function registrarHistorico(tipo, produto, qtd) {
-      await db.collection('historico').add({
-        data: new Date().toLocaleString('pt-BR'),
-        tipo, produto, quantidade: qtd, usuario: auth.currentUser.email
-      });
-    }
-
-    function monitorarHistorico() {
-      db.collection('historico').orderBy('data', 'desc').limit(50).onSnapshot(snap => {
-        document.getElementById('corpoHist').innerHTML = snap.docs.map(doc => {
-          const d = doc.data();
-          return `<tr><td>${d.data}</td><td>${d.tipo}</td><td>${d.produto}</td><td>${d.quantidade}</td><td>${d.marca || '-'}</td><td>${d.fornecedor || '-'}</td></tr>`;
-        }).join('');
-      });
-    }
-
-    function gerarQR(id, nome) {
-      document.getElementById('qrTitle').innerText = nome;
-      new QRious({ element: document.getElementById('qrCanvas'), value: id, size: 200 });
-      document.getElementById('qrModal').classList.remove('hidden');
-    }
-
-    function toggleScannerGlobal() {
-      const div = document.getElementById('reader');
-      if(div.classList.contains('hidden')) {
-        div.classList.remove('hidden');
-        scannerGlobal = new Html5Qrcode("reader");
-        scannerGlobal.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
-      } else {
-        scannerGlobal.stop(); div.classList.add('hidden');
-      }
-    }
-
-    function onScanSuccess(decodedText) {
-      const p = produtos.find(x => x.id === decodedText);
-      if(p) {
-        document.getElementById('baixaIdProd').value = p.id;
-        document.getElementById('baixaNomeProd').innerText = p.nome;
-        document.getElementById('baixaInfoSaldo').innerText = `Saldo atual: ${p.quantidade}`;
-        document.getElementById('modalBaixa').classList.remove('hidden');
-      }
-    }
-
-    async function confirmarBaixaScanner() {
-      const id = document.getElementById('baixaIdProd').value;
-      const qtd = parseFloat(document.getElementById('baixaQtdInput').value);
-      const p = produtos.find(x => x.id === id);
-      await db.collection('estoque').doc(id).update({ quantidade: p.quantidade - qtd });
-      await registrarHistorico('SAÍDA (SCANNER)', p.nome, qtd);
-      document.getElementById('modalBaixa').classList.add('hidden');
-      alert("Baixa realizada!");
-    }
-
-    async function ajustarEstoque(id) {
-      const real = parseFloat(document.getElementById('inv-'+id).value);
-      const p = produtos.find(x => x.id === id);
-      await db.collection('estoque').doc(id).update({ quantidade: real });
-      await registrarHistorico('AJUSTE INVENTÁRIO', p.nome, real);
-      alert("Ajustado!");
-    }
-
-    async function calcularPlanejamento() {
-      const snap = await db.collection('historico').where('tipo', 'in', ['SAÍDA (NUTRIÇÃO)', 'SAÍDA (SCANNER)', 'SAÍDA MANUAL']).get();
-      const hist = snap.docs.map(d => d.data());
-      const resumo = {};
-      hist.forEach(h => { resumo[h.produto] = (resumo[h.produto] || 0) + h.quantidade; });
-      document.getElementById('corpoConsumo').innerHTML = Object.entries(resumo).map(([prod, total]) => `
-        <tr><td>${prod}</td><td>${total.toFixed(2)}</td><td>${(total/30).toFixed(2)}</td><td>${(total*1.2).toFixed(2)}</td></tr>
-      `).join('');
-    }
-
-    document.getElementById('formCadastro').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('editId').value;
-      const dados = {
-        nome: document.getElementById('cadNome').value,
-        categoria: document.getElementById('cadCat').value,
-        unidade: document.getElementById('cadUn').value,
-        local: document.getElementById('cadLocal').value,
-        minimo: parseFloat(document.getElementById('cadMin').value),
-        validade: document.getElementById('cadVal').value
-      };
-      if(id) await db.collection('estoque').doc(id).update(dados);
-      else { dados.quantidade = 0; await db.collection('estoque').add(dados); }
-      alert("Sucesso!"); e.target.reset(); cancelarEdicao();
-    };
-
-    function editarProduto(id) {
-      const p = produtos.find(x => x.id === id);
-      document.getElementById('editId').value = id;
-      document.getElementById('cadNome').value = p.nome;
-      document.getElementById('cadCat').value = p.categoria;
-      document.getElementById('cadUn').value = p.unidade;
-      document.getElementById('cadLocal').value = p.local || '';
-      document.getElementById('cadMin').value = p.minimo || 5;
-      document.getElementById('cadVal').value = p.validade || '';
-      document.getElementById('tituloCadastro').innerText = 'Editar Produto';
-      document.getElementById('btnCancelEdit').classList.remove('hidden');
-      switchTab({currentTarget: document.querySelector('[onclick*="tab-cadastro"]')}, 'tab-cadastro');
-    }
-
-    function cancelarEdicao() {
-      document.getElementById('editId').value = '';
-      document.getElementById('formCadastro').reset();
-      document.getElementById('tituloCadastro').innerText = 'Novo Produto';
-      document.getElementById('btnCancelEdit').classList.add('hidden');
-    }
-
-    async function deletarProduto(id) { if(confirm("Deletar?")) await db.collection('estoque').doc(id).delete(); }
-
-    document.getElementById('logoutBtn').onclick = () => auth.signOut();
+    renderCatalogo();
   </script>
 </body>
 </html>
