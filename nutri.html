@@ -68,6 +68,13 @@
     .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; }
     .upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: #f0f9ff; }
 
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; }
+    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+    .item-lista { display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 5px; }
+
     @media print {
       body * { visibility: hidden; }
       #printArea, #printArea * { visibility: visible; }
@@ -96,6 +103,7 @@
       <button class="tab-btn" onclick="switchTab(event, 'tab-calendario')"><i class="fas fa-calendar-alt"></i> Calendário Mensal</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-calendar-check"></i> Programação Diária</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-relatorios')"><i class="fas fa-chart-pie"></i> Relatórios</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
     </div>
 
     <!-- TAB 0: PREENCHER GUIA MANUAL -->
@@ -145,7 +153,7 @@
       </div>
     </div>
 
-    <!-- TAB 1: IMPORTAÇÃO EXCEL -->
+    <!-- TAB 1: IMPORTAÇÃO INTELIGENTE -->
     <div id="tab-import" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-robot"></i> Importação com Mapeamento Inteligente</h3>
@@ -217,7 +225,7 @@
           <h3 style="margin:0;"><i class="fas fa-calendar-alt"></i> Planejamento Mensal</h3>
           <div style="display:flex; gap:10px; align-items:center;">
             <button onclick="mudarMes(-1)" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-chevron-left"></i></button>
-            <strong id="mesAnoAtual" style="font-size: 1.1rem; min-width: 150px; text-align: center;">Junho 2026</strong>
+            <strong id="mesAnoAtual" style="font-size: 1.1rem; min-width: 150px; text-align: center;"></strong>
             <button onclick="mudarMes(1)" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
@@ -265,11 +273,11 @@
     <div id="tab-relatorios" class="tab-content hidden">
       <div class="grid-cargas">
         <div class="card">
-          <h3><i class="fas fa-chart-bar"></i> Top 10 Itens mais Consumidos</h3>
+          <h3><i class="fas fa-chart-bar"></i> Top 10 Consumo</h3>
           <div class="chart-container"><canvas id="chartTopConsumo"></canvas></div>
         </div>
         <div class="card">
-          <h3><i class="fas fa-chart-pie"></i> Consumo por Categoria</h3>
+          <h3><i class="fas fa-chart-pie"></i> Categorias</h3>
           <div class="chart-container"><canvas id="chartCategorias"></canvas></div>
         </div>
       </div>
@@ -280,14 +288,13 @@
       <div class="card">
         <h3><i class="fas fa-history"></i> Log de Programações</h3>
         <table id="tabelaHistorico">
-          <thead><tr><th>Data</th><th>Café</th><th>Almoço</th><th>Jantar</th><th>Responsável</th></tr></thead>
+          <thead><tr><th>Data</th><th>Café</th><th>Almoço</th><th>Jantar</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ÁREA DE IMPRESSÃO (ESTILO MILITAR FIEL) -->
   <div id="printArea" class="hidden">
     <div style="width: 210mm; font-family: 'Arial', sans-serif; color: #000; padding: 10mm;">
       <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">
@@ -295,7 +302,7 @@
           <td style="width: 30%; border: 1px solid #000; padding: 5px; text-align: center;"></td>
           <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold;" id="printData"></td>
           <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center;">
-            <div style="font-size: 10px;">PREVISÃO:</div>
+            <div style="font-size: 10px; font-weight: bold;">PREVISÃO:</div>
             <div style="font-size: 14px; font-weight: bold;" id="printPrevCount"></div>
           </td>
           <td style="width: 40%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 16px;" id="printTurno"></td>
@@ -305,11 +312,11 @@
         <tr>
           <td style="width: 30%; border: 1px solid #000; padding: 15px 5px; text-align: center;">
             <div style="font-size: 9px; font-weight: bold; text-decoration: underline;">RESP. PELA PREVISÃO</div>
-            <div style="font-size: 8px;">POSTO/GRAD-NOME DE GUERRA<br>RESPONSÁVEL PELO PEDIDO</div>
+            <div style="font-size: 8px; font-weight: bold;">POSTO/GRAD-NOME DE GUERRA</div>
           </td>
           <td style="width: 70%; border: 1px solid #000; padding: 10px; text-align: center;">
             <div style="font-size: 11px; font-weight: bold; text-decoration: underline;">FORNECIMENTO AUTORIZADO</div>
-            <div style="font-size: 12px; margin-top: 15px;">________________________________________________<br>Lira 2T Qocon NUT Adj SSUB</div>
+            <div style="font-size: 12px; font-weight: bold; margin-top: 15px;">________________________________________________<br>Lira 2T Qocon NUT Adj SSUB</div>
           </td>
         </tr>
       </table>
@@ -322,7 +329,7 @@
             <td colspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">AJUSTES</td>
             <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">SAÍDA REAL</td>
           </tr>
-          <tr style="text-align: center; font-size: 9px;">
+          <tr style="text-align: center; font-size: 9px; font-weight: bold;">
             <td style="border: 1px solid #000;">INICIAL</td>
             <td style="border: 1px solid #000;">EXTRA(+)</td>
             <td style="border: 1px solid #000;">REDUÇÃO(-)</td>
@@ -375,139 +382,158 @@
       renderSelectorItens();
     }
 
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
-        processarExcelInteligente(json);
-      };
-      reader.readAsArrayBuffer(file);
+    function switchTab(event, id) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).classList.remove('hidden');
+      event.currentTarget.classList.add('active');
+      if (id === 'tab-relatorios') renderRelatorios();
     }
-
-    let dadosBrutosExcel = [];
-    function processarExcelInteligente(dados) {
-      if (dados.length === 0) return;
-      dadosBrutosExcel = dados;
-      const keys = Object.keys(dados[0]);
-      let colItem = keys.find(k => /item|produto|nome|descrição|gênero|genero|material/i.test(k));
-      let colQtd = keys.find(k => /qtd|quantidade|quant|valor|prev|previsão/i.test(k));
-      if (!colItem || !colQtd) { exibirSeletorColunas(keys); return; }
-      mapearEProcessar(colItem, colQtd);
-    }
-
-    function exibirSeletorColunas(keys) {
-      const alerta = document.getElementById('alertaImport');
-      let options = keys.map(k => `<option value="${k}">${k}</option>`).join('');
-      alerta.innerHTML = `<div class="alert alert-warning"><p>Selecione as colunas:</p><select id="selColItem">${options}</select><select id="selColQtd">${options}</select><button onclick="confirmarMapeamentoManual()" class="btn btn-primary">OK</button></div>`;
-    }
-
-    function confirmarMapeamentoManual() { mapearEProcessar(document.getElementById('selColItem').value, document.getElementById('selColQtd').value); }
-
-    function mapearEProcessar(colItem, colQtd) {
-      document.getElementById('alertaImport').innerHTML = `<div class="alert alert-success">Colunas: ${colItem} e ${colQtd}</div>`;
-      itensProcessados = dadosBrutosExcel.map(d => ({
-        item: String(d[colItem] || '').trim(),
-        quantidade: parseFloat(String(d[colQtd] || 0).replace(',', '.')) || 0
-      })).filter(i => i.item && i.quantidade > 0);
-      renderItensImportados();
-    }
-
-    function renderItensImportados() {
-      const container = document.getElementById('listaItensProcessados');
-      container.innerHTML = '';
-      itensProcessados.forEach((it, idx) => {
-        container.innerHTML += `<div class="item-lista">${it.item} - ${it.quantidade} <button onclick="itensProcessados.splice(${idx},1); renderItensImportados()">X</button></div>`;
-      });
-      document.getElementById('formularioProcessado').classList.remove('hidden');
-    }
-
-    async function carregarCargas() {
-      const snap = await db.collection('cargas').orderBy('dataCriacao', 'desc').get();
-      cargasCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const grid = document.getElementById('gridCargas');
-      const selects = [document.getElementById('cargaCafe'), document.getElementById('cargaAlmoco'), document.getElementById('cargaJanta')];
-      grid.innerHTML = '';
-      selects.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
-      cargasCache.forEach(carga => {
-        grid.innerHTML += `<div class="card-carga"><h4>${carga.nome}</h4><button onclick="deletarCarga('${carga.id}')">X</button></div>`;
-        selects.forEach(s => s.innerHTML += `<option value="${carga.id}">${carga.nome}</option>`);
-      });
-    }
-
-    function adicionarGrupoPrato() {
-      const nomeGrupo = document.getElementById('nomePratoAtual').value;
-      if (!nomeGrupo) return alert("Nome do prato!");
-      const itens = [];
-      document.querySelectorAll('#selectorItens input[type="checkbox"]:checked').forEach(cb => {
-        const id = cb.value;
-        const qtd = parseFloat(document.getElementById('qtd-' + id).value);
-        const prod = produtosCache.find(p => p.id === id);
-        if (qtd > 0) itens.push({ item: prod.nome, quantidade: qtd, unidade: prod.unidade || 'kg' });
-      });
-      if (itens.length === 0) return alert("Selecione itens!");
-      gruposAtuais.push({ nome: nomeGrupo, itens });
-      renderGruposCarga();
-      document.getElementById('nomePratoAtual').value = '';
-    }
-
-    function renderGruposCarga() {
-      document.getElementById('gruposCarga').innerHTML = gruposAtuais.map(g => `<div>${g.nome} (${g.itens.length} itens)</div>`).join('');
-    }
-
-    document.getElementById('formCarga').onsubmit = async (e) => {
-      e.preventDefault();
-      if (gruposAtuais.length === 0) return alert("Adicione pratos!");
-      await db.collection('cargas').add({ nome: document.getElementById('nomeCarga').value, grupos: gruposAtuais, dataCriacao: new Date(), usuario: auth.currentUser.email });
-      alert("Salvo!"); gruposAtuais = []; renderGruposCarga(); e.target.reset(); carregarCargas();
-    };
 
     function adicionarGrupoManual() {
       const nome = document.getElementById('manualNomePrato').value;
-      if (!nome) return alert("Nome do prato!");
-      gruposManuais.push({ id: Date.now(), nome, itens: [] });
+      if (!nome) return alert("Digite o nome do prato!");
+      gruposManuais.push({ id: Date.now(), nome: nome, itens: [] });
       document.getElementById('manualNomePrato').value = '';
       renderGruposManuais();
     }
 
     function renderGruposManuais() {
       const container = document.getElementById('listaGruposManuais');
-      container.innerHTML = gruposManuais.map((g, gIdx) => `
-        <div style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
-          <strong>${g.nome}</strong>
-          ${g.itens.map((it, iIdx) => `<div><input value="${it.item}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item=this.value"> <input type="number" value="${it.quantidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade=parseFloat(this.value)"></div>`).join('')}
-          <button onclick="gruposManuais[${gIdx}].itens.push({item:'',quantidade:0,unidade:'kg'}); renderGruposManuais()">+ Item</button>
-        </div>
-      `).join('');
+      container.innerHTML = '';
+      gruposManuais.forEach((g, gIdx) => {
+        const bgColor = gIdx % 2 === 0 ? '#d9ead3' : '#f4cccc';
+        let itensHtml = g.itens.map((it, iIdx) => `
+          <div style="display: grid; grid-template-columns: 1fr 80px 80px 40px; gap: 10px; margin-bottom: 5px;">
+            <input type="text" value="${it.item}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item = this.value">
+            <input type="text" value="${it.unidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].unidade = this.value">
+            <input type="number" value="${it.quantidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade = parseFloat(this.value)">
+            <button onclick="gruposManuais[${gIdx}].itens.splice(${iIdx},1); renderGruposManuais()" class="btn btn-danger">X</button>
+          </div>
+        `).join('');
+        container.innerHTML += `
+          <div style="border: 2px solid ${bgColor}; margin-bottom: 10px; border-radius: 8px; overflow: hidden;">
+            <div style="background: ${bgColor}; padding: 10px; font-weight: bold; display: flex; justify-content: space-between;">
+              <span>${g.nome}</span>
+              <button onclick="gruposManuais.splice(${gIdx},1); renderGruposManuais()">Remover</button>
+            </div>
+            <div style="padding: 10px;">${itensHtml}<button onclick="gruposManuais[${gIdx}].itens.push({item:'',quantidade:0,unidade:'kg'}); renderGruposManuais()">+ Item</button></div>
+          </div>
+        `;
+      });
     }
 
     function imprimirGuiaManual() {
       const data = document.getElementById('manualData').value;
-      document.getElementById('printData').innerText = data;
+      document.getElementById('printData').innerText = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '';
       document.getElementById('printPrevCount').innerText = document.getElementById('manualPrev').value;
       document.getElementById('printTurno').innerText = document.getElementById('manualTurno').value;
-      document.getElementById('printItens').innerHTML = gruposManuais.map(g => `<tr><td colspan="6" style="background:#eee; font-weight:bold;">${g.nome}</td></tr>` + g.itens.map(it => `<tr><td>${it.item}</td><td>${it.unidade}</td><td>${it.quantidade}</td><td></td><td></td><td></td></tr>`).join('')).join('');
+      const tbody = document.getElementById('printItens');
+      tbody.innerHTML = '';
+      gruposManuais.forEach((g, idx) => {
+        const bgColor = idx % 2 === 0 ? '#d9ead3' : '#f4cccc';
+        tbody.innerHTML += `<tr style="background:${bgColor}; font-weight:bold; text-align:center;"><td colspan="6">${g.nome.toUpperCase()}</td></tr>`;
+        g.itens.forEach(it => {
+          tbody.innerHTML += `<tr><td>${it.item}</td><td style="text-align:center;">${it.unidade}</td><td style="text-align:center;">${it.quantidade}</td><td></td><td></td><td></td></tr>`;
+        });
+      });
       window.print();
     }
 
-    function switchTab(event, id) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(id).classList.remove('hidden');
-      event.currentTarget.classList.add('active');
+    async function carregarCargas() {
+      const snap = await db.collection('cargas').get();
+      cargasCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const grid = document.getElementById('gridCargas');
+      grid.innerHTML = '';
+      cargasCache.forEach(c => {
+        grid.innerHTML += `<div class="card-carga"><h4>${c.nome}</h4><button onclick="deletarCarga('${c.id}')">Excluir</button></div>`;
+      });
+      const selects = [document.getElementById('cargaCafe'), document.getElementById('cargaAlmoco'), document.getElementById('cargaJanta')];
+      selects.forEach(s => {
+        s.innerHTML = '<option value="">Selecione...</option>';
+        cargasCache.forEach(c => s.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+      });
+    }
+
+    async function deletarCarga(id) { if(confirm("Deseja excluir?")) { await db.collection('cargas').doc(id).delete(); carregarCargas(); } }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const data = new Uint8Array(ev.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        processarExcel(json);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function processarExcel(dados) {
+      const keys = Object.keys(dados[0]);
+      let colItem = keys.find(k => /item|produto|gênero/i.test(k));
+      let colQtd = keys.find(k => /qtd|quantidade|previsão/i.test(k));
+      const itens = dados.map(d => ({ item: d[colItem], quantidade: parseFloat(d[colQtd]) })).filter(i => i.item && i.quantidade);
+      const container = document.getElementById('listaItensProcessados');
+      container.innerHTML = itens.map(i => `<div>${i.item}: ${i.quantidade}</div>`).join('');
+      document.getElementById('formularioProcessado').classList.remove('hidden');
+      window.itensImportados = itens;
+    }
+
+    async function salvarCargaImportada() {
+      const nome = document.getElementById('nomeCargaImport').value;
+      await db.collection('cargas').add({ nome, itens: window.itensImportados, dataCriacao: new Date() });
+      alert("Salvo!"); carregarCargas();
+    }
+
+    function renderCalendario() {
+      const grid = document.getElementById('calendarGrid');
+      const headers = Array.from(grid.querySelectorAll('.calendar-header'));
+      grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
+      const ano = dataCalendario.getFullYear(); const mes = dataCalendario.getMonth();
+      document.getElementById('mesAnoAtual').innerText = new Intl.DateTimeFormat('pt-BR', {month:'long', year:'numeric'}).format(dataCalendario).toUpperCase();
+      const primeiroDia = new Date(ano, mes, 1).getDay(); const diasNoMes = new Date(ano, mes+1, 0).getDate();
+      for(let i=0; i<primeiroDia; i++) grid.innerHTML += '<div class="calendar-day" style="background:#f8fafc"></div>';
+      for(let d=1; d<=diasNoMes; d++) {
+        const dataIso = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const prog = programacoesCache.find(p => p.data === dataIso);
+        grid.innerHTML += `<div class="calendar-day"><span class="day-number">${d}</span>${prog ? '<div class="meal-entry">P</div>' : ''}</div>`;
+      }
+    }
+
+    function mudarMes(delta) { dataCalendario.setMonth(dataCalendario.getMonth()+delta); renderCalendario(); }
+    
+    async function carregarProgramacoes() {
+      const snap = await db.collection('programacoes').get();
+      programacoesCache = snap.docs.map(doc => doc.data());
     }
 
     function renderSelectorItens() {
       const container = document.getElementById('selectorItens');
-      container.innerHTML = produtosCache.map(p => `<div><input type="checkbox" id="item-${p.id}" value="${p.id}" onchange="document.getElementById('qtd-${p.id}').style.display=this.checked?'block':'none'"> ${p.nome} <input type="number" id="qtd-${p.id}" style="display:none"></div>`).join('');
+      container.innerHTML = produtosCache.map(p => `<div><input type="checkbox" id="item-${p.id}" value="${p.id}"> ${p.nome} <input type="number" id="qtd-${p.id}" style="width:60px"></div>`).join('');
     }
 
-    function mudarMes(delta) { dataCalendario.setMonth(dataCalendario.getMonth() + delta); renderCalendario(); }
-    function renderCalendario() { document.getElementById('mesAnoAtual').innerText = dataCalendario.toLocaleDateString('pt-BR', {month:'long', year:'numeric'}); }
+    function adicionarGrupoPrato() {
+      const nome = document.getElementById('nomePratoAtual').value;
+      const itens = [];
+      document.querySelectorAll('#selectorItens input[type="checkbox"]:checked').forEach(cb => {
+        const id = cb.value; const qtd = parseFloat(document.getElementById('qtd-'+id).value);
+        if(qtd) itens.push({ item: produtosCache.find(p=>p.id===id).nome, quantidade: qtd });
+      });
+      gruposAtuais.push({ nome, itens });
+      document.getElementById('gruposCarga').innerHTML = gruposAtuais.map(g => `<div>${g.nome}</div>`).join('');
+    }
+
+    document.getElementById('formCarga').onsubmit = async (e) => {
+      e.preventDefault();
+      await db.collection('cargas').add({ nome: document.getElementById('nomeCarga').value, grupos: gruposAtuais, dataCriacao: new Date() });
+      alert("Salvo!"); carregarCargas();
+    };
+
+    async function renderRelatorios() {
+      const ctx1 = document.getElementById('chartTopConsumo').getContext('2d');
+      new Chart(ctx1, { type:'bar', data: { labels:['A','B'], datasets:[{label:'Uso', data:[10,20]}] } });
+    }
   </script>
 </body>
 </html>
