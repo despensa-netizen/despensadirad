@@ -230,6 +230,7 @@
     const auth = firebase.auth();
 
     let produtosCache = [], cargasCache = [], programacoesCache = [], gruposAtuais = [], gruposManuais = [];
+    let idCargaEditando = null;
     let dataCalendario = new Date();
 
     auth.onAuthStateChanged(user => {
@@ -333,7 +334,10 @@
         <div class="card-carga">
           <h4>${c.nome}</h4>
           <p style="font-size:0.7rem; color:#64748b;">${c.grupos ? c.grupos.length + ' pratos' : (c.itens ? c.itens.length : 0) + ' itens'}</p>
-          <button onclick="deletarCarga('${c.id}')" class="btn btn-danger" style="padding:4px 8px; font-size:0.6rem;"><i class="fas fa-trash"></i></button>
+          <div style="display:flex; gap:5px; margin-top:10px;">
+            <button onclick="editarCarga('${c.id}')" class="btn btn-primary" style="padding:4px 8px; font-size:0.6rem;"><i class="fas fa-edit"></i> EDITAR</button>
+            <button onclick="deletarCarga('${c.id}')" class="btn btn-danger" style="padding:4px 8px; font-size:0.6rem;"><i class="fas fa-trash"></i></button>
+          </div>
         </div>
       `).join('');
       const selects = [document.getElementById('cargaCafe'), document.getElementById('cargaAlmoco'), document.getElementById('cargaJanta')];
@@ -373,8 +377,42 @@
     async function salvarReceitaCompleta() {
       const nome = document.getElementById('nomeCarga').value;
       if(!nome || !gruposAtuais.length) return alert("Preencha o nome da carga e adicione pelo menos um grupo!");
-      await db.collection('cargas').add({ nome, grupos: gruposAtuais, dataCriacao: new Date(), usuario: auth.currentUser.email });
-      alert("Receita completa salva!"); gruposAtuais = []; document.getElementById('gruposCarga').innerHTML = ''; document.getElementById('nomeCarga').value = ''; carregarCargas();
+      
+      const dados = { nome, grupos: gruposAtuais, usuario: auth.currentUser.email };
+      
+      if(idCargaEditando) {
+        await db.collection('cargas').doc(idCargaEditando).update(dados);
+        alert("Receita atualizada com sucesso!");
+        idCargaEditando = null;
+      } else {
+        dados.dataCriacao = new Date();
+        await db.collection('cargas').add(dados);
+        alert("Nova receita salva!");
+      }
+      
+      gruposAtuais = []; 
+      document.getElementById('gruposCarga').innerHTML = ''; 
+      document.getElementById('nomeCarga').value = ''; 
+      document.querySelector('#tab-cargas .btn-success').innerText = 'SALVAR RECEITA NO BANCO';
+      carregarCargas();
+    }
+
+    function editarCarga(id) {
+      const carga = cargasCache.find(c => c.id === id);
+      if(!carga) return;
+      
+      idCargaEditando = id;
+      document.getElementById('nomeCarga').value = carga.nome;
+      gruposAtuais = JSON.parse(JSON.stringify(carga.grupos || []));
+      
+      // Se for receita antiga sem grupos, converter
+      if(!carga.grupos && carga.itens) {
+        gruposAtuais = [{ nome: 'Itens Gerais', itens: carga.itens }];
+      }
+      
+      document.getElementById('gruposCarga').innerHTML = gruposAtuais.map(g => `<div style="font-size:0.8rem; background:#e0f2fe; padding:5px; margin-bottom:2px; border-radius:4px;"><b>${g.nome}</b> (${g.itens.length} itens)</div>`).join('');
+      document.querySelector('#tab-cargas .btn-success').innerText = 'ATUALIZAR RECEITA EXISTENTE';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // --- PROGRAMAÇÃO ---
