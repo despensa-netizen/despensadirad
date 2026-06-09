@@ -418,37 +418,73 @@
     // --- PROGRAMAÇÃO ---
     async function publicarProgramacao() {
       const data = document.getElementById('dataProg').value;
-      const ids = [document.getElementById('cargaCafe').value, document.getElementById('cargaAlmoco').value, document.getElementById('cargaJanta').value];
-      const turnos = ['CAFÉ', 'ALMOÇO', 'JANTA'];
+      const ids = [
+        { id: document.getElementById('cargaCafe').value, turno: 'CAFÉ' },
+        { id: document.getElementById('cargaAlmoco').value, turno: 'ALMOÇO' },
+        { id: document.getElementById('cargaJanta').value, turno: 'JANTA' }
+      ];
+      
       if(!data) return alert("Selecione a data!");
+      
+      let totalEnviado = 0;
 
-      for(let i=0; i<3; i++) {
-        if(!ids[i]) continue;
-        const carga = cargasCache.find(c => c.id === ids[i]);
-        const itensParaRequisicao = [];
-        if(carga.grupos) {
+      for(const t of ids) {
+        if(!t.id) continue;
+        const carga = cargasCache.find(c => c.id === t.id);
+        if(!carga) continue;
+
+        let itensParaProcessar = [];
+        if(carga.grupos && carga.grupos.length > 0) {
           carga.grupos.forEach(g => {
-            g.itens.forEach(it => itensParaRequisicao.push({ ...it, detalhe: `${carga.nome} (${g.nome})` }));
+            g.itens.forEach(it => {
+              itensParaProcessar.push({
+                item: it.item,
+                quantidade: it.quantidade,
+                unidade: it.unidade || 'kg',
+                detalhe: `${carga.nome} [${g.nome}]`
+              });
+            });
           });
-        } else if(carga.itens) {
-          carga.itens.forEach(it => itensParaRequisicao.push({ ...it, detalhe: carga.nome }));
+        } else if(carga.itens && carga.itens.length > 0) {
+          carga.itens.forEach(it => {
+            itensParaProcessar.push({
+              item: it.item,
+              quantidade: it.quantidade,
+              unidade: it.unidade || 'kg',
+              detalhe: carga.nome
+            });
+          });
         }
 
-        for(const it of itensParaRequisicao) {
+        for(const it of itensParaProcessar) {
           await db.collection('requisicoes').add({
             item: it.item,
             quantidade: it.quantidade,
-            unidade: it.unidade || 'kg',
+            unidade: it.unidade,
             data: data,
-            turno: turnos[i],
+            turno: t.turno,
             detalhe: it.detalhe,
             status: 'Pendente',
             dataCriacao: new Date()
           });
+          totalEnviado++;
         }
       }
-      await db.collection('programacoes').add({ data, cafe: ids[0], almoco: ids[1], janta: ids[2], dataCriacao: new Date() });
-      alert("Programação enviada com sucesso para Cozinha e Despensa!"); carregarProgramacoes(); renderCalendario();
+
+      if(totalEnviado > 0) {
+        await db.collection('programacoes').add({ 
+          data, 
+          cafe: ids[0].id, 
+          almoco: ids[1].id, 
+          janta: ids[2].id, 
+          dataCriacao: new Date() 
+        });
+        alert(`Sucesso! ${totalEnviado} itens foram enviados para a Despensa.`);
+        carregarProgramacoes(); 
+        renderCalendario();
+      } else {
+        alert("Nenhuma carga selecionada ou as cargas estão vazias.");
+      }
     }
 
     // --- CALENDÁRIO ---
