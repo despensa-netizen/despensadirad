@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync Nutrição PRO — Evoluído</title>
+  <title>EstoqueSync Nutrição PRO — Oficial</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,47 +38,28 @@
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-warning { background: var(--warning); color: #92400e; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
+    
     input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.7rem; color: #64748b; text-transform: uppercase; border-bottom: 2px solid var(--border); }
-    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
     .grid-cargas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
     .card-carga { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border-left: 4px solid var(--accent); position: relative; }
-    .card-carga h4 { margin: 0 0 10px 0; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
-    .card-carga-itens { font-size: 0.8rem; color: #64748b; line-height: 1.6; }
-    .card-carga-btn { display: flex; gap: 8px; margin-top: 12px; }
     
+    .hidden { display: none !important; }
+    .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; }
+    .upload-area:hover { border-color: var(--accent); background: #f0f9ff; }
+
+    .manual-group { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 15px; overflow: hidden; background: white; }
+    .manual-group-header { padding: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .manual-item-row { display: grid; grid-template-columns: 1fr 80px 80px 40px; gap: 10px; padding: 5px 10px; border-bottom: 1px solid #f1f5f9; }
+
     .stock-badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
     .stock-ok { background: #dcfce7; color: #166534; }
     .stock-error { background: #fee2e2; color: #991b1b; }
 
-    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: var(--border); border: 1px solid var(--border); }
-    .calendar-day { background: white; min-height: 120px; padding: 10px; position: relative; }
-    .calendar-header { background: var(--military); color: white; text-align: center; padding: 10px; font-weight: bold; font-size: 0.8rem; }
-    .day-number { font-weight: 800; color: #94a3b8; margin-bottom: 5px; display: block; }
-    .meal-entry { font-size: 0.65rem; padding: 4px; border-radius: 4px; margin-bottom: 3px; border-left: 3px solid var(--accent); background: #f0f9ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    .chart-container { height: 300px; position: relative; }
-
-    .hidden { display: none !important; }
-    .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; }
-    .upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: #f0f9ff; }
-
-    .alert { padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; }
-    .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-    .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-
-    .item-lista { display: flex; align-items: center; gap: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 5px; }
-
     @media print {
       body * { visibility: hidden; }
       #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+      #printArea { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
     }
   </style>
 </head>
@@ -97,31 +78,23 @@
 
   <div class="container">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'tab-guia-manual')"><i class="fas fa-pen-to-square"></i> Preencher Guia Manual</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-guia-manual')"><i class="fas fa-pen"></i> Guia Manual</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-import')"><i class="fas fa-file-excel"></i> Importação Excel</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-cargas')"><i class="fas fa-layer-group"></i> Receitas & Cargas</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-calendario')"><i class="fas fa-calendar-alt"></i> Calendário Mensal</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-calendar-check"></i> Programação Diária</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-relatorios')"><i class="fas fa-chart-pie"></i> Relatórios</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-historico')"><i class="fas fa-history"></i> Histórico</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-calendario')"><i class="fas fa-calendar-alt"></i> Calendário</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-check-circle"></i> Programação</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-relatorios')"><i class="fas fa-chart-line"></i> Relatórios</button>
     </div>
 
-    <!-- TAB 0: PREENCHER GUIA MANUAL -->
+    <!-- TAB 0: GUIA MANUAL -->
     <div id="tab-guia-manual" class="tab-content">
       <div class="card">
-        <h3><i class="fas fa-file-signature"></i> Preenchimento Manual da Guia de Remessa</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px;">
-          <div>
-            <label style="font-size: 0.75rem; font-weight: bold;">DATA:</label>
-            <input type="date" id="manualData" style="margin:0">
-          </div>
-          <div>
-            <label style="font-size: 0.75rem; font-weight: bold;">PREVISÃO (PESSOAS):</label>
-            <input type="number" id="manualPrev" value="30" style="margin:0">
-          </div>
-          <div>
-            <label style="font-size: 0.75rem; font-weight: bold;">TURNO:</label>
-            <select id="manualTurno" style="margin:0">
+        <h3><i class="fas fa-file-signature"></i> Preenchimento Manual da Guia Militar</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+          <div><label style="font-size:0.7rem; font-weight:bold;">DATA:</label><input type="date" id="manualData"></div>
+          <div><label style="font-size:0.7rem; font-weight:bold;">PREVISÃO (PESSOAS):</label><input type="number" id="manualPrev" value="30"></div>
+          <div><label style="font-size:0.7rem; font-weight:bold;">TURNO:</label>
+            <select id="manualTurno">
               <option value="Café da Manhã">Café da Manhã</option>
               <option value="Almoço" selected>Almoço</option>
               <option value="Jantar">Jantar</option>
@@ -129,213 +102,116 @@
           </div>
         </div>
 
-        <div id="areaManualAgrupada" style="border: 1px solid var(--border); border-radius: 12px; padding: 15px; background: white;">
-          <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: end;">
-            <div style="flex: 1;">
-              <label style="font-size: 0.7rem; font-weight: bold;">NOME DO PRATO (EX: ARROZ, GOULASH):</label>
-              <input type="text" id="manualNomePrato" placeholder="Digite o nome do prato..." style="margin:0">
-            </div>
-            <button onclick="adicionarGrupoManual()" class="btn btn-primary" style="height: 42px;">
-              <i class="fas fa-plus"></i> ADD PRATO
-            </button>
-          </div>
-          <div id="listaGruposManuais"></div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <input type="text" id="manualNomePrato" placeholder="Nome do Prato (ex: Arroz, Feijão, Goulash)">
+          <button onclick="adicionarGrupoManual()" class="btn btn-primary" style="white-space:nowrap;">+ ADD PRATO</button>
         </div>
+        <div id="listaGruposManuais"></div>
 
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-          <button onclick="imprimirGuiaManual()" class="btn btn-warning" style="flex: 1; font-size: 1rem; padding: 15px;">
-            <i class="fas fa-print"></i> GERAR E IMPRIMIR GUIA AGORA
-          </button>
-          <button onclick="salvarComoReceitaManual()" class="btn btn-success" style="flex: 1; font-size: 1rem; padding: 15px;">
-            <i class="fas fa-save"></i> SALVAR COMO RECEITA
-          </button>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button onclick="imprimirGuiaManual()" class="btn btn-warning" style="flex:1; padding:15px; font-size:1rem;"><i class="fas fa-print"></i> IMPRIMIR GUIA</button>
+          <button onclick="salvarComoReceitaManual()" class="btn btn-success" style="flex:1; padding:15px; font-size:1rem;"><i class="fas fa-save"></i> SALVAR NO BANCO</button>
         </div>
       </div>
     </div>
 
-    <!-- TAB 1: IMPORTAÇÃO INTELIGENTE -->
+    <!-- TAB 1: IMPORTAÇÃO -->
     <div id="tab-import" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-robot"></i> Importação com Mapeamento Inteligente</h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
-          O sistema agora identifica automaticamente as colunas de <strong>Item</strong> e <strong>Quantidade</strong> mesmo com nomes diferentes.
-        </p>
-        <div class="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('fileInput').click()">
-          <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px; display: block;"></i>
-          <p style="margin: 0; font-weight: 600; color: var(--primary);">Arraste seu arquivo Excel/Calc aqui</p>
-          <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #64748b;">Mapeamento automático de colunas ativado</p>
+        <h3><i class="fas fa-robot"></i> Importação Inteligente</h3>
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-cloud-upload-alt" style="font-size:2rem; margin-bottom:10px; display:block; color:var(--accent);"></i>
+          Arraste ou clique para selecionar arquivo Excel
         </div>
-        <input type="file" id="fileInput" style="display: none;" accept=".xlsx,.xls,.ods" onchange="handleFileSelect(event)">
-        <div id="alertaImport" style="margin-top: 15px;"></div>
-        <div id="formularioProcessado" class="hidden" style="margin-top: 20px;">
-          <h3 style="margin-top: 0;"><i class="fas fa-list-check"></i> Itens Identificados</h3>
-          <div id="listaItensProcessados"></div>
-          <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px;">
-            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Nome da Receita/Carga:</label>
-            <input type="text" id="nomeCargaImport" placeholder="Ex: Almoço Especial - Terça">
-            <button onclick="salvarCargaImportada()" class="btn btn-success" style="width: 100%;">
-              <i class="fas fa-save"></i> Salvar Receita no Banco
-            </button>
-          </div>
+        <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(event)">
+        <div id="formularioProcessado" class="hidden" style="margin-top:20px">
+          <div id="listaItensProcessados" style="margin-bottom:15px;"></div>
+          <input type="text" id="nomeCargaImport" placeholder="Nome da Receita (ex: Almoço Terça)">
+          <button onclick="salvarCargaImportada()" class="btn btn-success" style="width:100%; padding:12px;">SALVAR RECEITA IMPORTADA</button>
         </div>
       </div>
     </div>
 
-    <!-- TAB 2: MONTAR CARGAS -->
+    <!-- TAB 2: RECEITAS -->
     <div id="tab-cargas" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-plus-circle"></i> Criar Nova Receita Agrupada</h3>
-        <form id="formCarga">
-          <div style="display:grid; grid-template-columns: 1fr 1fr 200px; gap:15px; align-items:end;">
-            <div>
-              <label style="font-weight:600; font-size:0.8rem;">Nome da Carga Geral:</label>
-              <input type="text" id="nomeCarga" placeholder="Ex: Almoço Completo" required>
-            </div>
-            <div>
-              <label style="font-weight:600; font-size:0.8rem;">Nome do Prato (Grupo):</label>
-              <input type="text" id="nomePratoAtual" placeholder="Ex: Arroz">
-            </div>
-            <div style="margin-bottom:12px;">
-              <button type="button" onclick="adicionarGrupoPrato()" class="btn btn-primary" style="width: 100%;">
-                <i class="fas fa-plus"></i> Add Grupo
-              </button>
-            </div>
-          </div>
-          <div id="gruposCarga" style="margin-top:15px;"></div>
-          <div class="form-group" style="margin-top:20px;">
-            <label style="font-weight:600; font-size:0.8rem;">Pesquisar Itens no Estoque:</label>
-            <input type="text" id="buscaItensCarga" placeholder="Filtrar produtos..." onkeyup="renderSelectorItens()">
-            <div id="selectorItens" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #f8fafc;"></div>
-          </div>
-          <button type="submit" class="btn btn-success" style="width: 100%; margin-top:10px;">
-            <i class="fas fa-save"></i> SALVAR RECEITA COMPLETA
-          </button>
-        </form>
+        <h3><i class="fas fa-plus-circle"></i> Criar Receita do Zero</h3>
+        <input type="text" id="nomeCarga" placeholder="Nome da Carga Geral">
+        <div style="display:flex; gap:10px; margin: 10px 0;">
+          <input type="text" id="nomePratoAtual" placeholder="Nome do Prato">
+          <button onclick="adicionarGrupoPrato()" class="btn btn-primary">Add Grupo</button>
+        </div>
+        <div id="gruposCarga"></div>
+        <div id="selectorItens" style="max-height:250px; overflow-y:auto; border:1px solid var(--border); padding:10px; margin:10px 0; background:#f8fafc; border-radius:8px;"></div>
+        <button onclick="salvarReceitaCompleta()" class="btn btn-success" style="width:100%; padding:12px;">SALVAR RECEITA NO BANCO</button>
       </div>
-      <div class="card">
-        <h3><i class="fas fa-layer-group"></i> Receitas Salvas & Status de Estoque</h3>
-        <div class="grid-cargas" id="gridCargas"></div>
-      </div>
+      <div class="grid-cargas" id="gridCargas"></div>
     </div>
 
-    <!-- TAB 3: CALENDÁRIO MENSAL -->
+    <!-- TAB 3: CALENDÁRIO -->
     <div id="tab-calendario" class="tab-content hidden">
       <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-          <h3 style="margin:0;"><i class="fas fa-calendar-alt"></i> Planejamento Mensal</h3>
-          <div style="display:flex; gap:10px; align-items:center;">
-            <button onclick="mudarMes(-1)" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-chevron-left"></i></button>
-            <strong id="mesAnoAtual" style="font-size: 1.1rem; min-width: 150px; text-align: center;"></strong>
-            <button onclick="mudarMes(1)" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-chevron-right"></i></button>
-          </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <button onclick="mudarMes(-1)" class="btn btn-primary"><i class="fas fa-chevron-left"></i></button>
+          <h3 id="mesAnoAtual" style="margin:0;"></h3>
+          <button onclick="mudarMes(1)" class="btn btn-primary"><i class="fas fa-chevron-right"></i></button>
         </div>
-        <div class="calendar-grid" id="calendarGrid">
-          <div class="calendar-header">DOM</div><div class="calendar-header">SEG</div>
-          <div class="calendar-header">TER</div><div class="calendar-header">QUA</div>
-          <div class="calendar-header">QUI</div><div class="calendar-header">SEX</div>
-          <div class="calendar-header">SAB</div>
-        </div>
+        <div id="calendarGrid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:5px;"></div>
       </div>
     </div>
 
-    <!-- TAB 4: PROGRAMAÇÃO DIÁRIA -->
+    <!-- TAB 4: PROGRAMAÇÃO -->
     <div id="tab-programacao" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-calendar-check"></i> Publicar Programação do Dia</h3>
-        <form id="formProgramacao">
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-            <div class="form-group">
-              <label>Data de Uso:</label>
-              <input type="date" id="dataProg" required onchange="validarEstoqueProgramacao()">
-            </div>
-            <div class="form-group">
-              <label>Café da Manhã:</label>
-              <select id="cargaCafe" required onchange="validarEstoqueProgramacao()"></select>
-            </div>
-            <div class="form-group">
-              <label>Almoço:</label>
-              <select id="cargaAlmoco" required onchange="validarEstoqueProgramacao()"></select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Jantar:</label>
-            <select id="cargaJanta" required onchange="validarEstoqueProgramacao()"></select>
-          </div>
-          <div id="alertaEstoqueProg" class="alert hidden"></div>
-          <button type="submit" id="btnPublicar" class="btn btn-success" style="width: 100%;">
-            <i class="fas fa-paper-plane"></i> Enviar para Cozinha & Despensa
-          </button>
-        </form>
+        <h3><i class="fas fa-paper-plane"></i> Publicar Programação Diária</h3>
+        <label>Data de Uso:</label><input type="date" id="dataProg">
+        <label>Café da Manhã:</label><select id="cargaCafe"></select>
+        <label>Almoço:</label><select id="cargaAlmoco"></select>
+        <label>Jantar:</label><select id="cargaJanta"></select>
+        <button onclick="publicarProgramacao()" class="btn btn-success" style="width:100%; margin-top:20px; padding:15px; font-size:1rem;">ENVIAR PARA COZINHA & DESPENSA</button>
       </div>
     </div>
 
     <!-- TAB 5: RELATÓRIOS -->
     <div id="tab-relatorios" class="tab-content hidden">
-      <div class="grid-cargas">
-        <div class="card">
-          <h3><i class="fas fa-chart-bar"></i> Top 10 Consumo</h3>
-          <div class="chart-container"><canvas id="chartTopConsumo"></canvas></div>
-        </div>
-        <div class="card">
-          <h3><i class="fas fa-chart-pie"></i> Categorias</h3>
-          <div class="chart-container"><canvas id="chartCategorias"></canvas></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 6: HISTÓRICO -->
-    <div id="tab-historico" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-history"></i> Log de Programações</h3>
-        <table id="tabelaHistorico">
-          <thead><tr><th>Data</th><th>Café</th><th>Almoço</th><th>Jantar</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <h3><i class="fas fa-chart-bar"></i> Consumo de Insumos por Item</h3>
+        <div style="height:400px;"><canvas id="chartTopConsumo"></canvas></div>
       </div>
     </div>
   </div>
 
-  <div id="printArea" class="hidden">
-    <div style="width: 210mm; font-family: 'Arial', sans-serif; color: #000; padding: 10mm;">
-      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">
+  <!-- AREA DE IMPRESSÃO (MODELO MILITAR) -->
+  <div id="printArea" style="display:none">
+    <div style="width: 210mm; padding: 10mm; font-family: Arial, sans-serif; color: #000;">
+      <table style="width:100%; border:2px solid #000; border-collapse:collapse;">
         <tr>
-          <td style="width: 30%; border: 1px solid #000; padding: 5px; text-align: center;"></td>
-          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold;" id="printData"></td>
-          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center;">
-            <div style="font-size: 10px; font-weight: bold;">PREVISÃO:</div>
-            <div style="font-size: 14px; font-weight: bold;" id="printPrevCount"></div>
-          </td>
-          <td style="width: 40%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 16px;" id="printTurno"></td>
+          <td style="border:1px solid #000; width:25%; padding:5px; text-align:center; font-weight:bold;" id="pData"></td>
+          <td style="border:1px solid #000; width:25%; padding:5px; text-align:center;">PREVISÃO: <span id="pPrev" style="font-weight:bold; font-size:18px;"></span></td>
+          <td style="border:1px solid #000; width:50%; padding:5px; text-align:center; font-weight:bold; font-size:20px;" id="pTurno"></td>
         </tr>
       </table>
-      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
+      <table style="width:100%; border:2px solid #000; border-collapse:collapse; border-top:none;">
         <tr>
-          <td style="width: 30%; border: 1px solid #000; padding: 15px 5px; text-align: center;">
-            <div style="font-size: 9px; font-weight: bold; text-decoration: underline;">RESP. PELA PREVISÃO</div>
-            <div style="font-size: 8px; font-weight: bold;">POSTO/GRAD-NOME DE GUERRA</div>
+          <td style="border:1px solid #000; width:30%; padding:15px 5px; text-align:center; font-size:10px;">
+            RESP. PELA PREVISÃO<br><br>____________________________<br>POSTO/GRAD-NOME DE GUERRA
           </td>
-          <td style="width: 70%; border: 1px solid #000; padding: 10px; text-align: center;">
-            <div style="font-size: 11px; font-weight: bold; text-decoration: underline;">FORNECIMENTO AUTORIZADO</div>
-            <div style="font-size: 12px; font-weight: bold; margin-top: 15px;">________________________________________________<br>Lira 2T Qocon NUT Adj SSUB</div>
+          <td style="border:1px solid #000; width:70%; padding:15px 5px; text-align:center;">
+            FORNECIMENTO AUTORIZADO<br><br>________________________________________________<br>Lira 2T Qocon NUT Adj SSUB
           </td>
         </tr>
       </table>
-      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
+      <table style="width:100%; border:2px solid #000; border-collapse:collapse; border-top:none;">
         <thead>
-          <tr style="text-align: center; font-size: 10px; font-weight: bold;">
-            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 35%;">MATERIAL / GÊNERO</td>
-            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 10%;">UND</td>
-            <td style="border: 1px solid #000; padding: 5px; width: 15%;">PREVISÃO</td>
-            <td colspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">AJUSTES</td>
-            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">SAÍDA REAL</td>
-          </tr>
-          <tr style="text-align: center; font-size: 9px; font-weight: bold;">
-            <td style="border: 1px solid #000;">INICIAL</td>
-            <td style="border: 1px solid #000;">EXTRA(+)</td>
-            <td style="border: 1px solid #000;">REDUÇÃO(-)</td>
+          <tr style="background:#eee; font-size:11px; font-weight:bold; text-align:center;">
+            <th style="border:1px solid #000; padding:5px; width:40%;">MATERIAL / GÊNERO ALIMENTÍCIO</th>
+            <th style="border:1px solid #000; padding:5px; width:10%;">UND</th>
+            <th style="border:1px solid #000; padding:5px; width:15%;">PREVISÃO INICIAL</th>
+            <th style="border:1px solid #000; padding:5px; width:15%;">AJUSTES (+/-)</th>
+            <th style="border:1px solid #000; padding:5px; width:20%;">SAÍDA REAL</th>
           </tr>
         </thead>
-        <tbody id="printItens" style="font-size: 11px;"></tbody>
+        <tbody id="pItens" style="font-size:12px;"></tbody>
       </table>
     </div>
   </div>
@@ -353,186 +229,259 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    let produtosCache = [];
-    let cargasCache = [];
-    let programacoesCache = [];
+    let produtosCache = [], cargasCache = [], programacoesCache = [], gruposAtuais = [], gruposManuais = [];
     let dataCalendario = new Date();
-    let charts = {};
-    let gruposAtuais = [];
-    let gruposManuais = [];
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
       document.getElementById('userDisplay').innerText = user.email.toUpperCase();
-      initNutricionista();
+      init();
     });
 
-    async function initNutricionista() {
+    async function init() {
       await carregarEstoque();
       await carregarCargas();
       await carregarProgramacoes();
       renderCalendario();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
+      document.getElementById('manualData').valueAsDate = new Date();
       document.getElementById('dataProg').valueAsDate = new Date();
     }
 
     async function carregarEstoque() {
       const snap = await db.collection('estoque').get();
       produtosCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderSelectorItens();
+      renderSelector();
     }
 
-    function switchTab(event, id) {
+    function switchTab(e, id) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.remove('hidden');
-      event.currentTarget.classList.add('active');
-      if (id === 'tab-relatorios') renderRelatorios();
+      e.currentTarget.classList.add('active');
+      if(id === 'tab-relatorios') renderRelatorios();
     }
 
+    // --- MANUAL ---
     function adicionarGrupoManual() {
       const nome = document.getElementById('manualNomePrato').value;
-      if (!nome) return alert("Digite o nome do prato!");
-      gruposManuais.push({ id: Date.now(), nome: nome, itens: [] });
+      if(!nome) return alert("Digite o nome do prato!");
+      gruposManuais.push({ nome, itens: [] });
       document.getElementById('manualNomePrato').value = '';
       renderGruposManuais();
     }
 
     function renderGruposManuais() {
       const container = document.getElementById('listaGruposManuais');
-      container.innerHTML = '';
-      gruposManuais.forEach((g, gIdx) => {
-        const bgColor = gIdx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-        let itensHtml = g.itens.map((it, iIdx) => `
-          <div style="display: grid; grid-template-columns: 1fr 80px 80px 40px; gap: 10px; margin-bottom: 5px;">
-            <input type="text" value="${it.item}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item = this.value">
-            <input type="text" value="${it.unidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].unidade = this.value">
-            <input type="number" value="${it.quantidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade = parseFloat(this.value)">
-            <button onclick="gruposManuais[${gIdx}].itens.splice(${iIdx},1); renderGruposManuais()" class="btn btn-danger">X</button>
+      container.innerHTML = gruposManuais.map((g, gIdx) => `
+        <div class="manual-group">
+          <div class="manual-group-header" style="background:${gIdx % 2 === 0 ? '#d9ead3' : '#f4cccc'}">
+            <span>${g.nome.toUpperCase()}</span>
+            <button onclick="gruposManuais.splice(${gIdx},1); renderGruposManuais()" class="btn btn-danger" style="padding:2px 8px;">X</button>
           </div>
-        `).join('');
-        container.innerHTML += `
-          <div style="border: 2px solid ${bgColor}; margin-bottom: 10px; border-radius: 8px; overflow: hidden;">
-            <div style="background: ${bgColor}; padding: 10px; font-weight: bold; display: flex; justify-content: space-between;">
-              <span>${g.nome}</span>
-              <button onclick="gruposManuais.splice(${gIdx},1); renderGruposManuais()">Remover</button>
-            </div>
-            <div style="padding: 10px;">${itensHtml}<button onclick="gruposManuais[${gIdx}].itens.push({item:'',quantidade:0,unidade:'kg'}); renderGruposManuais()">+ Item</button></div>
+          <div style="padding:10px;">
+            ${g.itens.map((it, iIdx) => `
+              <div class="manual-item-row">
+                <input type="text" value="${it.item}" placeholder="Insumo" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item = this.value">
+                <input type="text" value="${it.unidade}" placeholder="UND" onchange="gruposManuais[${gIdx}].itens[${iIdx}].unidade = this.value">
+                <input type="number" value="${it.quantidade}" placeholder="QTD" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade = parseFloat(this.value)">
+                <button onclick="gruposManuais[${gIdx}].itens.splice(${iIdx},1); renderGruposManuais()" class="btn btn-danger">X</button>
+              </div>
+            `).join('')}
+            <button onclick="gruposManuais[${gIdx}].itens.push({item:'',unidade:'kg',quantidade:0}); renderGruposManuais()" class="btn btn-primary" style="margin-top:10px; font-size:0.6rem;">+ INSUMO</button>
           </div>
-        `;
-      });
+        </div>
+      `).join('');
     }
 
     function imprimirGuiaManual() {
-      const data = document.getElementById('manualData').value;
-      document.getElementById('printData').innerText = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '';
-      document.getElementById('printPrevCount').innerText = document.getElementById('manualPrev').value;
-      document.getElementById('printTurno').innerText = document.getElementById('manualTurno').value;
-      const tbody = document.getElementById('printItens');
+      const dataRaw = document.getElementById('manualData').value;
+      document.getElementById('pData').innerText = dataRaw ? new Date(dataRaw + 'T12:00:00').toLocaleDateString('pt-BR') : '';
+      document.getElementById('pPrev').innerText = document.getElementById('manualPrev').value;
+      document.getElementById('pTurno').innerText = document.getElementById('manualTurno').value.toUpperCase();
+      
+      const tbody = document.getElementById('pItens');
       tbody.innerHTML = '';
       gruposManuais.forEach((g, idx) => {
-        const bgColor = idx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-        tbody.innerHTML += `<tr style="background:${bgColor}; font-weight:bold; text-align:center;"><td colspan="6">${g.nome.toUpperCase()}</td></tr>`;
+        tbody.innerHTML += `<tr style="background:${idx % 2 === 0 ? '#d9ead3' : '#f4cccc'}; font-weight:bold; text-align:center;"><td colspan="5" style="border:1px solid #000; padding:8px;">${g.nome.toUpperCase()}</td></tr>`;
         g.itens.forEach(it => {
-          tbody.innerHTML += `<tr><td>${it.item}</td><td style="text-align:center;">${it.unidade}</td><td style="text-align:center;">${it.quantidade}</td><td></td><td></td><td></td></tr>`;
+          tbody.innerHTML += `<tr>
+            <td style="border:1px solid #000; padding:5px;">${it.item}</td>
+            <td style="border:1px solid #000; text-align:center;">${it.unidade}</td>
+            <td style="border:1px solid #000; text-align:center;">${it.quantidade}</td>
+            <td style="border:1px solid #000;"></td>
+            <td style="border:1px solid #000;"></td>
+          </tr>`;
         });
       });
       window.print();
     }
 
+    async function salvarComoReceitaManual() {
+      const nome = prompt("Dê um nome para esta receita completa:");
+      if(!nome || !gruposManuais.length) return;
+      await db.collection('cargas').add({ nome, grupos: gruposManuais, dataCriacao: new Date(), usuario: auth.currentUser.email });
+      alert("Receita salva com sucesso!"); carregarCargas();
+    }
+
+    // --- CARGAS ---
     async function carregarCargas() {
-      const snap = await db.collection('cargas').get();
+      const snap = await db.collection('cargas').orderBy('dataCriacao', 'desc').get();
       cargasCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const grid = document.getElementById('gridCargas');
-      grid.innerHTML = '';
-      cargasCache.forEach(c => {
-        grid.innerHTML += `<div class="card-carga"><h4>${c.nome}</h4><button onclick="deletarCarga('${c.id}')">Excluir</button></div>`;
-      });
+      grid.innerHTML = cargasCache.map(c => `
+        <div class="card-carga">
+          <h4>${c.nome}</h4>
+          <p style="font-size:0.7rem; color:#64748b;">${c.grupos ? c.grupos.length + ' pratos' : (c.itens ? c.itens.length : 0) + ' itens'}</p>
+          <button onclick="deletarCarga('${c.id}')" class="btn btn-danger" style="padding:4px 8px; font-size:0.6rem;"><i class="fas fa-trash"></i></button>
+        </div>
+      `).join('');
       const selects = [document.getElementById('cargaCafe'), document.getElementById('cargaAlmoco'), document.getElementById('cargaJanta')];
       selects.forEach(s => {
-        s.innerHTML = '<option value="">Selecione...</option>';
-        cargasCache.forEach(c => s.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+        s.innerHTML = '<option value="">Selecione uma receita...</option>' + cargasCache.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
       });
     }
 
-    async function deletarCarga(id) { if(confirm("Deseja excluir?")) { await db.collection('cargas').doc(id).delete(); carregarCargas(); } }
+    async function deletarCarga(id) { if(confirm("Deseja excluir esta receita permanentemente?")) { await db.collection('cargas').doc(id).delete(); carregarCargas(); } }
 
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const data = new Uint8Array(ev.target.result);
-        const wb = XLSX.read(data, {type:'array'});
-        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        processarExcel(json);
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function processarExcel(dados) {
-      const keys = Object.keys(dados[0]);
-      let colItem = keys.find(k => /item|produto|gênero/i.test(k));
-      let colQtd = keys.find(k => /qtd|quantidade|previsão/i.test(k));
-      const itens = dados.map(d => ({ item: d[colItem], quantidade: parseFloat(d[colQtd]) })).filter(i => i.item && i.quantidade);
-      const container = document.getElementById('listaItensProcessados');
-      container.innerHTML = itens.map(i => `<div>${i.item}: ${i.quantidade}</div>`).join('');
-      document.getElementById('formularioProcessado').classList.remove('hidden');
-      window.itensImportados = itens;
-    }
-
-    async function salvarCargaImportada() {
-      const nome = document.getElementById('nomeCargaImport').value;
-      await db.collection('cargas').add({ nome, itens: window.itensImportados, dataCriacao: new Date() });
-      alert("Salvo!"); carregarCargas();
-    }
-
-    function renderCalendario() {
-      const grid = document.getElementById('calendarGrid');
-      const headers = Array.from(grid.querySelectorAll('.calendar-header'));
-      grid.innerHTML = ''; headers.forEach(h => grid.appendChild(h));
-      const ano = dataCalendario.getFullYear(); const mes = dataCalendario.getMonth();
-      document.getElementById('mesAnoAtual').innerText = new Intl.DateTimeFormat('pt-BR', {month:'long', year:'numeric'}).format(dataCalendario).toUpperCase();
-      const primeiroDia = new Date(ano, mes, 1).getDay(); const diasNoMes = new Date(ano, mes+1, 0).getDate();
-      for(let i=0; i<primeiroDia; i++) grid.innerHTML += '<div class="calendar-day" style="background:#f8fafc"></div>';
-      for(let d=1; d<=diasNoMes; d++) {
-        const dataIso = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const prog = programacoesCache.find(p => p.data === dataIso);
-        grid.innerHTML += `<div class="calendar-day"><span class="day-number">${d}</span>${prog ? '<div class="meal-entry">P</div>' : ''}</div>`;
-      }
-    }
-
-    function mudarMes(delta) { dataCalendario.setMonth(dataCalendario.getMonth()+delta); renderCalendario(); }
-    
-    async function carregarProgramacoes() {
-      const snap = await db.collection('programacoes').get();
-      programacoesCache = snap.docs.map(doc => doc.data());
-    }
-
-    function renderSelectorItens() {
-      const container = document.getElementById('selectorItens');
-      container.innerHTML = produtosCache.map(p => `<div><input type="checkbox" id="item-${p.id}" value="${p.id}"> ${p.nome} <input type="number" id="qtd-${p.id}" style="width:60px"></div>`).join('');
+    function renderSelector() {
+      document.getElementById('selectorItens').innerHTML = produtosCache.map(p => `
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px;">
+          <input type="checkbox" id="it-${p.id}" value="${p.id}"> 
+          <span style="flex:1; font-size:0.8rem;">${p.nome} <small>(${p.quantidade} em estoque)</small></span>
+          <input type="number" id="q-${p.id}" placeholder="Qtd" style="width:70px; margin:0;">
+        </div>
+      `).join('');
     }
 
     function adicionarGrupoPrato() {
       const nome = document.getElementById('nomePratoAtual').value;
       const itens = [];
       document.querySelectorAll('#selectorItens input[type="checkbox"]:checked').forEach(cb => {
-        const id = cb.value; const qtd = parseFloat(document.getElementById('qtd-'+id).value);
-        if(qtd) itens.push({ item: produtosCache.find(p=>p.id===id).nome, quantidade: qtd });
+        const id = cb.value; const q = parseFloat(document.getElementById('q-'+id).value);
+        const prod = produtosCache.find(p=>p.id===id);
+        if(q) itens.push({ item: prod.nome, quantidade: q, unidade: prod.unidade || 'kg' });
       });
-      gruposAtuais.push({ nome, itens });
-      document.getElementById('gruposCarga').innerHTML = gruposAtuais.map(g => `<div>${g.nome}</div>`).join('');
+      if(nome && itens.length) { 
+        gruposAtuais.push({ nome, itens }); 
+        document.getElementById('gruposCarga').innerHTML = gruposAtuais.map(g => `<div style="font-size:0.8rem; background:#e0f2fe; padding:5px; margin-bottom:2px; border-radius:4px;"><b>${g.nome}</b> (${g.itens.length} itens)</div>`).join('');
+        document.getElementById('nomePratoAtual').value = '';
+        document.querySelectorAll('#selectorItens input[type="checkbox"]').forEach(c => c.checked = false);
+      } else { alert("Dê um nome ao prato e selecione os itens com quantidades!"); }
     }
 
-    document.getElementById('formCarga').onsubmit = async (e) => {
-      e.preventDefault();
-      await db.collection('cargas').add({ nome: document.getElementById('nomeCarga').value, grupos: gruposAtuais, dataCriacao: new Date() });
-      alert("Salvo!"); carregarCargas();
-    };
+    async function salvarReceitaCompleta() {
+      const nome = document.getElementById('nomeCarga').value;
+      if(!nome || !gruposAtuais.length) return alert("Preencha o nome da carga e adicione pelo menos um grupo!");
+      await db.collection('cargas').add({ nome, grupos: gruposAtuais, dataCriacao: new Date(), usuario: auth.currentUser.email });
+      alert("Receita completa salva!"); gruposAtuais = []; document.getElementById('gruposCarga').innerHTML = ''; document.getElementById('nomeCarga').value = ''; carregarCargas();
+    }
 
+    // --- PROGRAMAÇÃO ---
+    async function publicarProgramacao() {
+      const data = document.getElementById('dataProg').value;
+      const ids = [document.getElementById('cargaCafe').value, document.getElementById('cargaAlmoco').value, document.getElementById('cargaJanta').value];
+      const turnos = ['CAFÉ', 'ALMOÇO', 'JANTA'];
+      if(!data) return alert("Selecione a data!");
+
+      for(let i=0; i<3; i++) {
+        if(!ids[i]) continue;
+        const carga = cargasCache.find(c => c.id === ids[i]);
+        const itensParaRequisicao = [];
+        if(carga.grupos) {
+          carga.grupos.forEach(g => {
+            g.itens.forEach(it => itensParaRequisicao.push({ ...it, detalhe: `${carga.nome} (${g.nome})` }));
+          });
+        } else if(carga.itens) {
+          carga.itens.forEach(it => itensParaRequisicao.push({ ...it, detalhe: carga.nome }));
+        }
+
+        for(const it of itensParaRequisicao) {
+          await db.collection('requisicoes').add({
+            item: it.item,
+            quantidade: it.quantidade,
+            unidade: it.unidade || 'kg',
+            data: data,
+            turno: turnos[i],
+            detalhe: it.detalhe,
+            status: 'Pendente',
+            dataCriacao: new Date()
+          });
+        }
+      }
+      await db.collection('programacoes').add({ data, cafe: ids[0], almoco: ids[1], janta: ids[2], dataCriacao: new Date() });
+      alert("Programação enviada com sucesso para Cozinha e Despensa!"); carregarProgramacoes(); renderCalendario();
+    }
+
+    // --- CALENDÁRIO ---
+    function renderCalendario() {
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+      const ano = dataCalendario.getFullYear(), mes = dataCalendario.getMonth();
+      document.getElementById('mesAnoAtual').innerText = new Intl.DateTimeFormat('pt-BR', {month:'long', year:'numeric'}).format(dataCalendario).toUpperCase();
+      const diasNoMes = new Date(ano, mes+1, 0).getDate();
+      for(let d=1; d<=diasNoMes; d++) {
+        const dataIso = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const temProg = programacoesCache.some(p => p.data === dataIso);
+        grid.innerHTML += `
+          <div style="background:white; padding:8px; min-height:80px; border:1px solid #e2e8f0; border-radius:4px; position:relative;">
+            <b style="color:#94a3b8; font-size:0.7rem;">${d}</b>
+            ${temProg ? '<div style="background:var(--success); color:white; font-size:0.5rem; padding:2px; border-radius:2px; margin-top:5px; text-align:center;">PROGRAMADO</div>' : ''}
+          </div>`;
+      }
+    }
+    function mudarMes(d) { dataCalendario.setMonth(dataCalendario.getMonth()+d); renderCalendario(); }
+    async function carregarProgramacoes() { const snap = await db.collection('programacoes').get(); programacoesCache = snap.docs.map(d => d.data()); }
+
+    // --- EXCEL ---
+    function handleFileSelect(e) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const keys = Object.keys(json[0]);
+        const colI = keys.find(k => /item|produto|gênero|material/i.test(k));
+        const colQ = keys.find(k => /qtd|quantidade|previsão|valor/i.test(k));
+        
+        if(!colI || !colQ) return alert("Não foi possível identificar as colunas de Item ou Quantidade automaticamente.");
+        
+        window.itensImportados = json.map(d => ({ 
+          item: d[colI], 
+          quantidade: parseFloat(String(d[colQ]).replace(',','.')), 
+          unidade: 'kg' 
+        })).filter(i => i.item && !isNaN(i.quantidade));
+        
+        document.getElementById('listaItensProcessados').innerHTML = window.itensImportados.map(i => `
+          <div style="font-size:0.8rem; padding:5px; border-bottom:1px solid #eee;">${i.item}: <b>${i.quantidade}</b></div>
+        `).join('');
+        document.getElementById('formularioProcessado').classList.remove('hidden');
+      };
+      reader.readAsArrayBuffer(e.target.files[0]);
+    }
+    async function salvarCargaImportada() {
+      const nome = document.getElementById('nomeCargaImport').value;
+      if(!nome) return alert("Dê um nome para a receita!");
+      await db.collection('cargas').add({ nome, itens: window.itensImportados, dataCriacao: new Date(), usuario: auth.currentUser.email });
+      alert("Receita importada salva!"); carregarCargas(); document.getElementById('formularioProcessado').classList.add('hidden');
+    }
+
+    // --- RELATÓRIOS ---
     async function renderRelatorios() {
-      const ctx1 = document.getElementById('chartTopConsumo').getContext('2d');
-      new Chart(ctx1, { type:'bar', data: { labels:['A','B'], datasets:[{label:'Uso', data:[10,20]}] } });
+      const snap = await db.collection('requisicoes').get();
+      const dados = snap.docs.map(d => d.data());
+      const resumo = {};
+      dados.forEach(d => resumo[d.item] = (resumo[d.item] || 0) + d.quantidade);
+      
+      const ctx = document.getElementById('chartTopConsumo').getContext('2d');
+      if(window.myChart) window.myChart.destroy();
+      window.myChart = new Chart(ctx, { 
+        type:'bar', 
+        data: { 
+          labels: Object.keys(resumo).slice(0, 15), 
+          datasets:[{ label:'Quantidade Consumida', data:Object.values(resumo).slice(0, 15), backgroundColor:'#2563eb' }] 
+        },
+        options: { maintainAspectRatio: false }
+      });
     }
   </script>
 </body>
