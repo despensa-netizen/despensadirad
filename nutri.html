@@ -98,7 +98,7 @@
       <button class="tab-btn" onclick="switchTab(event, 'tab-relatorios')"><i class="fas fa-chart-pie"></i> Relatórios</button>
     </div>
 
-    <!-- TAB 0: PREENCHER GUIA MANUAL (SOLICITAÇÃO DO USUÁRIO) -->
+    <!-- TAB 0: PREENCHER GUIA MANUAL -->
     <div id="tab-guia-manual" class="tab-content">
       <div class="card">
         <h3><i class="fas fa-file-signature"></i> Preenchimento Manual da Guia de Remessa</h3>
@@ -131,7 +131,6 @@
               <i class="fas fa-plus"></i> ADD PRATO
             </button>
           </div>
-
           <div id="listaGruposManuais"></div>
         </div>
 
@@ -146,27 +145,23 @@
       </div>
     </div>
 
-    <!-- TAB 1: IMPORTAÇÃO INTELIGENTE -->
+    <!-- TAB 1: IMPORTAÇÃO EXCEL -->
     <div id="tab-import" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-robot"></i> Importação com Mapeamento Inteligente</h3>
         <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
           O sistema agora identifica automaticamente as colunas de <strong>Item</strong> e <strong>Quantidade</strong> mesmo com nomes diferentes.
         </p>
-        
         <div class="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('fileInput').click()">
           <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px; display: block;"></i>
           <p style="margin: 0; font-weight: 600; color: var(--primary);">Arraste seu arquivo Excel/Calc aqui</p>
           <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #64748b;">Mapeamento automático de colunas ativado</p>
         </div>
         <input type="file" id="fileInput" style="display: none;" accept=".xlsx,.xls,.ods" onchange="handleFileSelect(event)">
-
         <div id="alertaImport" style="margin-top: 15px;"></div>
-
         <div id="formularioProcessado" class="hidden" style="margin-top: 20px;">
           <h3 style="margin-top: 0;"><i class="fas fa-list-check"></i> Itens Identificados</h3>
           <div id="listaItensProcessados"></div>
-          
           <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px;">
             <label style="display: block; font-weight: 600; margin-bottom: 10px;">Nome da Receita/Carga:</label>
             <input type="text" id="nomeCargaImport" placeholder="Ex: Almoço Especial - Terça">
@@ -178,7 +173,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: MONTAR CARGAS (COM VALIDAÇÃO) -->
+    <!-- TAB 2: MONTAR CARGAS -->
     <div id="tab-cargas" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-plus-circle"></i> Criar Nova Receita Agrupada</h3>
@@ -198,21 +193,17 @@
               </button>
             </div>
           </div>
-
           <div id="gruposCarga" style="margin-top:15px;"></div>
-
           <div class="form-group" style="margin-top:20px;">
             <label style="font-weight:600; font-size:0.8rem;">Pesquisar Itens no Estoque:</label>
             <input type="text" id="buscaItensCarga" placeholder="Filtrar produtos..." onkeyup="renderSelectorItens()">
             <div id="selectorItens" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #f8fafc;"></div>
           </div>
-          
           <button type="submit" class="btn btn-success" style="width: 100%; margin-top:10px;">
             <i class="fas fa-save"></i> SALVAR RECEITA COMPLETA
           </button>
         </form>
       </div>
-
       <div class="card">
         <h3><i class="fas fa-layer-group"></i> Receitas Salvas & Status de Estoque</h3>
         <div class="grid-cargas" id="gridCargas"></div>
@@ -230,14 +221,11 @@
             <button onclick="mudarMes(1)" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
-        
         <div class="calendar-grid" id="calendarGrid">
-          <!-- Cabeçalho dias da semana -->
           <div class="calendar-header">DOM</div><div class="calendar-header">SEG</div>
           <div class="calendar-header">TER</div><div class="calendar-header">QUA</div>
           <div class="calendar-header">QUI</div><div class="calendar-header">SEX</div>
           <div class="calendar-header">SAB</div>
-          <!-- Dias serão inseridos aqui -->
         </div>
       </div>
     </div>
@@ -265,26 +253,10 @@
             <label>Jantar:</label>
             <select id="cargaJanta" required onchange="validarEstoqueProgramacao()"></select>
           </div>
-          
           <div id="alertaEstoqueProg" class="alert hidden"></div>
-
           <button type="submit" id="btnPublicar" class="btn btn-success" style="width: 100%;">
             <i class="fas fa-paper-plane"></i> Enviar para Cozinha & Despensa
           </button>
-        </form>
-      </div>
-
-      <div class="card">
-        <h3><i class="fas fa-print"></i> Guia de Remessa (Impressão)</h3>
-        <form id="formGuia" style="display:flex; gap:15px;">
-          <input type="date" id="dataGuia" required style="margin:0">
-          <select id="turnoGuia" required style="margin:0">
-            <option value="">Selecione o Turno...</option>
-            <option value="CAFE">Café da Manhã</option>
-            <option value="ALMOCO">Almoço</option>
-            <option value="JANTA">Jantar</option>
-          </select>
-          <button type="submit" class="btn btn-warning"><i class="fas fa-print"></i> Gerar Guia</button>
         </form>
       </div>
     </div>
@@ -294,23 +266,12 @@
       <div class="grid-cargas">
         <div class="card">
           <h3><i class="fas fa-chart-bar"></i> Top 10 Itens mais Consumidos</h3>
-          <div class="chart-container">
-            <canvas id="chartTopConsumo"></canvas>
-          </div>
+          <div class="chart-container"><canvas id="chartTopConsumo"></canvas></div>
         </div>
         <div class="card">
           <h3><i class="fas fa-chart-pie"></i> Consumo por Categoria</h3>
-          <div class="chart-container">
-            <canvas id="chartCategorias"></canvas>
-          </div>
+          <div class="chart-container"><canvas id="chartCategorias"></canvas></div>
         </div>
-      </div>
-      <div class="card">
-        <h3><i class="fas fa-list"></i> Detalhamento de Saídas por Período</h3>
-        <table id="tabelaRelatorio">
-          <thead><tr><th>Item</th><th>Quantidade Total</th><th>Unidade</th><th>Última Saída</th></tr></thead>
-          <tbody></tbody>
-        </table>
       </div>
     </div>
 
@@ -329,52 +290,45 @@
   <!-- ÁREA DE IMPRESSÃO (ESTILO MILITAR FIEL) -->
   <div id="printArea" class="hidden">
     <div style="width: 210mm; font-family: 'Arial', sans-serif; color: #000; padding: 10mm;">
-      <!-- Cabeçalho Superior -->
-      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">
+      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">
         <tr>
           <td style="width: 30%; border: 1px solid #000; padding: 5px; text-align: center;"></td>
-          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 14px;" id="printData">05/06/2026</td>
+          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold;" id="printData"></td>
           <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center;">
-            <div style="font-size: 10px; font-weight: bold;">PREVISÃO:</div>
-            <div style="font-size: 14px; font-weight: bold;" id="printPrevCount">30</div>
+            <div style="font-size: 10px;">PREVISÃO:</div>
+            <div style="font-size: 14px; font-weight: bold;" id="printPrevCount"></div>
           </td>
-          <td style="width: 40%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 16px;" id="printTurno">Almoço</td>
+          <td style="width: 40%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 16px;" id="printTurno"></td>
         </tr>
       </table>
-
-      <!-- Bloco de Assinaturas e Autorização -->
       <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
         <tr>
-          <td style="width: 30%; border: 1px solid #000; padding: 15px 5px; text-align: center; vertical-align: middle;">
-            <div style="font-size: 9px; font-weight: bold; text-decoration: underline; margin-bottom: 15px;">RESP. PELA PREVISÃO</div>
-            <div style="font-size: 8px; font-weight: bold;">POSTO/GRAD-NOME DE GUERRA<br>RESPONSÁVEL PELO PEDIDO</div>
+          <td style="width: 30%; border: 1px solid #000; padding: 15px 5px; text-align: center;">
+            <div style="font-size: 9px; font-weight: bold; text-decoration: underline;">RESP. PELA PREVISÃO</div>
+            <div style="font-size: 8px;">POSTO/GRAD-NOME DE GUERRA<br>RESPONSÁVEL PELO PEDIDO</div>
           </td>
           <td style="width: 70%; border: 1px solid #000; padding: 10px; text-align: center;">
-            <div style="font-size: 11px; font-weight: bold; text-decoration: underline; margin-bottom: 10px;">FORNECIMENTO AUTORIZADO</div>
-            <div style="font-size: 12px; font-weight: bold; margin-top: 15px;">________________________________________________<br>Lira 2T Qocon NUT Adj SSUB</div>
+            <div style="font-size: 11px; font-weight: bold; text-decoration: underline;">FORNECIMENTO AUTORIZADO</div>
+            <div style="font-size: 12px; margin-top: 15px;">________________________________________________<br>Lira 2T Qocon NUT Adj SSUB</div>
           </td>
         </tr>
       </table>
-
-      <!-- Tabela de Itens -->
       <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
         <thead>
           <tr style="text-align: center; font-size: 10px; font-weight: bold;">
-            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 35%;">MATERIAL / GÊNERO<br>ALIMENTÍCIO</td>
+            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 35%;">MATERIAL / GÊNERO</td>
             <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 10%;">UND</td>
-            <td colspan="1" style="border: 1px solid #000; padding: 5px; width: 15%;">PREVISÃO</td>
+            <td style="border: 1px solid #000; padding: 5px; width: 15%;">PREVISÃO</td>
             <td colspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">AJUSTES</td>
             <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">SAÍDA REAL</td>
           </tr>
-          <tr style="text-align: center; font-size: 9px; font-weight: bold;">
-            <td style="border: 1px solid #000; padding: 3px;">INICIAL</td>
-            <td style="border: 1px solid #000; padding: 3px;">EXTRA(+)</td>
-            <td style="border: 1px solid #000; padding: 3px;">REDUÇÃO(-)</td>
+          <tr style="text-align: center; font-size: 9px;">
+            <td style="border: 1px solid #000;">INICIAL</td>
+            <td style="border: 1px solid #000;">EXTRA(+)</td>
+            <td style="border: 1px solid #000;">REDUÇÃO(-)</td>
           </tr>
         </thead>
-        <tbody id="printItens" style="font-size: 11px;">
-          <!-- Linhas serão inseridas aqui via JS -->
-        </tbody>
+        <tbody id="printItens" style="font-size: 11px;"></tbody>
       </table>
     </div>
   </div>
@@ -388,7 +342,6 @@
       messagingSenderId: "67257178512",
       appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
@@ -412,10 +365,8 @@
       await carregarCargas();
       await carregarProgramacoes();
       renderCalendario();
-      renderRelatorios();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
       document.getElementById('dataProg').valueAsDate = new Date();
-      document.getElementById('dataGuia').valueAsDate = new Date();
     }
 
     async function carregarEstoque() {
@@ -424,11 +375,9 @@
       renderSelectorItens();
     }
 
-    // --- SUGESTÃO 6: IMPORTAÇÃO INTELIGENTE ---
     function handleFileSelect(e) {
       const file = e.target.files[0];
       if (!file) return;
-      
       const reader = new FileReader();
       reader.onload = (event) => {
         const data = new Uint8Array(event.target.result);
@@ -440,69 +389,31 @@
       reader.readAsArrayBuffer(file);
     }
 
-    let colunasDisponiveis = [];
     let dadosBrutosExcel = [];
-
     function processarExcelInteligente(dados) {
       if (dados.length === 0) return;
       dadosBrutosExcel = dados;
-      
       const keys = Object.keys(dados[0]);
-      colunasDisponiveis = keys;
-
-      // Dicionário expandido para Subsistência Militar
-      let colItem = keys.find(k => /item|produto|nome|descrição|gênero|genero|material|especificação/i.test(k));
-      let colQtd = keys.find(k => /qtd|quantidade|quant|valor|prev|previsão|total/i.test(k));
-
-      if (!colItem || !colQtd) {
-        exibirSeletorColunas(keys);
-        return;
-      }
-
+      let colItem = keys.find(k => /item|produto|nome|descrição|gênero|genero|material/i.test(k));
+      let colQtd = keys.find(k => /qtd|quantidade|quant|valor|prev|previsão/i.test(k));
+      if (!colItem || !colQtd) { exibirSeletorColunas(keys); return; }
       mapearEProcessar(colItem, colQtd);
     }
 
     function exibirSeletorColunas(keys) {
       const alerta = document.getElementById('alertaImport');
       let options = keys.map(k => `<option value="${k}">${k}</option>`).join('');
-      
-      alerta.innerHTML = `
-        <div class="alert alert-warning">
-          <p><strong>Quase lá!</strong> Não identifiquei as colunas automaticamente. Por favor, selecione abaixo:</p>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-            <div>
-              <label style="font-size:0.7rem; font-weight:bold;">Coluna do ITEM:</label>
-              <select id="selColItem">${options}</select>
-            </div>
-            <div>
-              <label style="font-size:0.7rem; font-weight:bold;">Coluna da QTD:</label>
-              <select id="selColQtd">${options}</select>
-            </div>
-          </div>
-          <button onclick="confirmarMapeamentoManual()" class="btn btn-primary" style="width:100%; margin-top:10px;">Confirmar Seleção</button>
-        </div>
-      `;
+      alerta.innerHTML = `<div class="alert alert-warning"><p>Selecione as colunas:</p><select id="selColItem">${options}</select><select id="selColQtd">${options}</select><button onclick="confirmarMapeamentoManual()" class="btn btn-primary">OK</button></div>`;
     }
 
-    function confirmarMapeamentoManual() {
-      const colItem = document.getElementById('selColItem').value;
-      const colQtd = document.getElementById('selColQtd').value;
-      mapearEProcessar(colItem, colQtd);
-    }
+    function confirmarMapeamentoManual() { mapearEProcessar(document.getElementById('selColItem').value, document.getElementById('selColQtd').value); }
 
     function mapearEProcessar(colItem, colQtd) {
-      document.getElementById('alertaImport').innerHTML = `<div class="alert alert-success">Colunas identificadas: <b>${colItem}</b> e <b>${colQtd}</b></div>`;
-      
-      itensProcessados = dadosBrutosExcel.map(d => {
-        let valorRaw = String(d[colQtd] || 0);
-        // Limpeza de valores (remove R$, espaços, e trata vírgula decimal)
-        let valorLimpo = valorRaw.replace(/[R$\s]/g, '').replace(',', '.');
-        return {
-          item: String(d[colItem] || '').trim(),
-          quantidade: parseFloat(valorLimpo) || 0
-        };
-      }).filter(i => i.item && i.quantidade > 0);
-
+      document.getElementById('alertaImport').innerHTML = `<div class="alert alert-success">Colunas: ${colItem} e ${colQtd}</div>`;
+      itensProcessados = dadosBrutosExcel.map(d => ({
+        item: String(d[colItem] || '').trim(),
+        quantidade: parseFloat(String(d[colQtd] || 0).replace(',', '.')) || 0
+      })).filter(i => i.item && i.quantidade > 0);
       renderItensImportados();
     }
 
@@ -510,438 +421,77 @@
       const container = document.getElementById('listaItensProcessados');
       container.innerHTML = '';
       itensProcessados.forEach((it, idx) => {
-        const estoqueMatch = produtosCache.find(p => p.nome.toLowerCase().includes(it.item.toLowerCase()));
-        const status = estoqueMatch ? `<span class="stock-badge stock-ok">Estoque: ${estoqueMatch.quantidade}</span>` : `<span class="stock-badge stock-error">Não encontrado</span>`;
-        
-        container.innerHTML += `
-          <div class="item-lista">
-            <div style="flex:1"><strong>${it.item}</strong> ${status}</div>
-            <input type="number" value="${it.quantidade}" onchange="itensProcessados[${idx}].quantidade = parseFloat(this.value)" style="width:80px; margin:0">
-            <button onclick="itensProcessados.splice(${idx},1); renderItensImportados()" class="btn btn-danger"><i class="fas fa-times"></i></button>
-          </div>
-        `;
+        container.innerHTML += `<div class="item-lista">${it.item} - ${it.quantidade} <button onclick="itensProcessados.splice(${idx},1); renderItensImportados()">X</button></div>`;
       });
       document.getElementById('formularioProcessado').classList.remove('hidden');
-    }
-
-    async function salvarCargaImportada() {
-      const nome = document.getElementById('nomeCargaImport').value;
-      if (!nome) return alert("Dê um nome para a receita!");
-      
-      await db.collection('cargas').add({
-        nome,
-        itens: itensProcessados,
-        dataCriacao: new Date(),
-        usuario: auth.currentUser.email
-      });
-      alert("Receita salva com sucesso!");
-      document.getElementById('formularioProcessado').classList.add('hidden');
-      carregarCargas();
-    }
-
-    // --- SUGESTÃO 1: VALIDAÇÃO DE ESTOQUE ---
-    function verificarDisponibilidade(itens) {
-      let critico = false;
-      const log = itens.map(it => {
-        const p = produtosCache.find(prod => prod.nome.toLowerCase() === it.item.toLowerCase());
-        const saldo = p ? p.quantidade : 0;
-        const ok = saldo >= it.quantidade;
-        if (!ok) critico = true;
-        return { ...it, saldo, ok };
-      });
-      return { critico, log };
     }
 
     async function carregarCargas() {
       const snap = await db.collection('cargas').orderBy('dataCriacao', 'desc').get();
       cargasCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
       const grid = document.getElementById('gridCargas');
       const selects = [document.getElementById('cargaCafe'), document.getElementById('cargaAlmoco'), document.getElementById('cargaJanta')];
-      
       grid.innerHTML = '';
       selects.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
-
       cargasCache.forEach(carga => {
-        // Compatibilidade com versões anteriores (itens vs grupos)
-        let todosItens = [];
-        if (carga.grupos) {
-          carga.grupos.forEach(g => todosItens.push(...g.itens));
-        } else if (carga.itens) {
-          todosItens = carga.itens;
-        }
-
-        const validacao = verificarDisponibilidade(todosItens);
-        const statusHtml = validacao.critico 
-          ? `<span class="stock-badge stock-error">⚠️ Falta</span>`
-          : `<span class="stock-badge stock-ok">✅ OK</span>`;
-
-        let contentHtml = '';
-        if (carga.grupos) {
-          contentHtml = carga.grupos.map(g => `<strong>${g.nome}</strong>: ${g.itens.length} itens`).join('<br>');
-        } else {
-          contentHtml = `${todosItens.length} itens individuais`;
-        }
-
-        grid.innerHTML += `
-          <div class="card-carga" style="border-left-color: ${validacao.critico ? 'var(--danger)' : 'var(--success)'}">
-            <h4>${carga.nome} ${statusHtml}</h4>
-            <div class="card-carga-itens" style="margin-bottom:10px;">${contentHtml}</div>
-            <div class="card-carga-btn">
-              <button onclick="deletarCarga('${carga.id}')" class="btn btn-danger" style="padding:5px;"><i class="fas fa-trash"></i></button>
-            </div>
-          </div>
-        `;
-
+        grid.innerHTML += `<div class="card-carga"><h4>${carga.nome}</h4><button onclick="deletarCarga('${carga.id}')">X</button></div>`;
         selects.forEach(s => s.innerHTML += `<option value="${carga.id}">${carga.nome}</option>`);
       });
     }
 
-    function validarEstoqueProgramacao() {
-      const cafe = document.getElementById('cargaCafe').value;
-      const almoco = document.getElementById('cargaAlmoco').value;
-      const janta = document.getElementById('cargaJanta').value;
-      const alerta = document.getElementById('alertaEstoqueProg');
-      
-      let todosItens = [];
-      if(cafe) todosItens.push(...cargasCache.find(c => c.id === cafe).itens);
-      if(almoco) todosItens.push(...cargasCache.find(c => c.id === almoco).itens);
-      if(janta) todosItens.push(...cargasCache.find(c => c.id === janta).itens);
-
-      // Consolidar quantidades
-      const consolidado = {};
-      todosItens.forEach(i => {
-        consolidado[i.item] = (consolidado[i.item] || 0) + i.quantidade;
-      });
-
-      const listaFinal = Object.keys(consolidado).map(k => ({ item: k, quantidade: consolidado[k] }));
-      const validacao = verificarDisponibilidade(listaFinal);
-
-      if (validacao.critico) {
-        alerta.innerHTML = `<strong>Atenção:</strong> Existem itens insuficientes no estoque para esta programação!`;
-        alerta.className = "alert alert-danger";
-        alerta.classList.remove('hidden');
-      } else if (todosItens.length > 0) {
-        alerta.innerHTML = `Estoque verificado: Todos os itens estão disponíveis.`;
-        alerta.className = "alert alert-success";
-        alerta.classList.remove('hidden');
-      } else {
-        alerta.classList.add('hidden');
-      }
-    }
-
-    // --- SUGESTÃO 4: CALENDÁRIO MENSAL ---
-    async function carregarProgramacoes() {
-      const snap = await db.collection('programacoes').get();
-      programacoesCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-
-    function renderCalendario() {
-      const grid = document.getElementById('calendarGrid');
-      const mesAno = document.getElementById('mesAnoAtual');
-      
-      // Limpar apenas os dias (manter cabeçalho)
-      const headers = Array.from(grid.querySelectorAll('.calendar-header'));
-      grid.innerHTML = '';
-      headers.forEach(h => grid.appendChild(h));
-
-      const ano = dataCalendario.getFullYear();
-      const mes = dataCalendario.getMonth();
-      mesAno.innerText = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(dataCalendario).toUpperCase();
-
-      const primeiroDia = new Date(ano, mes, 1).getDay();
-      const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-
-      // Espaços vazios
-      for (let i = 0; i < primeiroDia; i++) {
-        grid.innerHTML += `<div class="calendar-day" style="background:#f8fafc"></div>`;
-      }
-
-      // Dias do mês
-      for (let d = 1; d <= diasNoMes; d++) {
-        const dataIso = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const prog = programacoesCache.find(p => p.data === dataIso);
-        
-        let htmlProg = '';
-        if (prog) {
-          const c = cargasCache.find(x => x.id === prog.cafe)?.nome || 'Carga';
-          const a = cargasCache.find(x => x.id === prog.almoco)?.nome || 'Carga';
-          const j = cargasCache.find(x => x.id === prog.janta)?.nome || 'Carga';
-          htmlProg = `
-            <div class="meal-entry" title="Café: ${c}">☕ ${c}</div>
-            <div class="meal-entry" style="border-left-color:var(--success)" title="Almoço: ${a}">☀️ ${a}</div>
-            <div class="meal-entry" style="border-left-color:var(--warning)" title="Jantar: ${j}">🌙 ${j}</div>
-          `;
-        }
-
-        grid.innerHTML += `
-          <div class="calendar-day">
-            <span class="day-number">${d}</span>
-            ${htmlProg}
-          </div>
-        `;
-      }
-    }
-
-    function mudarMes(delta) {
-      dataCalendario.setMonth(dataCalendario.getMonth() + delta);
-      renderCalendario();
-    }
-
-    // --- SUGESTÃO 5: RELATÓRIOS ---
-    async function renderRelatorios() {
-      const snap = await db.collection('requisicoes').get();
-      const reqs = snap.docs.map(doc => doc.data());
-      
-      const consumoPorItem = {};
-      const consumoPorCat = {};
-
-      reqs.forEach(r => {
-        consumoPorItem[r.item] = (consumoPorItem[r.item] || 0) + r.quantidade;
-        
-        const prod = produtosCache.find(p => p.nome === r.item);
-        const cat = prod ? prod.categoria : 'Outros';
-        consumoPorCat[cat] = (consumoPorCat[cat] || 0) + r.quantidade;
-      });
-
-      // Gráfico Top 10
-      const top10 = Object.entries(consumoPorItem)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-
-      renderChart('chartTopConsumo', 'bar', {
-        labels: top10.map(x => x[0]),
-        datasets: [{ label: 'Qtd Total', data: top10.map(x => x[1]), backgroundColor: '#2563eb' }]
-      });
-
-      // Gráfico Categorias
-      renderChart('chartCategorias', 'doughnut', {
-        labels: Object.keys(consumoPorCat),
-        datasets: [{ data: Object.values(consumoPorCat), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'] }]
-      });
-
-      // Tabela
-      const tbody = document.querySelector('#tabelaRelatorio tbody');
-      tbody.innerHTML = '';
-      Object.entries(consumoPorItem).forEach(([item, qtd]) => {
-        const prod = produtosCache.find(p => p.nome === item);
-        tbody.innerHTML += `<tr><td>${item}</td><td>${qtd.toFixed(2)}</td><td>${prod ? prod.unidade : 'un'}</td><td>-</td></tr>`;
-      });
-    }
-
-    function renderChart(id, type, data) {
-      if (charts[id]) charts[id].destroy();
-      const ctx = document.getElementById(id).getContext('2d');
-      charts[id] = new Chart(ctx, { type, data, options: { maintainAspectRatio: false } });
-    }
-
-    // --- FUNÇÕES AUXILIARES ---
-    function renderSelectorItens() {
-      const container = document.getElementById('selectorItens');
-      const busca = document.getElementById('buscaItensCarga').value.toLowerCase();
-      container.innerHTML = '';
-      
-      produtosCache.filter(p => p.nome.toLowerCase().includes(busca)).forEach(p => {
-        container.innerHTML += `
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px; padding:5px; border-bottom:1px solid #eee;">
-            <input type="checkbox" id="item-${p.id}" value="${p.id}" onchange="toggleQtdInput('${p.id}')">
-            <label for="item-${p.id}" style="flex:1; font-size:0.8rem;">${p.nome} <small>(${p.quantidade} em estoque)</small></label>
-            <input type="number" id="qtd-${p.id}" placeholder="Qtd" step="0.01" style="width:70px; margin:0; display:none;">
-          </div>
-        `;
-      });
-    }
-
-    function toggleQtdInput(id) {
-      const cb = document.getElementById('item-' + id);
-      const input = document.getElementById('qtd-' + id);
-      input.style.display = cb.checked ? 'block' : 'none';
-    }
-
     function adicionarGrupoPrato() {
       const nomeGrupo = document.getElementById('nomePratoAtual').value;
-      if (!nomeGrupo) return alert("Digite o nome do prato!");
-      
-      const itensSelecionados = [];
+      if (!nomeGrupo) return alert("Nome do prato!");
+      const itens = [];
       document.querySelectorAll('#selectorItens input[type="checkbox"]:checked').forEach(cb => {
         const id = cb.value;
         const qtd = parseFloat(document.getElementById('qtd-' + id).value);
         const prod = produtosCache.find(p => p.id === id);
-        if (qtd > 0) {
-          itensSelecionados.push({ item: prod.nome, quantidade: qtd, unidade: prod.unidade || 'kg' });
-        }
+        if (qtd > 0) itens.push({ item: prod.nome, quantidade: qtd, unidade: prod.unidade || 'kg' });
       });
-
-      if (itensSelecionados.length === 0) return alert("Selecione itens para este prato!");
-
-      gruposAtuais.push({ nome: nomeGrupo, itens: itensSelecionados });
+      if (itens.length === 0) return alert("Selecione itens!");
+      gruposAtuais.push({ nome: nomeGrupo, itens });
       renderGruposCarga();
-      
-      // Limpar campos
       document.getElementById('nomePratoAtual').value = '';
-      document.querySelectorAll('#selectorItens input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-        document.getElementById('qtd-' + cb.value).style.display = 'none';
-      });
     }
 
     function renderGruposCarga() {
-      const container = document.getElementById('gruposCarga');
-      container.innerHTML = '';
-      gruposAtuais.forEach((g, idx) => {
-        container.innerHTML += `
-          <div style="background:#fff; border:1px solid var(--accent); border-radius:8px; padding:10px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent); margin-bottom:5px;">
-              <span>${g.nome}</span>
-              <button type="button" onclick="gruposAtuais.splice(${idx},1); renderGruposCarga()" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button>
-            </div>
-            <div style="font-size:0.75rem; color:#64748b;">
-              ${g.itens.map(i => `${i.item} (${i.quantidade} ${i.unidade})`).join(' | ')}
-            </div>
-          </div>
-        `;
-      });
+      document.getElementById('gruposCarga').innerHTML = gruposAtuais.map(g => `<div>${g.nome} (${g.itens.length} itens)</div>`).join('');
     }
 
     document.getElementById('formCarga').onsubmit = async (e) => {
       e.preventDefault();
-      const nome = document.getElementById('nomeCarga').value;
-      if (gruposAtuais.length === 0) return alert("Adicione pelo menos um prato à carga!");
-      
-      await db.collection('cargas').add({ 
-        nome, 
-        grupos: gruposAtuais, 
-        dataCriacao: new Date(), 
-        usuario: auth.currentUser.email 
-      });
-      
-      alert("Receita Completa salva!");
-      gruposAtuais = [];
-      renderGruposCarga();
-      e.target.reset();
-      carregarCargas();
+      if (gruposAtuais.length === 0) return alert("Adicione pratos!");
+      await db.collection('cargas').add({ nome: document.getElementById('nomeCarga').value, grupos: gruposAtuais, dataCriacao: new Date(), usuario: auth.currentUser.email });
+      alert("Salvo!"); gruposAtuais = []; renderGruposCarga(); e.target.reset(); carregarCargas();
     };
 
-    document.getElementById('formProgramacao').onsubmit = async (e) => {
-      e.preventDefault();
-      const data = document.getElementById('dataProg').value;
-      const cafeId = document.getElementById('cargaCafe').value;
-      const almocoId = document.getElementById('cargaAlmoco').value;
-      const jantaId = document.getElementById('cargaJanta').value;
+    function adicionarGrupoManual() {
+      const nome = document.getElementById('manualNomePrato').value;
+      if (!nome) return alert("Nome do prato!");
+      gruposManuais.push({ id: Date.now(), nome, itens: [] });
+      document.getElementById('manualNomePrato').value = '';
+      renderGruposManuais();
+    }
 
-      const turnos = [
-        { id: cafeId, tag: 'CAFE', nome: 'Café' },
-        { id: almocoId, tag: 'ALMOCO', nome: 'Almoço' },
-        { id: jantaId, tag: 'JANTA', nome: 'Jantar' }
-      ];
+    function renderGruposManuais() {
+      const container = document.getElementById('listaGruposManuais');
+      container.innerHTML = gruposManuais.map((g, gIdx) => `
+        <div style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
+          <strong>${g.nome}</strong>
+          ${g.itens.map((it, iIdx) => `<div><input value="${it.item}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item=this.value"> <input type="number" value="${it.quantidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade=parseFloat(this.value)"></div>`).join('')}
+          <button onclick="gruposManuais[${gIdx}].itens.push({item:'',quantidade:0,unidade:'kg'}); renderGruposManuais()">+ Item</button>
+        </div>
+      `).join('');
+    }
 
-      for (const t of turnos) {
-        const carga = cargasCache.find(c => c.id === t.id);
-        if (!carga) continue;
-
-        let itensParaEnviar = [];
-        if (carga.grupos) {
-          carga.grupos.forEach(g => {
-            g.itens.forEach(it => {
-              itensParaEnviar.push({ ...it, detalhe: `${t.nome}: ${carga.nome} (${g.nome})` });
-            });
-          });
-        } else {
-          carga.itens.forEach(it => {
-            itensParaEnviar.push({ ...it, detalhe: `${t.nome}: ${carga.nome}` });
-          });
-        }
-
-        for (const it of itensParaEnviar) {
-          await db.collection('requisicoes').add({
-            item: it.item,
-            quantidade: it.quantidade,
-            turno: t.tag,
-            detalhe: it.detalhe,
-            dataUso: data,
-            status: 'pendente',
-            dataSolicitacao: new Date()
-          });
-        }
-      }
-
-      await db.collection('programacoes').add({
-        data, cafe: cafeId, almoco: almocoId, janta: jantaId,
-        dataCriacao: new Date(), usuario: auth.currentUser.email
-      });
-
-      alert("Programação enviada com sucesso!");
-      initNutricionista();
-    };
-
-    document.getElementById('formGuia').onsubmit = async (e) => {
-      e.preventDefault();
-      const data = document.getElementById('dataGuia').value;
-      const turnoTag = document.getElementById('turnoGuia').value;
-      
-      // Buscar a programação do dia para saber qual carga foi usada
-      const progSnap = await db.collection('programacoes').where('data', '==', data).get();
-      if (progSnap.empty) return alert("Nenhuma programação encontrada para esta data!");
-      
-      const prog = progSnap.docs[0].data();
-      const cargaId = turnoTag === 'CAFE' ? prog.cafe : turnoTag === 'ALMOCO' ? prog.almoco : prog.janta;
-      const carga = cargasCache.find(c => c.id === cargaId);
-
-      if (!carga) return alert("Carga não encontrada!");
-
-      document.getElementById('printData').innerText = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR');
-      document.getElementById('printTurno').innerText = turnoTag === 'CAFE' ? 'Café da Manhã' : turnoTag === 'ALMOCO' ? 'Almoço' : 'Jantar';
-      
-      const tbody = document.getElementById('printItens');
-      tbody.innerHTML = '';
-
-      if (carga.grupos) {
-        carga.grupos.forEach((g, idx) => {
-          // Linha de Cabeçalho do Prato (Verde ou Coral)
-          const bgColor = idx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-          tbody.innerHTML += `
-            <tr style="background: ${bgColor}; font-weight: bold; text-align: center;">
-              <td colspan="6" style="border: 1px solid #000; padding: 5px;">${g.nome}</td>
-            </tr>
-          `;
-          // Itens do Prato
-          g.itens.forEach(it => {
-            tbody.innerHTML += `
-              <tr>
-                <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
-                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade || 'kg'}</td>
-                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
-                <td style="border: 1px solid #000; padding: 5px;"></td>
-                <td style="border: 1px solid #000; padding: 5px;"></td>
-                <td style="border: 1px solid #000; padding: 5px;"></td>
-              </tr>
-            `;
-          });
-        });
-      } else {
-        // Fallback para cargas antigas sem grupos
-        carga.itens.forEach(it => {
-          tbody.innerHTML += `
-            <tr>
-              <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade || 'kg'}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-            </tr>
-          `;
-        });
-      }
-
+    function imprimirGuiaManual() {
+      const data = document.getElementById('manualData').value;
+      document.getElementById('printData').innerText = data;
+      document.getElementById('printPrevCount').innerText = document.getElementById('manualPrev').value;
+      document.getElementById('printTurno').innerText = document.getElementById('manualTurno').value;
+      document.getElementById('printItens').innerHTML = gruposManuais.map(g => `<tr><td colspan="6" style="background:#eee; font-weight:bold;">${g.nome}</td></tr>` + g.itens.map(it => `<tr><td>${it.item}</td><td>${it.unidade}</td><td>${it.quantidade}</td><td></td><td></td><td></td></tr>`).join('')).join('');
       window.print();
-    };
-
-    async function deletarCarga(id) {
-      if (confirm("Deletar esta receita?")) {
-        await db.collection('cargas').doc(id).delete();
-        carregarCargas();
-      }
     }
 
     function switchTab(event, id) {
@@ -949,1194 +499,15 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.remove('hidden');
       event.currentTarget.classList.add('active');
-      if (id === 'tab-relatorios') renderRelatorios();
     }
 
-    // --- FUNCIONALIDADE MANUAL (SOLICITAÇÃO USUÁRIO) ---
-    function adicionarGrupoManual() {
-      const nome = document.getElementById('manualNomePrato').value;
-      if (!nome) return alert("Digite o nome do prato!");
-      
-      const novoGrupo = {
-        id: Date.now(),
-        nome: nome,
-        itens: []
-      };
-      
-      gruposManuais.push(novoGrupo);
-      document.getElementById('manualNomePrato').value = '';
-      renderGruposManuais();
-    }
-
-    function adicionarItemAoGrupoManual(grupoId) {
-      const grupo = gruposManuais.find(g => g.id === grupoId);
-      grupo.itens.push({ item: '', quantidade: 0, unidade: 'kg' });
-      renderGruposManuais();
-    }
-
-    function renderGruposManuais() {
-      const container = document.getElementById('listaGruposManuais');
-      container.innerHTML = '';
-      
-      gruposManuais.forEach((g, gIdx) => {
-        const bgColor = gIdx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-        let itensHtml = g.itens.map((it, iIdx) => `
-          <div style="display: grid; grid-template-columns: 1fr 80px 80px 40px; gap: 10px; margin-bottom: 5px; align-items: center;">
-            <input type="text" placeholder="Nome do Insumo" value="${it.item}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item = this.value" style="margin:0">
-            <input type="text" placeholder="UND" value="${it.unidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].unidade = this.value" style="margin:0">
-            <input type="number" placeholder="QTD" value="${it.quantidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade = parseFloat(this.value)" style="margin:0">
-            <button onclick="gruposManuais[${gIdx}].itens.splice(${iIdx},1); renderGruposManuais()" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button>
-          </div>
-        `).join('');
-
-        container.innerHTML += `
-          <div style="border: 2px solid ${bgColor}; border-radius: 8px; margin-bottom: 15px; overflow: hidden;">
-            <div style="background: ${bgColor}; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-              <span>${g.nome}</span>
-              <button onclick="gruposManuais.splice(${gIdx},1); renderGruposManuais()" class="btn btn-danger" style="padding: 5px 10px; font-size: 0.6rem;">REMOVER PRATO</button>
-            </div>
-            <div style="padding: 10px; background: #fff;">
-              ${itensHtml}
-              <button onclick="adicionarItemAoGrupoManual(${g.id})" class="btn btn-primary" style="width: 100%; margin-top: 5px; padding: 5px; font-size: 0.7rem;">
-                <i class="fas fa-plus"></i> ADICIONAR INSUMO AO ${g.nome.toUpperCase()}
-              </button>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    function imprimirGuiaManual() {
-      if (gruposManuais.length === 0) return alert("Adicione pelo menos um prato!");
-      
-      const data = document.getElementById('manualData').value;
-      const prev = document.getElementById('manualPrev').value;
-      const turno = document.getElementById('manualTurno').value;
-
-      document.getElementById('printData').innerText = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '--/--/----';
-      document.getElementById('printPrevCount').innerText = prev;
-      document.getElementById('printTurno').innerText = turno;
-
-      const tbody = document.getElementById('printItens');
-      tbody.innerHTML = '';
-
-      gruposManuais.forEach((g, idx) => {
-        const bgColor = idx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-        tbody.innerHTML += `
-          <tr style="background: ${bgColor}; font-weight: bold; text-align: center;">
-            <td colspan="6" style="border: 1px solid #000; padding: 5px;">${g.nome.toUpperCase()}</td>
-          </tr>
-        `;
-        g.itens.forEach(it => {
-          tbody.innerHTML += `
-            <tr>
-              <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-            </tr>
-          `;
-        });
-      });
-
-      window.print();
-    }
-
-    async function salvarComoReceitaManual() {
-      const nomeCarga = prompt("Dê um nome para esta receita completa (ex: Almoço de Terça):");
-      if (!nomeCarga) return;
-
-      await db.collection('cargas').add({
-        nome: nomeCarga,
-        grupos: gruposManuais,
-        dataCriacao: new Date(),
-        usuario: auth.currentUser.email
-      });
-      alert("Receita salva com sucesso na galeria!");
-      carregarCargas();
-    }
-
-    // Drag & Drop
-    function handleDragOver(e) { e.preventDefault(); e.target.classList.add('dragover'); }
-    function handleDragLeave(e) { e.target.classList.remove('dragover'); }
-    function handleDrop(e) {
-      e.preventDefault();
-      e.target.classList.remove('dragover');
-      handleFileSelect({ target: { files: e.dataTransfer.files } });
-    }
-  </script>
-</body>
-</html>
-<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>EstoqueSync Nutrição PRO — Evoluído</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    :root {
-      --primary: #0f172a; --accent: #2563eb; --bg: #f1f5f9; --card: #ffffff;
-      --text: #1e293b; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-      --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --military: #334155;
-    }
-
-    body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
-    nav { background: var(--military); color: white; padding: 0.8rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-    
-    .container { max-width: 1400px; margin: 1.5rem auto; padding: 0 1rem; }
-    
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border); overflow-x: auto; background: white; padding: 10px 10px 0 10px; border-radius: 12px 12px 0 0; }
-    .tab-btn { padding: 12px 20px; cursor: pointer; border: none; background: none; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; font-size: 0.85rem; text-transform: uppercase; white-space: nowrap; }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-    .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 1.5rem; }
-    .card h3 { margin: 0 0 15px 0; display: flex; align-items: center; gap: 10px; color: var(--military); font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--bg); padding-bottom: 10px; }
-
-    .btn { cursor: pointer; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; font-size: 0.75rem; text-transform: uppercase; }
-    .btn-primary { background: var(--accent); color: white; }
-    .btn-success { background: var(--success); color: white; }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-warning { background: var(--warning); color: #92400e; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    input, select { width: 100%; padding: 10px; margin: 5px 0 12px 0; border-radius: 8px; border: 1px solid var(--border); box-sizing: border-box; font-family: inherit; font-size: 0.85rem; }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th { text-align: left; padding: 12px; background: #f8fafc; font-size: 0.7rem; color: #64748b; text-transform: uppercase; border-bottom: 2px solid var(--border); }
-    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-
-    .grid-cargas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
-    .card-carga { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); border-left: 4px solid var(--accent); position: relative; }
-    .card-carga h4 { margin: 0 0 10px 0; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
-    .card-carga-itens { font-size: 0.8rem; color: #64748b; line-height: 1.6; }
-    .card-carga-btn { display: flex; gap: 8px; margin-top: 12px; }
-    
-    .stock-badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-    .stock-ok { background: #dcfce7; color: #166534; }
-    .stock-error { background: #fee2e2; color: #991b1b; }
-
-    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: var(--border); border: 1px solid var(--border); }
-    .calendar-day { background: white; min-height: 120px; padding: 10px; position: relative; }
-    .calendar-header { background: var(--military); color: white; text-align: center; padding: 10px; font-weight: bold; font-size: 0.8rem; }
-    .day-number { font-weight: 800; color: #94a3b8; margin-bottom: 5px; display: block; }
-    .meal-entry { font-size: 0.65rem; padding: 4px; border-radius: 4px; margin-bottom: 3px; border-left: 3px solid var(--accent); background: #f0f9ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    .chart-container { height: 300px; position: relative; }
-
-    .hidden { display: none !important; }
-    .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; }
-    .upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: #f0f9ff; }
-
-    @media print {
-      body * { visibility: hidden; }
-      #printArea, #printArea * { visibility: visible; }
-      #printArea { position: absolute; left: 0; top: 0; width: 100%; }
-    }
-  </style>
-</head>
-<body>
-
-  <nav>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <i class="fas fa-utensils fa-lg"></i>
-      <h2 style="margin:0; font-size: 1.1rem; letter-spacing: 1px;">ESTOQUESYNC <span style="font-weight:300;">NUTRIÇÃO PRO</span></h2>
-    </div>
-    <div style="display:flex; align-items:center; gap:15px;">
-      <span id="userDisplay" style="font-size: 0.75rem; font-weight: 600;"></span>
-      <button id="logoutBtn" class="btn" style="background:rgba(255,255,255,0.1); color:white;">SAIR</button>
-    </div>
-  </nav>
-
-  <div class="container">
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'tab-guia-manual')"><i class="fas fa-pen-to-square"></i> Preencher Guia Manual</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-import')"><i class="fas fa-file-excel"></i> Importação Excel</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-cargas')"><i class="fas fa-layer-group"></i> Receitas & Cargas</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-calendario')"><i class="fas fa-calendar-alt"></i> Calendário Mensal</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-calendar-check"></i> Programação Diária</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tab-relatorios')"><i class="fas fa-chart-pie"></i> Relatórios</button>
-    </div>
-
-    <!-- TAB 0: PREENCHER GUIA MANUAL (SOLICITAÇÃO DO USUÁRIO) -->
-    <div id="tab-guia-manual" class="tab-content">
-      <div class="card">
-        <h3><i class="fas fa-file-signature"></i> Preenchimento Manual da Guia de Remessa</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px;">
-          <div>
-            <label style="font-size: 0.75rem; font-weight: bold;">DATA:</label>
-            <input type="date" id="manualData" style="margin:0">
-          </div>
-          <div>
-            <label style="font-size: 0.75rem; font-weight: bold;">PREVISÃO (PESSOAS):</label>
-            <input type="number" id="manualPrev" value="30" style="margin:0">
-          </div>
-          <div>
-            <label style="font-size: 0.75rem; font-weight: bold;">TURNO:</label>
-            <select id="manualTurno" style="margin:0">
-              <option value="Café da Manhã">Café da Manhã</option>
-              <option value="Almoço" selected>Almoço</option>
-              <option value="Jantar">Jantar</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="areaManualAgrupada" style="border: 1px solid var(--border); border-radius: 12px; padding: 15px; background: white;">
-          <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: end;">
-            <div style="flex: 1;">
-              <label style="font-size: 0.7rem; font-weight: bold;">NOME DO PRATO (EX: ARROZ, GOULASH):</label>
-              <input type="text" id="manualNomePrato" placeholder="Digite o nome do prato..." style="margin:0">
-            </div>
-            <button onclick="adicionarGrupoManual()" class="btn btn-primary" style="height: 42px;">
-              <i class="fas fa-plus"></i> ADD PRATO
-            </button>
-          </div>
-
-          <div id="listaGruposManuais"></div>
-        </div>
-
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-          <button onclick="imprimirGuiaManual()" class="btn btn-warning" style="flex: 1; font-size: 1rem; padding: 15px;">
-            <i class="fas fa-print"></i> GERAR E IMPRIMIR GUIA AGORA
-          </button>
-          <button onclick="salvarComoReceitaManual()" class="btn btn-success" style="flex: 1; font-size: 1rem; padding: 15px;">
-            <i class="fas fa-save"></i> SALVAR COMO RECEITA
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 1: IMPORTAÇÃO INTELIGENTE -->
-    <div id="tab-import" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-robot"></i> Importação com Mapeamento Inteligente</h3>
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">
-          O sistema agora identifica automaticamente as colunas de <strong>Item</strong> e <strong>Quantidade</strong> mesmo com nomes diferentes.
-        </p>
-        
-        <div class="upload-area" id="uploadArea" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('fileInput').click()">
-          <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px; display: block;"></i>
-          <p style="margin: 0; font-weight: 600; color: var(--primary);">Arraste seu arquivo Excel/Calc aqui</p>
-          <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #64748b;">Mapeamento automático de colunas ativado</p>
-        </div>
-        <input type="file" id="fileInput" style="display: none;" accept=".xlsx,.xls,.ods" onchange="handleFileSelect(event)">
-
-        <div id="alertaImport" style="margin-top: 15px;"></div>
-
-        <div id="formularioProcessado" class="hidden" style="margin-top: 20px;">
-          <h3 style="margin-top: 0;"><i class="fas fa-list-check"></i> Itens Identificados</h3>
-          <div id="listaItensProcessados"></div>
-          
-          <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px;">
-            <label style="display: block; font-weight: 600; margin-bottom: 10px;">Nome da Receita/Carga:</label>
-            <input type="text" id="nomeCargaImport" placeholder="Ex: Almoço Especial - Terça">
-            <button onclick="salvarCargaImportada()" class="btn btn-success" style="width: 100%;">
-              <i class="fas fa-save"></i> Salvar Receita no Banco
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: MONTAR CARGAS (COM VALIDAÇÃO) -->
-    <div id="tab-cargas" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-plus-circle"></i> Criar Nova Receita Agrupada</h3>
-        <form id="formCarga">
-          <div style="display:grid; grid-template-columns: 1fr 1fr 200px; gap:15px; align-items:end;">
-            <div>
-              <label style="font-weight:600; font-size:0.8rem;">Nome da Carga Geral:</label>
-              <input type="text" id="nomeCarga" placeholder="Ex: Almoço Completo" required>
-            </div>
-            <div>
-              <label style="font-weight:600; font-size:0.8rem;">Nome do Prato (Grupo):</label>
-              <input type="text" id="nomePratoAtual" placeholder="Ex: Arroz">
-            </div>
-            <div style="margin-bottom:12px;">
-              <button type="button" onclick="adicionarGrupoPrato()" class="btn btn-primary" style="width: 100%;">
-                <i class="fas fa-plus"></i> Add Grupo
-              </button>
-            </div>
-          </div>
-
-          <div id="gruposCarga" style="margin-top:15px;"></div>
-
-          <div class="form-group" style="margin-top:20px;">
-            <label style="font-weight:600; font-size:0.8rem;">Pesquisar Itens no Estoque:</label>
-            <input type="text" id="buscaItensCarga" placeholder="Filtrar produtos..." onkeyup="renderSelectorItens()">
-            <div id="selectorItens" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #f8fafc;"></div>
-          </div>
-          
-          <button type="submit" class="btn btn-success" style="width: 100%; margin-top:10px;">
-            <i class="fas fa-save"></i> SALVAR RECEITA COMPLETA
-          </button>
-        </form>
-      </div>
-
-      <div class="card">
-        <h3><i class="fas fa-layer-group"></i> Receitas Salvas & Status de Estoque</h3>
-        <div class="grid-cargas" id="gridCargas"></div>
-      </div>
-    </div>
-
-    <!-- TAB 3: CALENDÁRIO MENSAL -->
-    <div id="tab-calendario" class="tab-content hidden">
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-          <h3 style="margin:0;"><i class="fas fa-calendar-alt"></i> Planejamento Mensal</h3>
-          <div style="display:flex; gap:10px; align-items:center;">
-            <button onclick="mudarMes(-1)" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-chevron-left"></i></button>
-            <strong id="mesAnoAtual" style="font-size: 1.1rem; min-width: 150px; text-align: center;">Junho 2026</strong>
-            <button onclick="mudarMes(1)" class="btn btn-primary" style="padding:5px 10px;"><i class="fas fa-chevron-right"></i></button>
-          </div>
-        </div>
-        
-        <div class="calendar-grid" id="calendarGrid">
-          <!-- Cabeçalho dias da semana -->
-          <div class="calendar-header">DOM</div><div class="calendar-header">SEG</div>
-          <div class="calendar-header">TER</div><div class="calendar-header">QUA</div>
-          <div class="calendar-header">QUI</div><div class="calendar-header">SEX</div>
-          <div class="calendar-header">SAB</div>
-          <!-- Dias serão inseridos aqui -->
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 4: PROGRAMAÇÃO DIÁRIA -->
-    <div id="tab-programacao" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-calendar-check"></i> Publicar Programação do Dia</h3>
-        <form id="formProgramacao">
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-            <div class="form-group">
-              <label>Data de Uso:</label>
-              <input type="date" id="dataProg" required onchange="validarEstoqueProgramacao()">
-            </div>
-            <div class="form-group">
-              <label>Café da Manhã:</label>
-              <select id="cargaCafe" required onchange="validarEstoqueProgramacao()"></select>
-            </div>
-            <div class="form-group">
-              <label>Almoço:</label>
-              <select id="cargaAlmoco" required onchange="validarEstoqueProgramacao()"></select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Jantar:</label>
-            <select id="cargaJanta" required onchange="validarEstoqueProgramacao()"></select>
-          </div>
-          
-          <div id="alertaEstoqueProg" class="alert hidden"></div>
-
-          <button type="submit" id="btnPublicar" class="btn btn-success" style="width: 100%;">
-            <i class="fas fa-paper-plane"></i> Enviar para Cozinha & Despensa
-          </button>
-        </form>
-      </div>
-
-      <div class="card">
-        <h3><i class="fas fa-print"></i> Guia de Remessa (Impressão)</h3>
-        <form id="formGuia" style="display:flex; gap:15px;">
-          <input type="date" id="dataGuia" required style="margin:0">
-          <select id="turnoGuia" required style="margin:0">
-            <option value="">Selecione o Turno...</option>
-            <option value="CAFE">Café da Manhã</option>
-            <option value="ALMOCO">Almoço</option>
-            <option value="JANTA">Jantar</option>
-          </select>
-          <button type="submit" class="btn btn-warning"><i class="fas fa-print"></i> Gerar Guia</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- TAB 5: RELATÓRIOS -->
-    <div id="tab-relatorios" class="tab-content hidden">
-      <div class="grid-cargas">
-        <div class="card">
-          <h3><i class="fas fa-chart-bar"></i> Top 10 Itens mais Consumidos</h3>
-          <div class="chart-container">
-            <canvas id="chartTopConsumo"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <h3><i class="fas fa-chart-pie"></i> Consumo por Categoria</h3>
-          <div class="chart-container">
-            <canvas id="chartCategorias"></canvas>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <h3><i class="fas fa-list"></i> Detalhamento de Saídas por Período</h3>
-        <table id="tabelaRelatorio">
-          <thead><tr><th>Item</th><th>Quantidade Total</th><th>Unidade</th><th>Última Saída</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TAB 6: HISTÓRICO -->
-    <div id="tab-historico" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-history"></i> Log de Programações</h3>
-        <table id="tabelaHistorico">
-          <thead><tr><th>Data</th><th>Café</th><th>Almoço</th><th>Jantar</th><th>Responsável</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ÁREA DE IMPRESSÃO (ESTILO MILITAR FIEL) -->
-  <div id="printArea" class="hidden">
-    <div style="width: 210mm; font-family: 'Arial', sans-serif; color: #000; padding: 10mm;">
-      <!-- Cabeçalho Superior -->
-      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">
-        <tr>
-          <td style="width: 30%; border: 1px solid #000; padding: 5px; text-align: center;"></td>
-          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 14px;" id="printData">05/06/2026</td>
-          <td style="width: 15%; border: 1px solid #000; padding: 5px; text-align: center;">
-            <div style="font-size: 10px; font-weight: bold;">PREVISÃO:</div>
-            <div style="font-size: 14px; font-weight: bold;" id="printPrevCount">30</div>
-          </td>
-          <td style="width: 40%; border: 1px solid #000; padding: 5px; text-align: center; font-weight: bold; font-size: 16px;" id="printTurno">Almoço</td>
-        </tr>
-      </table>
-
-      <!-- Bloco de Assinaturas e Autorização -->
-      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
-        <tr>
-          <td style="width: 30%; border: 1px solid #000; padding: 15px 5px; text-align: center; vertical-align: middle;">
-            <div style="font-size: 9px; font-weight: bold; text-decoration: underline; margin-bottom: 15px;">RESP. PELA PREVISÃO</div>
-            <div style="font-size: 8px; font-weight: bold;">POSTO/GRAD-NOME DE GUERRA<br>RESPONSÁVEL PELO PEDIDO</div>
-          </td>
-          <td style="width: 70%; border: 1px solid #000; padding: 10px; text-align: center;">
-            <div style="font-size: 11px; font-weight: bold; text-decoration: underline; margin-bottom: 10px;">FORNECIMENTO AUTORIZADO</div>
-            <div style="font-size: 12px; font-weight: bold; margin-top: 15px;">________________________________________________<br>Lira 2T Qocon NUT Adj SSUB</div>
-          </td>
-        </tr>
-      </table>
-
-      <!-- Tabela de Itens -->
-      <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
-        <thead>
-          <tr style="text-align: center; font-size: 10px; font-weight: bold;">
-            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 35%;">MATERIAL / GÊNERO<br>ALIMENTÍCIO</td>
-            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 10%;">UND</td>
-            <td colspan="1" style="border: 1px solid #000; padding: 5px; width: 15%;">PREVISÃO</td>
-            <td colspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">AJUSTES</td>
-            <td rowspan="2" style="border: 1px solid #000; padding: 5px; width: 20%;">SAÍDA REAL</td>
-          </tr>
-          <tr style="text-align: center; font-size: 9px; font-weight: bold;">
-            <td style="border: 1px solid #000; padding: 3px;">INICIAL</td>
-            <td style="border: 1px solid #000; padding: 3px;">EXTRA(+)</td>
-            <td style="border: 1px solid #000; padding: 3px;">REDUÇÃO(-)</td>
-          </tr>
-        </thead>
-        <tbody id="printItens" style="font-size: 11px;">
-          <!-- Linhas serão inseridas aqui via JS -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCw9_UbayZEcIZOu65yoOSGbHAlomxs-GE",
-      authDomain: "estoquesync-f0d10.firebaseapp.com",
-      projectId: "estoquesync-f0d10",
-      storageBucket: "estoquesync-f0d10.appspot.com",
-      messagingSenderId: "67257178512",
-      appId: "1:67257178512:web:cdf3f994c0bc87c73ffb15"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    let produtosCache = [];
-    let cargasCache = [];
-    let programacoesCache = [];
-    let dataCalendario = new Date();
-    let charts = {};
-    let gruposAtuais = [];
-    let gruposManuais = [];
-
-    auth.onAuthStateChanged(user => {
-      if (!user) { window.location.href = 'index.html'; return; }
-      document.getElementById('userDisplay').innerText = user.email.toUpperCase();
-      initNutricionista();
-    });
-
-    async function initNutricionista() {
-      await carregarEstoque();
-      await carregarCargas();
-      await carregarProgramacoes();
-      renderCalendario();
-      renderRelatorios();
-      document.getElementById('logoutBtn').onclick = () => auth.signOut();
-      document.getElementById('dataProg').valueAsDate = new Date();
-      document.getElementById('dataGuia').valueAsDate = new Date();
-    }
-
-    async function carregarEstoque() {
-      const snap = await db.collection('estoque').get();
-      produtosCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderSelectorItens();
-    }
-
-    // --- SUGESTÃO 6: IMPORTAÇÃO INTELIGENTE ---
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
-        processarExcelInteligente(json);
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    let colunasDisponiveis = [];
-    let dadosBrutosExcel = [];
-
-    function processarExcelInteligente(dados) {
-      if (dados.length === 0) return;
-      dadosBrutosExcel = dados;
-      
-      const keys = Object.keys(dados[0]);
-      colunasDisponiveis = keys;
-
-      // Dicionário expandido para Subsistência Militar
-      let colItem = keys.find(k => /item|produto|nome|descrição|gênero|genero|material|especificação/i.test(k));
-      let colQtd = keys.find(k => /qtd|quantidade|quant|valor|prev|previsão|total/i.test(k));
-
-      if (!colItem || !colQtd) {
-        exibirSeletorColunas(keys);
-        return;
-      }
-
-      mapearEProcessar(colItem, colQtd);
-    }
-
-    function exibirSeletorColunas(keys) {
-      const alerta = document.getElementById('alertaImport');
-      let options = keys.map(k => `<option value="${k}">${k}</option>`).join('');
-      
-      alerta.innerHTML = `
-        <div class="alert alert-warning">
-          <p><strong>Quase lá!</strong> Não identifiquei as colunas automaticamente. Por favor, selecione abaixo:</p>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-            <div>
-              <label style="font-size:0.7rem; font-weight:bold;">Coluna do ITEM:</label>
-              <select id="selColItem">${options}</select>
-            </div>
-            <div>
-              <label style="font-size:0.7rem; font-weight:bold;">Coluna da QTD:</label>
-              <select id="selColQtd">${options}</select>
-            </div>
-          </div>
-          <button onclick="confirmarMapeamentoManual()" class="btn btn-primary" style="width:100%; margin-top:10px;">Confirmar Seleção</button>
-        </div>
-      `;
-    }
-
-    function confirmarMapeamentoManual() {
-      const colItem = document.getElementById('selColItem').value;
-      const colQtd = document.getElementById('selColQtd').value;
-      mapearEProcessar(colItem, colQtd);
-    }
-
-    function mapearEProcessar(colItem, colQtd) {
-      document.getElementById('alertaImport').innerHTML = `<div class="alert alert-success">Colunas identificadas: <b>${colItem}</b> e <b>${colQtd}</b></div>`;
-      
-      itensProcessados = dadosBrutosExcel.map(d => {
-        let valorRaw = String(d[colQtd] || 0);
-        // Limpeza de valores (remove R$, espaços, e trata vírgula decimal)
-        let valorLimpo = valorRaw.replace(/[R$\s]/g, '').replace(',', '.');
-        return {
-          item: String(d[colItem] || '').trim(),
-          quantidade: parseFloat(valorLimpo) || 0
-        };
-      }).filter(i => i.item && i.quantidade > 0);
-
-      renderItensImportados();
-    }
-
-    function renderItensImportados() {
-      const container = document.getElementById('listaItensProcessados');
-      container.innerHTML = '';
-      itensProcessados.forEach((it, idx) => {
-        const estoqueMatch = produtosCache.find(p => p.nome.toLowerCase().includes(it.item.toLowerCase()));
-        const status = estoqueMatch ? `<span class="stock-badge stock-ok">Estoque: ${estoqueMatch.quantidade}</span>` : `<span class="stock-badge stock-error">Não encontrado</span>`;
-        
-        container.innerHTML += `
-          <div class="item-lista">
-            <div style="flex:1"><strong>${it.item}</strong> ${status}</div>
-            <input type="number" value="${it.quantidade}" onchange="itensProcessados[${idx}].quantidade = parseFloat(this.value)" style="width:80px; margin:0">
-            <button onclick="itensProcessados.splice(${idx},1); renderItensImportados()" class="btn btn-danger"><i class="fas fa-times"></i></button>
-          </div>
-        `;
-      });
-      document.getElementById('formularioProcessado').classList.remove('hidden');
-    }
-
-    async function salvarCargaImportada() {
-      const nome = document.getElementById('nomeCargaImport').value;
-      if (!nome) return alert("Dê um nome para a receita!");
-      
-      await db.collection('cargas').add({
-        nome,
-        itens: itensProcessados,
-        dataCriacao: new Date(),
-        usuario: auth.currentUser.email
-      });
-      alert("Receita salva com sucesso!");
-      document.getElementById('formularioProcessado').classList.add('hidden');
-      carregarCargas();
-    }
-
-    // --- SUGESTÃO 1: VALIDAÇÃO DE ESTOQUE ---
-    function verificarDisponibilidade(itens) {
-      let critico = false;
-      const log = itens.map(it => {
-        const p = produtosCache.find(prod => prod.nome.toLowerCase() === it.item.toLowerCase());
-        const saldo = p ? p.quantidade : 0;
-        const ok = saldo >= it.quantidade;
-        if (!ok) critico = true;
-        return { ...it, saldo, ok };
-      });
-      return { critico, log };
-    }
-
-    async function carregarCargas() {
-      const snap = await db.collection('cargas').orderBy('dataCriacao', 'desc').get();
-      cargasCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      const grid = document.getElementById('gridCargas');
-      const selects = [document.getElementById('cargaCafe'), document.getElementById('cargaAlmoco'), document.getElementById('cargaJanta')];
-      
-      grid.innerHTML = '';
-      selects.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
-
-      cargasCache.forEach(carga => {
-        // Compatibilidade com versões anteriores (itens vs grupos)
-        let todosItens = [];
-        if (carga.grupos) {
-          carga.grupos.forEach(g => todosItens.push(...g.itens));
-        } else if (carga.itens) {
-          todosItens = carga.itens;
-        }
-
-        const validacao = verificarDisponibilidade(todosItens);
-        const statusHtml = validacao.critico 
-          ? `<span class="stock-badge stock-error">⚠️ Falta</span>`
-          : `<span class="stock-badge stock-ok">✅ OK</span>`;
-
-        let contentHtml = '';
-        if (carga.grupos) {
-          contentHtml = carga.grupos.map(g => `<strong>${g.nome}</strong>: ${g.itens.length} itens`).join('<br>');
-        } else {
-          contentHtml = `${todosItens.length} itens individuais`;
-        }
-
-        grid.innerHTML += `
-          <div class="card-carga" style="border-left-color: ${validacao.critico ? 'var(--danger)' : 'var(--success)'}">
-            <h4>${carga.nome} ${statusHtml}</h4>
-            <div class="card-carga-itens" style="margin-bottom:10px;">${contentHtml}</div>
-            <div class="card-carga-btn">
-              <button onclick="deletarCarga('${carga.id}')" class="btn btn-danger" style="padding:5px;"><i class="fas fa-trash"></i></button>
-            </div>
-          </div>
-        `;
-
-        selects.forEach(s => s.innerHTML += `<option value="${carga.id}">${carga.nome}</option>`);
-      });
-    }
-
-    function validarEstoqueProgramacao() {
-      const cafe = document.getElementById('cargaCafe').value;
-      const almoco = document.getElementById('cargaAlmoco').value;
-      const janta = document.getElementById('cargaJanta').value;
-      const alerta = document.getElementById('alertaEstoqueProg');
-      
-      let todosItens = [];
-      if(cafe) todosItens.push(...cargasCache.find(c => c.id === cafe).itens);
-      if(almoco) todosItens.push(...cargasCache.find(c => c.id === almoco).itens);
-      if(janta) todosItens.push(...cargasCache.find(c => c.id === janta).itens);
-
-      // Consolidar quantidades
-      const consolidado = {};
-      todosItens.forEach(i => {
-        consolidado[i.item] = (consolidado[i.item] || 0) + i.quantidade;
-      });
-
-      const listaFinal = Object.keys(consolidado).map(k => ({ item: k, quantidade: consolidado[k] }));
-      const validacao = verificarDisponibilidade(listaFinal);
-
-      if (validacao.critico) {
-        alerta.innerHTML = `<strong>Atenção:</strong> Existem itens insuficientes no estoque para esta programação!`;
-        alerta.className = "alert alert-danger";
-        alerta.classList.remove('hidden');
-      } else if (todosItens.length > 0) {
-        alerta.innerHTML = `Estoque verificado: Todos os itens estão disponíveis.`;
-        alerta.className = "alert alert-success";
-        alerta.classList.remove('hidden');
-      } else {
-        alerta.classList.add('hidden');
-      }
-    }
-
-    // --- SUGESTÃO 4: CALENDÁRIO MENSAL ---
-    async function carregarProgramacoes() {
-      const snap = await db.collection('programacoes').get();
-      programacoesCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-
-    function renderCalendario() {
-      const grid = document.getElementById('calendarGrid');
-      const mesAno = document.getElementById('mesAnoAtual');
-      
-      // Limpar apenas os dias (manter cabeçalho)
-      const headers = Array.from(grid.querySelectorAll('.calendar-header'));
-      grid.innerHTML = '';
-      headers.forEach(h => grid.appendChild(h));
-
-      const ano = dataCalendario.getFullYear();
-      const mes = dataCalendario.getMonth();
-      mesAno.innerText = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(dataCalendario).toUpperCase();
-
-      const primeiroDia = new Date(ano, mes, 1).getDay();
-      const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-
-      // Espaços vazios
-      for (let i = 0; i < primeiroDia; i++) {
-        grid.innerHTML += `<div class="calendar-day" style="background:#f8fafc"></div>`;
-      }
-
-      // Dias do mês
-      for (let d = 1; d <= diasNoMes; d++) {
-        const dataIso = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const prog = programacoesCache.find(p => p.data === dataIso);
-        
-        let htmlProg = '';
-        if (prog) {
-          const c = cargasCache.find(x => x.id === prog.cafe)?.nome || 'Carga';
-          const a = cargasCache.find(x => x.id === prog.almoco)?.nome || 'Carga';
-          const j = cargasCache.find(x => x.id === prog.janta)?.nome || 'Carga';
-          htmlProg = `
-            <div class="meal-entry" title="Café: ${c}">☕ ${c}</div>
-            <div class="meal-entry" style="border-left-color:var(--success)" title="Almoço: ${a}">☀️ ${a}</div>
-            <div class="meal-entry" style="border-left-color:var(--warning)" title="Jantar: ${j}">🌙 ${j}</div>
-          `;
-        }
-
-        grid.innerHTML += `
-          <div class="calendar-day">
-            <span class="day-number">${d}</span>
-            ${htmlProg}
-          </div>
-        `;
-      }
-    }
-
-    function mudarMes(delta) {
-      dataCalendario.setMonth(dataCalendario.getMonth() + delta);
-      renderCalendario();
-    }
-
-    // --- SUGESTÃO 5: RELATÓRIOS ---
-    async function renderRelatorios() {
-      const snap = await db.collection('requisicoes').get();
-      const reqs = snap.docs.map(doc => doc.data());
-      
-      const consumoPorItem = {};
-      const consumoPorCat = {};
-
-      reqs.forEach(r => {
-        consumoPorItem[r.item] = (consumoPorItem[r.item] || 0) + r.quantidade;
-        
-        const prod = produtosCache.find(p => p.nome === r.item);
-        const cat = prod ? prod.categoria : 'Outros';
-        consumoPorCat[cat] = (consumoPorCat[cat] || 0) + r.quantidade;
-      });
-
-      // Gráfico Top 10
-      const top10 = Object.entries(consumoPorItem)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10);
-
-      renderChart('chartTopConsumo', 'bar', {
-        labels: top10.map(x => x[0]),
-        datasets: [{ label: 'Qtd Total', data: top10.map(x => x[1]), backgroundColor: '#2563eb' }]
-      });
-
-      // Gráfico Categorias
-      renderChart('chartCategorias', 'doughnut', {
-        labels: Object.keys(consumoPorCat),
-        datasets: [{ data: Object.values(consumoPorCat), backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'] }]
-      });
-
-      // Tabela
-      const tbody = document.querySelector('#tabelaRelatorio tbody');
-      tbody.innerHTML = '';
-      Object.entries(consumoPorItem).forEach(([item, qtd]) => {
-        const prod = produtosCache.find(p => p.nome === item);
-        tbody.innerHTML += `<tr><td>${item}</td><td>${qtd.toFixed(2)}</td><td>${prod ? prod.unidade : 'un'}</td><td>-</td></tr>`;
-      });
-    }
-
-    function renderChart(id, type, data) {
-      if (charts[id]) charts[id].destroy();
-      const ctx = document.getElementById(id).getContext('2d');
-      charts[id] = new Chart(ctx, { type, data, options: { maintainAspectRatio: false } });
-    }
-
-    // --- FUNÇÕES AUXILIARES ---
     function renderSelectorItens() {
       const container = document.getElementById('selectorItens');
-      const busca = document.getElementById('buscaItensCarga').value.toLowerCase();
-      container.innerHTML = '';
-      
-      produtosCache.filter(p => p.nome.toLowerCase().includes(busca)).forEach(p => {
-        container.innerHTML += `
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px; padding:5px; border-bottom:1px solid #eee;">
-            <input type="checkbox" id="item-${p.id}" value="${p.id}" onchange="toggleQtdInput('${p.id}')">
-            <label for="item-${p.id}" style="flex:1; font-size:0.8rem;">${p.nome} <small>(${p.quantidade} em estoque)</small></label>
-            <input type="number" id="qtd-${p.id}" placeholder="Qtd" step="0.01" style="width:70px; margin:0; display:none;">
-          </div>
-        `;
-      });
+      container.innerHTML = produtosCache.map(p => `<div><input type="checkbox" id="item-${p.id}" value="${p.id}" onchange="document.getElementById('qtd-${p.id}').style.display=this.checked?'block':'none'"> ${p.nome} <input type="number" id="qtd-${p.id}" style="display:none"></div>`).join('');
     }
 
-    function toggleQtdInput(id) {
-      const cb = document.getElementById('item-' + id);
-      const input = document.getElementById('qtd-' + id);
-      input.style.display = cb.checked ? 'block' : 'none';
-    }
-
-    function adicionarGrupoPrato() {
-      const nomeGrupo = document.getElementById('nomePratoAtual').value;
-      if (!nomeGrupo) return alert("Digite o nome do prato!");
-      
-      const itensSelecionados = [];
-      document.querySelectorAll('#selectorItens input[type="checkbox"]:checked').forEach(cb => {
-        const id = cb.value;
-        const qtd = parseFloat(document.getElementById('qtd-' + id).value);
-        const prod = produtosCache.find(p => p.id === id);
-        if (qtd > 0) {
-          itensSelecionados.push({ item: prod.nome, quantidade: qtd, unidade: prod.unidade || 'kg' });
-        }
-      });
-
-      if (itensSelecionados.length === 0) return alert("Selecione itens para este prato!");
-
-      gruposAtuais.push({ nome: nomeGrupo, itens: itensSelecionados });
-      renderGruposCarga();
-      
-      // Limpar campos
-      document.getElementById('nomePratoAtual').value = '';
-      document.querySelectorAll('#selectorItens input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-        document.getElementById('qtd-' + cb.value).style.display = 'none';
-      });
-    }
-
-    function renderGruposCarga() {
-      const container = document.getElementById('gruposCarga');
-      container.innerHTML = '';
-      gruposAtuais.forEach((g, idx) => {
-        container.innerHTML += `
-          <div style="background:#fff; border:1px solid var(--accent); border-radius:8px; padding:10px; margin-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent); margin-bottom:5px;">
-              <span>${g.nome}</span>
-              <button type="button" onclick="gruposAtuais.splice(${idx},1); renderGruposCarga()" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button>
-            </div>
-            <div style="font-size:0.75rem; color:#64748b;">
-              ${g.itens.map(i => `${i.item} (${i.quantidade} ${i.unidade})`).join(' | ')}
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    document.getElementById('formCarga').onsubmit = async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById('nomeCarga').value;
-      if (gruposAtuais.length === 0) return alert("Adicione pelo menos um prato à carga!");
-      
-      await db.collection('cargas').add({ 
-        nome, 
-        grupos: gruposAtuais, 
-        dataCriacao: new Date(), 
-        usuario: auth.currentUser.email 
-      });
-      
-      alert("Receita Completa salva!");
-      gruposAtuais = [];
-      renderGruposCarga();
-      e.target.reset();
-      carregarCargas();
-    };
-
-    document.getElementById('formProgramacao').onsubmit = async (e) => {
-      e.preventDefault();
-      const data = document.getElementById('dataProg').value;
-      const cafeId = document.getElementById('cargaCafe').value;
-      const almocoId = document.getElementById('cargaAlmoco').value;
-      const jantaId = document.getElementById('cargaJanta').value;
-
-      const turnos = [
-        { id: cafeId, tag: 'CAFE', nome: 'Café' },
-        { id: almocoId, tag: 'ALMOCO', nome: 'Almoço' },
-        { id: jantaId, tag: 'JANTA', nome: 'Jantar' }
-      ];
-
-      for (const t of turnos) {
-        const carga = cargasCache.find(c => c.id === t.id);
-        if (!carga) continue;
-
-        let itensParaEnviar = [];
-        if (carga.grupos) {
-          carga.grupos.forEach(g => {
-            g.itens.forEach(it => {
-              itensParaEnviar.push({ ...it, detalhe: `${t.nome}: ${carga.nome} (${g.nome})` });
-            });
-          });
-        } else {
-          carga.itens.forEach(it => {
-            itensParaEnviar.push({ ...it, detalhe: `${t.nome}: ${carga.nome}` });
-          });
-        }
-
-        for (const it of itensParaEnviar) {
-          await db.collection('requisicoes').add({
-            item: it.item,
-            quantidade: it.quantidade,
-            turno: t.tag,
-            detalhe: it.detalhe,
-            dataUso: data,
-            status: 'pendente',
-            dataSolicitacao: new Date()
-          });
-        }
-      }
-
-      await db.collection('programacoes').add({
-        data, cafe: cafeId, almoco: almocoId, janta: jantaId,
-        dataCriacao: new Date(), usuario: auth.currentUser.email
-      });
-
-      alert("Programação enviada com sucesso!");
-      initNutricionista();
-    };
-
-    document.getElementById('formGuia').onsubmit = async (e) => {
-      e.preventDefault();
-      const data = document.getElementById('dataGuia').value;
-      const turnoTag = document.getElementById('turnoGuia').value;
-      
-      // Buscar a programação do dia para saber qual carga foi usada
-      const progSnap = await db.collection('programacoes').where('data', '==', data).get();
-      if (progSnap.empty) return alert("Nenhuma programação encontrada para esta data!");
-      
-      const prog = progSnap.docs[0].data();
-      const cargaId = turnoTag === 'CAFE' ? prog.cafe : turnoTag === 'ALMOCO' ? prog.almoco : prog.janta;
-      const carga = cargasCache.find(c => c.id === cargaId);
-
-      if (!carga) return alert("Carga não encontrada!");
-
-      document.getElementById('printData').innerText = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR');
-      document.getElementById('printTurno').innerText = turnoTag === 'CAFE' ? 'Café da Manhã' : turnoTag === 'ALMOCO' ? 'Almoço' : 'Jantar';
-      
-      const tbody = document.getElementById('printItens');
-      tbody.innerHTML = '';
-
-      if (carga.grupos) {
-        carga.grupos.forEach((g, idx) => {
-          // Linha de Cabeçalho do Prato (Verde ou Coral)
-          const bgColor = idx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-          tbody.innerHTML += `
-            <tr style="background: ${bgColor}; font-weight: bold; text-align: center;">
-              <td colspan="6" style="border: 1px solid #000; padding: 5px;">${g.nome}</td>
-            </tr>
-          `;
-          // Itens do Prato
-          g.itens.forEach(it => {
-            tbody.innerHTML += `
-              <tr>
-                <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
-                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade || 'kg'}</td>
-                <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
-                <td style="border: 1px solid #000; padding: 5px;"></td>
-                <td style="border: 1px solid #000; padding: 5px;"></td>
-                <td style="border: 1px solid #000; padding: 5px;"></td>
-              </tr>
-            `;
-          });
-        });
-      } else {
-        // Fallback para cargas antigas sem grupos
-        carga.itens.forEach(it => {
-          tbody.innerHTML += `
-            <tr>
-              <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade || 'kg'}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-            </tr>
-          `;
-        });
-      }
-
-      window.print();
-    };
-
-    async function deletarCarga(id) {
-      if (confirm("Deletar esta receita?")) {
-        await db.collection('cargas').doc(id).delete();
-        carregarCargas();
-      }
-    }
-
-    function switchTab(event, id) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(id).classList.remove('hidden');
-      event.currentTarget.classList.add('active');
-      if (id === 'tab-relatorios') renderRelatorios();
-    }
-
-    // --- FUNCIONALIDADE MANUAL (SOLICITAÇÃO USUÁRIO) ---
-    function adicionarGrupoManual() {
-      const nome = document.getElementById('manualNomePrato').value;
-      if (!nome) return alert("Digite o nome do prato!");
-      
-      const novoGrupo = {
-        id: Date.now(),
-        nome: nome,
-        itens: []
-      };
-      
-      gruposManuais.push(novoGrupo);
-      document.getElementById('manualNomePrato').value = '';
-      renderGruposManuais();
-    }
-
-    function adicionarItemAoGrupoManual(grupoId) {
-      const grupo = gruposManuais.find(g => g.id === grupoId);
-      grupo.itens.push({ item: '', quantidade: 0, unidade: 'kg' });
-      renderGruposManuais();
-    }
-
-    function renderGruposManuais() {
-      const container = document.getElementById('listaGruposManuais');
-      container.innerHTML = '';
-      
-      gruposManuais.forEach((g, gIdx) => {
-        const bgColor = gIdx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-        let itensHtml = g.itens.map((it, iIdx) => `
-          <div style="display: grid; grid-template-columns: 1fr 80px 80px 40px; gap: 10px; margin-bottom: 5px; align-items: center;">
-            <input type="text" placeholder="Nome do Insumo" value="${it.item}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item = this.value" style="margin:0">
-            <input type="text" placeholder="UND" value="${it.unidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].unidade = this.value" style="margin:0">
-            <input type="number" placeholder="QTD" value="${it.quantidade}" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade = parseFloat(this.value)" style="margin:0">
-            <button onclick="gruposManuais[${gIdx}].itens.splice(${iIdx},1); renderGruposManuais()" style="background:none; border:none; color:var(--danger); cursor:pointer;"><i class="fas fa-trash"></i></button>
-          </div>
-        `).join('');
-
-        container.innerHTML += `
-          <div style="border: 2px solid ${bgColor}; border-radius: 8px; margin-bottom: 15px; overflow: hidden;">
-            <div style="background: ${bgColor}; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-              <span>${g.nome}</span>
-              <button onclick="gruposManuais.splice(${gIdx},1); renderGruposManuais()" class="btn btn-danger" style="padding: 5px 10px; font-size: 0.6rem;">REMOVER PRATO</button>
-            </div>
-            <div style="padding: 10px; background: #fff;">
-              ${itensHtml}
-              <button onclick="adicionarItemAoGrupoManual(${g.id})" class="btn btn-primary" style="width: 100%; margin-top: 5px; padding: 5px; font-size: 0.7rem;">
-                <i class="fas fa-plus"></i> ADICIONAR INSUMO AO ${g.nome.toUpperCase()}
-              </button>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    function imprimirGuiaManual() {
-      if (gruposManuais.length === 0) return alert("Adicione pelo menos um prato!");
-      
-      const data = document.getElementById('manualData').value;
-      const prev = document.getElementById('manualPrev').value;
-      const turno = document.getElementById('manualTurno').value;
-
-      document.getElementById('printData').innerText = data ? new Date(data + 'T12:00:00').toLocaleDateString('pt-BR') : '--/--/----';
-      document.getElementById('printPrevCount').innerText = prev;
-      document.getElementById('printTurno').innerText = turno;
-
-      const tbody = document.getElementById('printItens');
-      tbody.innerHTML = '';
-
-      gruposManuais.forEach((g, idx) => {
-        const bgColor = idx % 2 === 0 ? '#d9ead3' : '#f4cccc';
-        tbody.innerHTML += `
-          <tr style="background: ${bgColor}; font-weight: bold; text-align: center;">
-            <td colspan="6" style="border: 1px solid #000; padding: 5px;">${g.nome.toUpperCase()}</td>
-          </tr>
-        `;
-        g.itens.forEach(it => {
-          tbody.innerHTML += `
-            <tr>
-              <td style="border: 1px solid #000; padding: 5px;">${it.item}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.unidade}</td>
-              <td style="border: 1px solid #000; padding: 5px; text-align: center;">${it.quantidade}</td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-              <td style="border: 1px solid #000; padding: 5px;"></td>
-            </tr>
-          `;
-        });
-      });
-
-      window.print();
-    }
-
-    async function salvarComoReceitaManual() {
-      const nomeCarga = prompt("Dê um nome para esta receita completa (ex: Almoço de Terça):");
-      if (!nomeCarga) return;
-
-      await db.collection('cargas').add({
-        nome: nomeCarga,
-        grupos: gruposManuais,
-        dataCriacao: new Date(),
-        usuario: auth.currentUser.email
-      });
-      alert("Receita salva com sucesso na galeria!");
-      carregarCargas();
-    }
-
-    // Drag & Drop
-    function handleDragOver(e) { e.preventDefault(); e.target.classList.add('dragover'); }
-    function handleDragLeave(e) { e.target.classList.remove('dragover'); }
-    function handleDrop(e) {
-      e.preventDefault();
-      e.target.classList.remove('dragover');
-      handleFileSelect({ target: { files: e.dataTransfer.files } });
-    }
+    function mudarMes(delta) { dataCalendario.setMonth(dataCalendario.getMonth() + delta); renderCalendario(); }
+    function renderCalendario() { document.getElementById('mesAnoAtual').innerText = dataCalendario.toLocaleDateString('pt-BR', {month:'long', year:'numeric'}); }
   </script>
 </body>
 </html>
