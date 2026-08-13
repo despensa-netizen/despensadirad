@@ -92,6 +92,13 @@
     @media (max-width:850px) { .req-summary{grid-template-columns:repeat(2,minmax(0,1fr));} .req-toolbar{grid-template-columns:1fr 1fr;} .req-order-head{align-items:flex-start; flex-direction:column;} .req-progress-wrap{width:100%; text-align:left;} }
     @media (max-width:520px) { .req-summary,.req-toolbar{grid-template-columns:1fr;} }
 
+
+    .req-prep-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;background:#f8fafc;border-bottom:1px solid var(--border)}
+    .req-prep-tab{border:1px solid var(--border);background:#fff;color:#475569;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:.68rem;font-weight:800;text-transform:uppercase}
+    .req-prep-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .req-prep-panel{display:none}.req-prep-panel.active{display:block}
+    .req-prep-title{padding:14px 16px 4px;font-size:.78rem;font-weight:800;color:var(--primary);text-transform:uppercase}
+
     @media print {
       body * { visibility: hidden; }
       #printArea, #printArea * { visibility: visible; }
@@ -586,49 +593,34 @@
         const texto = [r.item, r.detalhe, r.setor, r.responsavel].filter(Boolean).join(' ').toLowerCase();
         return (!data || r.data === data) && (!turno || String(r.turno || '').toUpperCase() === turno) && (!status || r.status === status) && (!busca || texto.includes(busca));
       });
-
       const pendentes = filtradas.filter(r => r.status !== 'Concluído');
       const separadas = filtradas.filter(r => r.status === 'Concluído');
       const faltas = pendentes.filter(r => { const saldo = obterEstoqueItem(r.item); return saldo !== null && saldo < Number(r.quantidade || 0); });
-      document.getElementById('reqTotalPedidos').innerText = new Set(filtradas.map(r => `${r.data}|${r.turno}|${r.detalhe || ''}`)).size;
+      document.getElementById('reqTotalPedidos').innerText = new Set(filtradas.map(r => `${r.data}|${r.turno}`)).size;
       document.getElementById('reqTotalPendentes').innerText = pendentes.length;
       document.getElementById('reqTotalSeparados').innerText = separadas.length;
       document.getElementById('reqTotalFaltas').innerText = faltas.length;
-
       const lista = document.getElementById('listaRequisicoes');
-      if(!filtradas.length) {
-        lista.innerHTML = '<div class="req-empty"><i class="fas fa-inbox" style="font-size:1.6rem;margin-bottom:10px;"></i><br><strong>Nenhuma requisição encontrada</strong><br><small>Altere os filtros ou publique uma programação.</small></div>';
-        return;
-      }
-
-      const grupos = {};
-      filtradas.forEach(r => {
-        const chave = `${r.data || 'Sem data'}|${r.turno || 'Sem turno'}|${r.detalhe || 'Requisição geral'}`;
-        if(!grupos[chave]) grupos[chave] = { data:r.data, turno:r.turno || 'Sem turno', detalhe:r.detalhe || 'Requisição geral', itens:[] };
-        grupos[chave].itens.push(r);
-      });
-
-      lista.innerHTML = Object.values(grupos).map((grupo, grupoIndex) => {
-        const concluidos = grupo.itens.filter(r => r.status === 'Concluído').length;
-        const percentual = Math.round((concluidos / grupo.itens.length) * 100);
-        const dataFormatada = grupo.data ? new Date(`${grupo.data}T12:00:00`).toLocaleDateString('pt-BR') : 'Data não informada';
-        const turnoIcone = grupo.turno === 'CAFÉ' ? 'fa-mug-hot' : grupo.turno === 'ALMOÇO' ? 'fa-sun' : 'fa-moon';
-        return `<section class="req-order">
-          <header class="req-order-head">
-            <div><div class="req-order-title"><i class="fas ${turnoIcone}" style="color:var(--accent)"></i><h4>${escapeHtml(grupo.turno)} — ${dataFormatada}</h4></div><div class="req-order-meta"><i class="fas fa-utensils"></i> ${escapeHtml(grupo.detalhe)} &nbsp;·&nbsp; ${grupo.itens.length} item(ns)</div></div>
-            <div class="req-progress-wrap"><div class="req-progress-label">${concluidos} de ${grupo.itens.length} itens separados (${percentual}%)</div><div class="req-progress"><span style="width:${percentual}%"></span></div></div>
-          </header>
-          <div class="req-order-body"><table class="req-items"><thead><tr><th>Produto / detalhe</th><th>Solicitado</th><th>Estoque atual</th><th>Validade</th><th>Situação</th><th>Ação</th></tr></thead><tbody>${grupo.itens.map(r => {
-            const saldo = obterEstoqueItem(r.item); const produto = produtosCache.find(p => String(p.nome).trim().toLowerCase() === String(r.item).trim().toLowerCase()); const st = classeStatusRequisicao(r);
-            const estoqueTexto = saldo === null ? 'Não localizado' : `${saldo} ${escapeHtml(r.unidade || produto?.unidade || '')}`;
-            const estoqueClasse = saldo !== null && saldo < Number(r.quantidade || 0) ? 'req-stock-low' : 'req-stock-ok';
-            return `<tr><td><span class="req-item-name">${escapeHtml(r.item)}</span><span class="req-item-sub">${escapeHtml(r.setor || 'Setor não informado')}${r.responsavel ? ' · Resp.: ' + escapeHtml(r.responsavel) : ''}</span></td><td><strong>${escapeHtml(r.quantidade)}</strong> ${escapeHtml(r.unidade || '')}</td><td class="${estoqueClasse}">${estoqueTexto}</td><td>${escapeHtml(produto?.validade || '—')}</td><td><span class="req-status ${st.classe}"><i class="fas ${st.icone}"></i>${st.texto}</span></td><td>${r.status === 'Concluído' ? '<span style="color:#166534;font-size:.72rem;"><i class="fas fa-check"></i> Confirmado</span>' : `<button class="btn btn-success" style="padding:7px 9px;font-size:.62rem;" onclick="confirmarSeparacaoReq('${r.id}')"><i class="fas fa-check"></i> Separar</button>`}</td></tr>`;
-          }).join('')}</tbody></table></div>
-          <footer class="req-order-foot">${concluidos < grupo.itens.length ? `<button class="btn btn-primary" style="font-size:.65rem;" onclick="confirmarGrupoReq(${JSON.stringify(grupo.itens.filter(r => r.status !== 'Concluído').map(r => r.id))})"><i class="fas fa-check-double"></i> Confirmar pendentes</button>` : '<span style="color:#166534;font-size:.72rem;font-weight:700;"><i class="fas fa-circle-check"></i> Requisição concluída</span>'}<button class="btn btn-warning" style="font-size:.65rem;" onclick="imprimirRequisicao(${grupoIndex})"><i class="fas fa-print"></i> Imprimir lista</button></footer>
-        </section>`;
+      if(!filtradas.length){ lista.innerHTML='<div class="req-empty"><i class="fas fa-inbox"></i><br><strong>Nenhuma requisição encontrada</strong></div>'; return; }
+      const dias = {};
+      filtradas.forEach(r => { const chave=`${r.data || 'Sem data'}`; (dias[chave] ??= {data:r.data,itens:[]}).itens.push(r); });
+      let cardIndex=0;
+      lista.innerHTML = Object.values(dias).map(dia => {
+        const preparos={};
+        dia.itens.forEach(r => { const prep=r.detalhe || 'Preparo não informado'; (preparos[prep] ??= []).push(r); });
+        const prepNames=Object.keys(preparos); const dateText=dia.data?new Date(`${dia.data}T12:00:00`).toLocaleDateString('pt-BR'):'Data não informada';
+        const tabs=prepNames.map((p,i)=>`<button class="req-prep-tab ${i===0?'active':''}" onclick="selecionarPreparo('${cardIndex}',${i})">${escapeHtml(p)} <small>(${preparos[p].length})</small></button>`).join('');
+        const panels=prepNames.map((prep,pIndex)=>{
+          const consolidado={};
+          preparos[prep].forEach(r=>{ const k=String(r.item).trim().toLowerCase(); (consolidado[k]??={item:r.item,unidade:r.unidade||'',quantidade:0,ids:[],status:'Concluído',originais:[]}); consolidado[k].quantidade+=Number(r.quantidade||0); consolidado[k].ids.push(r.id); consolidado[k].originais.push(r); if(r.status!=='Concluído') consolidado[k].status='Pendente'; });
+          const itens=Object.values(consolidado); const done=itens.filter(r=>r.status==='Concluído').length; const pct=Math.round(done/itens.length*100);
+          return `<div class="req-prep-panel active" data-card="${cardIndex}" data-prep="${pIndex}"><div class="req-prep-title"><i class="fas fa-utensils"></i> ${escapeHtml(prep)} · ${escapeHtml(dia.itens.find(x=>x.detalhe===prep)?.turno || "Turno não informado")} · ${done} de ${itens.length} itens separados</div><div class="req-progress" style="margin:0 16px 8px"><span style="width:${pct}%"></span></div><div class="req-order-body"><table class="req-items"><thead><tr><th>Produto</th><th>Quantidade total</th><th>Estoque atual</th><th>Validade</th><th>Situação</th><th>Ação</th></tr></thead><tbody>${itens.map(r=>{const saldo=obterEstoqueItem(r.item);const produto=produtosCache.find(p=>String(p.nome).trim().toLowerCase()===String(r.item).trim().toLowerCase());const falta=saldo!==null&&saldo<r.quantidade;const st=r.status==='Concluído'?{classe:'done',texto:'Separado'}:falta?{classe:'shortage',texto:'Estoque insuficiente'}:{classe:'pending',texto:'Pendente'};return `<tr><td><span class="req-item-name">${escapeHtml(r.item)}</span><span class="req-item-sub">Consolidado neste preparo</span></td><td><strong>${r.quantidade}</strong> ${escapeHtml(r.unidade)}</td><td class="${falta?'req-stock-low':'req-stock-ok'}">${saldo===null?'Não localizado':saldo}</td><td>${escapeHtml(produto?.validade||'—')}</td><td><span class="req-status ${st.classe}">${st.texto}</span></td><td>${r.status==='Concluído'?'<span style="color:#166534;font-size:.7rem">Confirmado</span>':`<button class="btn btn-success" style="padding:7px;font-size:.62rem" onclick="confirmarGrupoReq(${JSON.stringify(r.ids)})"><i class="fas fa-check"></i> Separar</button>`}</td></tr>`}).join('')}</tbody></table></div></div>`;
+        }).join('');
+        const result=`<section class="req-order"><header class="req-order-head"><div><div class="req-order-title"><i class="fas fa-calendar-day" style="color:var(--accent)"></i><h4>Requisições de ${dateText}</h4></div><div class="req-order-meta">Os preparos e turnos estão organizados dentro desta data.</div></div></header>${panels}</section>`; cardIndex+=1; return result;
       }).join('');
-      window.requisicoesParaImpressao = Object.values(grupos);
     }
+
+    function selecionarPreparo(card, prep){ document.querySelectorAll(`.req-prep-panel[data-card="${card}"]`).forEach(p=>p.classList.toggle('active',p.dataset.prep==prep)); const tabs=document.querySelectorAll(`.req-order:nth-child(${Number(card)+1}) .req-prep-tab`); tabs.forEach((t,i)=>t.classList.toggle('active',i===Number(prep))); }
 
     async function confirmarSeparacaoReq(id) {
       if(!confirm('Confirmar a separação deste item? A baixa física do estoque deve ser realizada pelo módulo de Estoque.')) return;
