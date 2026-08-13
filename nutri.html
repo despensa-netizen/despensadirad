@@ -56,6 +56,42 @@
     .stock-ok { background: #dcfce7; color: #166534; }
     .stock-error { background: #fee2e2; color: #991b1b; }
 
+    /* ===== PAINEL DETALHADO DE REQUISIÇÕES ===== */
+    .req-dashboard { display:flex; flex-direction:column; gap:16px; }
+    .req-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .req-stat { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px 16px; display:flex; align-items:center; gap:12px; box-shadow:var(--shadow); }
+    .req-stat-icon { width:40px; height:40px; border-radius:10px; display:grid; place-items:center; }
+    .req-stat-label { display:block; color:#64748b; font-size:.68rem; font-weight:700; text-transform:uppercase; }
+    .req-stat-value { display:block; color:var(--text); font-size:1.3rem; margin-top:3px; }
+    .req-toolbar { display:grid; grid-template-columns:1fr 1fr 1fr 1.6fr; gap:10px; padding:14px; background:#f8fafc; border:1px solid var(--border); border-radius:12px; }
+    .req-toolbar input,.req-toolbar select { margin:0; background:#fff; }
+    .req-list { display:flex; flex-direction:column; gap:14px; }
+    .req-order { background:#fff; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); }
+    .req-order-head { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:16px 18px; background:linear-gradient(120deg,#f8fafc,#fff); border-bottom:1px solid var(--border); }
+    .req-order-title { display:flex; align-items:center; gap:10px; }
+    .req-order-title h4 { margin:0; color:var(--primary); font-size:.95rem; }
+    .req-order-meta { margin-top:5px; color:#64748b; font-size:.72rem; }
+    .req-progress-wrap { min-width:200px; text-align:right; }
+    .req-progress-label { color:#475569; font-size:.7rem; font-weight:700; margin-bottom:6px; }
+    .req-progress { height:8px; background:#e2e8f0; border-radius:99px; overflow:hidden; }
+    .req-progress span { display:block; height:100%; background:var(--success); border-radius:99px; transition:width .25s; }
+    .req-order-body { overflow-x:auto; }
+    .req-items { width:100%; min-width:850px; border-collapse:collapse; margin:0; }
+    .req-items th { padding:10px 14px; font-size:.65rem; text-transform:uppercase; }
+    .req-items td { padding:11px 14px; vertical-align:middle; }
+    .req-item-name { font-weight:700; color:#1e293b; }
+    .req-item-sub { display:block; color:#94a3b8; font-size:.68rem; margin-top:3px; }
+    .req-status { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:99px; font-size:.63rem; font-weight:800; text-transform:uppercase; white-space:nowrap; }
+    .req-status.pending { background:#fef3c7; color:#92400e; }
+    .req-status.done { background:#dcfce7; color:#166534; }
+    .req-status.shortage { background:#fee2e2; color:#991b1b; }
+    .req-stock-ok { color:#166534; font-weight:700; }
+    .req-stock-low { color:#b91c1c; font-weight:800; }
+    .req-order-foot { display:flex; justify-content:flex-end; gap:8px; padding:12px 16px; border-top:1px solid var(--border); background:#fafafa; }
+    .req-empty { padding:36px 18px; text-align:center; color:#64748b; border:1px dashed #cbd5e1; border-radius:12px; background:#f8fafc; }
+    @media (max-width:850px) { .req-summary{grid-template-columns:repeat(2,minmax(0,1fr));} .req-toolbar{grid-template-columns:1fr 1fr;} .req-order-head{align-items:flex-start; flex-direction:column;} .req-progress-wrap{width:100%; text-align:left;} }
+    @media (max-width:520px) { .req-summary,.req-toolbar{grid-template-columns:1fr;} }
+
     @media print {
       body * { visibility: hidden; }
       #printArea, #printArea * { visibility: visible; }
@@ -83,6 +119,7 @@
       <button class="tab-btn" onclick="switchTab(event, 'tab-cargas')"><i class="fas fa-layer-group"></i> Receitas & Cargas</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-calendario')"><i class="fas fa-calendar-alt"></i> Calendário</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-programacao')"><i class="fas fa-check-circle"></i> Programação</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-requisicoes')"><i class="fas fa-clipboard-check"></i> Requisições</button>
       <button class="tab-btn" onclick="switchTab(event, 'tab-relatorios')"><i class="fas fa-chart-line"></i> Relatórios</button>
     </div>
 
@@ -172,7 +209,28 @@
       </div>
     </div>
 
-    <!-- TAB 5: RELATÓRIOS -->
+    <!-- TAB 5: REQUISIÇÕES DETALHADAS -->
+    <div id="tab-requisicoes" class="tab-content hidden">
+      <div class="req-dashboard">
+        <div class="req-summary">
+          <div class="req-stat"><div class="req-stat-icon" style="background:#dbeafe;color:#1d4ed8"><i class="fas fa-clipboard-list"></i></div><div><span class="req-stat-label">Requisições</span><strong class="req-stat-value" id="reqTotalPedidos">0</strong></div></div>
+          <div class="req-stat"><div class="req-stat-icon" style="background:#fef3c7;color:#b45309"><i class="fas fa-hourglass-half"></i></div><div><span class="req-stat-label">Itens pendentes</span><strong class="req-stat-value" id="reqTotalPendentes">0</strong></div></div>
+          <div class="req-stat"><div class="req-stat-icon" style="background:#dcfce7;color:#15803d"><i class="fas fa-check-double"></i></div><div><span class="req-stat-label">Itens separados</span><strong class="req-stat-value" id="reqTotalSeparados">0</strong></div></div>
+          <div class="req-stat"><div class="req-stat-icon" style="background:#fee2e2;color:#b91c1c"><i class="fas fa-triangle-exclamation"></i></div><div><span class="req-stat-label">Com falta</span><strong class="req-stat-value" id="reqTotalFaltas">0</strong></div></div>
+        </div>
+        <div class="card" style="margin-bottom:0;padding:16px;">
+          <div class="req-toolbar">
+            <input type="date" id="reqFiltroData" title="Filtrar por data">
+            <select id="reqFiltroTurno"><option value="">Todos os turnos</option><option value="CAFÉ">Café</option><option value="ALMOÇO">Almoço</option><option value="JANTA">Jantar</option></select>
+            <select id="reqFiltroStatus"><option value="">Todos os status</option><option value="Pendente">Pendentes</option><option value="Concluído">Concluídos</option></select>
+            <input type="search" id="reqBusca" placeholder="Buscar produto, receita ou grupo...">
+          </div>
+        </div>
+        <div id="listaRequisicoes" class="req-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 6: RELATÓRIOS -->
     <div id="tab-relatorios" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-chart-bar"></i> Consumo de Insumos por Item</h3>
@@ -229,7 +287,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    let produtosCache = [], cargasCache = [], programacoesCache = [], gruposAtuais = [], gruposManuais = [];
+    let produtosCache = [], cargasCache = [], programacoesCache = [], gruposAtuais = [], gruposManuais = [], requisicoesCache = [];
     let idCargaEditando = null;
     let dataCalendario = new Date();
 
@@ -243,6 +301,7 @@
       await carregarEstoque();
       await carregarCargas();
       await carregarProgramacoes();
+      monitorarRequisicoes();
       renderCalendario();
       document.getElementById('logoutBtn').onclick = () => auth.signOut();
       document.getElementById('manualData').valueAsDate = new Date();
@@ -485,6 +544,111 @@
       } else {
         alert("Nenhuma carga selecionada ou as cargas estão vazias.");
       }
+    }
+
+    // --- REQUISIÇÕES DETALHADAS ---
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+    }
+
+    function obterEstoqueItem(nome) {
+      const produto = produtosCache.find(p => String(p.nome).trim().toLowerCase() === String(nome).trim().toLowerCase());
+      return produto ? Number(produto.quantidade || 0) : null;
+    }
+
+    function classeStatusRequisicao(req) {
+      if(req.status === 'Concluído') return { classe:'done', texto:'Separado', icone:'fa-check' };
+      const saldo = obterEstoqueItem(req.item);
+      if(saldo !== null && saldo < Number(req.quantidade || 0)) return { classe:'shortage', texto:'Estoque insuficiente', icone:'fa-triangle-exclamation' };
+      return { classe:'pending', texto:'Pendente', icone:'fa-hourglass-half' };
+    }
+
+    function monitorarRequisicoes() {
+      db.collection('requisicoes').orderBy('data', 'desc').onSnapshot(snap => {
+        requisicoesCache = snap.docs.map(doc => ({ id:doc.id, ...doc.data() }));
+        renderRequisicoes();
+      }, error => {
+        console.error('Erro ao carregar requisições:', error);
+        document.getElementById('listaRequisicoes').innerHTML = '<div class="req-empty"><i class="fas fa-circle-exclamation"></i><br>Não foi possível carregar as requisições.</div>';
+      });
+      ['reqFiltroData','reqFiltroTurno','reqFiltroStatus','reqBusca'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.addEventListener(id === 'reqBusca' ? 'input' : 'change', renderRequisicoes);
+      });
+    }
+
+    function renderRequisicoes() {
+      const data = document.getElementById('reqFiltroData')?.value || '';
+      const turno = document.getElementById('reqFiltroTurno')?.value || '';
+      const status = document.getElementById('reqFiltroStatus')?.value || '';
+      const busca = (document.getElementById('reqBusca')?.value || '').toLowerCase().trim();
+      const filtradas = requisicoesCache.filter(r => {
+        const texto = [r.item, r.detalhe, r.setor, r.responsavel].filter(Boolean).join(' ').toLowerCase();
+        return (!data || r.data === data) && (!turno || String(r.turno || '').toUpperCase() === turno) && (!status || r.status === status) && (!busca || texto.includes(busca));
+      });
+
+      const pendentes = filtradas.filter(r => r.status !== 'Concluído');
+      const separadas = filtradas.filter(r => r.status === 'Concluído');
+      const faltas = pendentes.filter(r => { const saldo = obterEstoqueItem(r.item); return saldo !== null && saldo < Number(r.quantidade || 0); });
+      document.getElementById('reqTotalPedidos').innerText = new Set(filtradas.map(r => `${r.data}|${r.turno}|${r.detalhe || ''}`)).size;
+      document.getElementById('reqTotalPendentes').innerText = pendentes.length;
+      document.getElementById('reqTotalSeparados').innerText = separadas.length;
+      document.getElementById('reqTotalFaltas').innerText = faltas.length;
+
+      const lista = document.getElementById('listaRequisicoes');
+      if(!filtradas.length) {
+        lista.innerHTML = '<div class="req-empty"><i class="fas fa-inbox" style="font-size:1.6rem;margin-bottom:10px;"></i><br><strong>Nenhuma requisição encontrada</strong><br><small>Altere os filtros ou publique uma programação.</small></div>';
+        return;
+      }
+
+      const grupos = {};
+      filtradas.forEach(r => {
+        const chave = `${r.data || 'Sem data'}|${r.turno || 'Sem turno'}|${r.detalhe || 'Requisição geral'}`;
+        if(!grupos[chave]) grupos[chave] = { data:r.data, turno:r.turno || 'Sem turno', detalhe:r.detalhe || 'Requisição geral', itens:[] };
+        grupos[chave].itens.push(r);
+      });
+
+      lista.innerHTML = Object.values(grupos).map((grupo, grupoIndex) => {
+        const concluidos = grupo.itens.filter(r => r.status === 'Concluído').length;
+        const percentual = Math.round((concluidos / grupo.itens.length) * 100);
+        const dataFormatada = grupo.data ? new Date(`${grupo.data}T12:00:00`).toLocaleDateString('pt-BR') : 'Data não informada';
+        const turnoIcone = grupo.turno === 'CAFÉ' ? 'fa-mug-hot' : grupo.turno === 'ALMOÇO' ? 'fa-sun' : 'fa-moon';
+        return `<section class="req-order">
+          <header class="req-order-head">
+            <div><div class="req-order-title"><i class="fas ${turnoIcone}" style="color:var(--accent)"></i><h4>${escapeHtml(grupo.turno)} — ${dataFormatada}</h4></div><div class="req-order-meta"><i class="fas fa-utensils"></i> ${escapeHtml(grupo.detalhe)} &nbsp;·&nbsp; ${grupo.itens.length} item(ns)</div></div>
+            <div class="req-progress-wrap"><div class="req-progress-label">${concluidos} de ${grupo.itens.length} itens separados (${percentual}%)</div><div class="req-progress"><span style="width:${percentual}%"></span></div></div>
+          </header>
+          <div class="req-order-body"><table class="req-items"><thead><tr><th>Produto / detalhe</th><th>Solicitado</th><th>Estoque atual</th><th>Validade</th><th>Situação</th><th>Ação</th></tr></thead><tbody>${grupo.itens.map(r => {
+            const saldo = obterEstoqueItem(r.item); const produto = produtosCache.find(p => String(p.nome).trim().toLowerCase() === String(r.item).trim().toLowerCase()); const st = classeStatusRequisicao(r);
+            const estoqueTexto = saldo === null ? 'Não localizado' : `${saldo} ${escapeHtml(r.unidade || produto?.unidade || '')}`;
+            const estoqueClasse = saldo !== null && saldo < Number(r.quantidade || 0) ? 'req-stock-low' : 'req-stock-ok';
+            return `<tr><td><span class="req-item-name">${escapeHtml(r.item)}</span><span class="req-item-sub">${escapeHtml(r.setor || 'Setor não informado')}${r.responsavel ? ' · Resp.: ' + escapeHtml(r.responsavel) : ''}</span></td><td><strong>${escapeHtml(r.quantidade)}</strong> ${escapeHtml(r.unidade || '')}</td><td class="${estoqueClasse}">${estoqueTexto}</td><td>${escapeHtml(produto?.validade || '—')}</td><td><span class="req-status ${st.classe}"><i class="fas ${st.icone}"></i>${st.texto}</span></td><td>${r.status === 'Concluído' ? '<span style="color:#166534;font-size:.72rem;"><i class="fas fa-check"></i> Confirmado</span>' : `<button class="btn btn-success" style="padding:7px 9px;font-size:.62rem;" onclick="confirmarSeparacaoReq('${r.id}')"><i class="fas fa-check"></i> Separar</button>`}</td></tr>`;
+          }).join('')}</tbody></table></div>
+          <footer class="req-order-foot">${concluidos < grupo.itens.length ? `<button class="btn btn-primary" style="font-size:.65rem;" onclick="confirmarGrupoReq(${JSON.stringify(grupo.itens.filter(r => r.status !== 'Concluído').map(r => r.id))})"><i class="fas fa-check-double"></i> Confirmar pendentes</button>` : '<span style="color:#166534;font-size:.72rem;font-weight:700;"><i class="fas fa-circle-check"></i> Requisição concluída</span>'}<button class="btn btn-warning" style="font-size:.65rem;" onclick="imprimirRequisicao(${grupoIndex})"><i class="fas fa-print"></i> Imprimir lista</button></footer>
+        </section>`;
+      }).join('');
+      window.requisicoesParaImpressao = Object.values(grupos);
+    }
+
+    async function confirmarSeparacaoReq(id) {
+      if(!confirm('Confirmar a separação deste item? A baixa física do estoque deve ser realizada pelo módulo de Estoque.')) return;
+      await db.collection('requisicoes').doc(id).update({ status:'Concluído', separadoEm:new Date(), separadoPor:auth.currentUser?.email || '' });
+    }
+
+    async function confirmarGrupoReq(ids) {
+      if(!ids.length || !confirm(`Confirmar a separação de ${ids.length} item(ns) pendente(s)?`)) return;
+      const batch = db.batch();
+      ids.forEach(id => batch.update(db.collection('requisicoes').doc(id), { status:'Concluído', separadoEm:new Date(), separadoPor:auth.currentUser?.email || '' }));
+      await batch.commit();
+    }
+
+    function imprimirRequisicao(index) {
+      const grupo = window.requisicoesParaImpressao?.[index];
+      if(!grupo) return;
+      const linhas = grupo.itens.map(r => `<tr><td>${escapeHtml(r.item)}</td><td>${escapeHtml(r.quantidade)}</td><td>${escapeHtml(r.unidade || '')}</td><td></td></tr>`).join('');
+      const janela = window.open('', '_blank');
+      janela.document.write(`<html><head><title>Requisição ${escapeHtml(grupo.turno)}</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #222;padding:8px;text-align:left}th{background:#eee}</style></head><body><h2>REQUISIÇÃO DE NUTRIÇÃO</h2><p><b>${escapeHtml(grupo.turno)}</b> — ${escapeHtml(grupo.data)}<br>${escapeHtml(grupo.detalhe)}</p><table><thead><tr><th>Produto</th><th>Quantidade</th><th>Unidade</th><th>Separado</th></tr></thead><tbody>${linhas}</tbody></table><script>window.print()<\/script></body></html>`);
+      janela.document.close();
     }
 
     // --- CALENDÁRIO ---
