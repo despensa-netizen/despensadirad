@@ -103,6 +103,8 @@
     .req-date-tab{background:#fff;border:1px solid var(--border);color:#475569;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:800;font-size:.7rem}.req-date-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
     .req-order.req-date-hidden{display:none}
 
+    .req-meal-block{margin:14px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.req-meal-header{padding:13px 16px;background:#e8f0ff;color:var(--primary);font-size:.86rem;font-weight:800;text-transform:uppercase;border-bottom:1px solid var(--border)}.req-meal-table{width:100%;border-collapse:collapse;margin:0;min-width:900px}.req-meal-table th{padding:10px 14px;background:#f8fafc;font-size:.65rem;text-transform:uppercase}.req-meal-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.78rem}.req-meal-table tr:last-child td{border-bottom:0}.req-prep-cell{font-weight:700;color:#475569;min-width:190px;background:#fbfdff}
+
     @media print {
       body * { visibility: hidden; }
       #printArea, #printArea * { visibility: visible; }
@@ -624,6 +626,7 @@
         }).join('');
         const result=`<section class="req-order"><header class="req-order-head"><div><div class="req-order-title"><i class="fas fa-calendar-day" style="color:var(--accent)"></i><h4>Requisições de ${dateText}</h4></div><div class="req-order-meta">Os preparos e turnos estão organizados dentro desta data.</div></div></header>${panels}</section>`; cardIndex+=1; return result;
       }).join('');
+      consolidarRefeicoesVisually('listaRequisicoes');
       aplicarAbasPorData('listaRequisicoes');
     }
 
@@ -656,6 +659,35 @@
       const tabs=document.createElement('div'); tabs.className='req-date-tabs';
       cards.forEach((card,i)=>{const title=card.querySelector('.req-order-title h4')?.innerText||`Data ${i+1}`; const b=document.createElement('button'); b.className='req-date-tab'+(i===0?' active':''); b.innerText=title.replace('Requisições de ',''); b.onclick=()=>{cards.forEach((c,j)=>c.classList.toggle('req-date-hidden',j!==i));tabs.querySelectorAll('button').forEach((x,j)=>x.classList.toggle('active',j===i));}; tabs.appendChild(b); card.classList.toggle('req-date-hidden',i!==0);});
       const old=container.querySelector('.req-date-tabs'); if(old) old.remove(); container.prepend(tabs);
+    }
+
+    function consolidarRefeicoesVisually(containerId){
+      const root=document.getElementById(containerId); if(!root) return;
+      root.querySelectorAll('.req-order').forEach(card=>{
+        if(card.dataset.mealsConsolidated==='1') return;
+        const panels=[...card.querySelectorAll('.req-prep-panel')]; if(!panels.length) return;
+        const meals={};
+        panels.forEach(panel=>{
+          const title=panel.querySelector('.req-prep-title')?.innerText||'Refeição não informada';
+          const mealMatch=title.match(/(CAFÉ DA MANHÃ|CAFÉ|ALMOÇO DO COMANDO|ALMOÇO|JANTAR|JANTA)/i);
+          const meal=mealMatch?mealMatch[1].toUpperCase():'OUTROS';
+          const prep=title.split('·')[0].trim();
+          const table=panel.querySelector('table');
+          if(!table) return;
+          (meals[meal]??=[]).push({prep,rows:[...table.querySelectorAll('tbody tr')]});
+        });
+        const order=['CAFÉ DA MANHÃ','CAFÉ','ALMOÇO','ALMOÇO DO COMANDO','JANTAR','JANTA','OUTROS'];
+        const content=document.createElement('div');
+        order.filter(m=>meals[m]).forEach(meal=>{
+          const block=document.createElement('section'); block.className='req-meal-block';
+          block.innerHTML=`<div class="req-meal-header"><i class="fas fa-utensils"></i> ${meal}</div><div style="overflow-x:auto"><table class="req-meal-table"><thead><tr><th>Preparo</th><th>Produto</th><th>Quantidade total</th><th>Estoque atual</th><th>Situação</th><th>Ação</th></tr></thead><tbody></tbody></table></div>`;
+          const body=block.querySelector('tbody');
+          meals[meal].forEach(group=>group.rows.forEach(row=>{const clone=row.cloneNode(true); const cell=document.createElement('td'); cell.className='req-prep-cell'; cell.innerText=group.prep; clone.insertBefore(cell,clone.firstChild); body.appendChild(clone);}));
+          content.appendChild(block);
+        });
+        card.querySelectorAll('.req-prep-tabs,.req-prep-panel').forEach(el=>el.remove());
+        card.appendChild(content); card.dataset.mealsConsolidated='1';
+      });
     }
 
     // --- CALENDÁRIO ---
