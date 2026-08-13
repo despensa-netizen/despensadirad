@@ -73,7 +73,8 @@
     .badge-entrada { background: #dcfce7; color: #166534; }
 
     .alert { padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem; }
-    .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--accent); }
+        .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid var(--accent); }
+    .req-dashboard{display:flex;flex-direction:column;gap:16px}.req-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.req-stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow)}.req-stat-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center}.req-stat-label{display:block;color:#64748b;font-size:.65rem;font-weight:700;text-transform:uppercase}.req-stat-value{display:block;font-size:1.25rem;margin-top:3px}.req-toolbar{display:grid;grid-template-columns:1fr 1fr 1fr 1.5fr;gap:10px;padding:14px;background:#f8fafc;border:1px solid var(--border);border-radius:12px}.req-toolbar input,.req-toolbar select{margin:0;background:#fff}.req-list{display:flex;flex-direction:column;gap:14px}.req-order{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}.req-order-head{display:flex;justify-content:space-between;gap:15px;padding:16px;background:linear-gradient(120deg,#f8fafc,#fff);border-bottom:1px solid var(--border)}.req-order-title{display:flex;gap:10px;align-items:center}.req-order-title h4{margin:0;color:var(--primary);font-size:.9rem}.req-order-meta{margin-top:5px;color:#64748b;font-size:.7rem}.req-progress-wrap{min-width:190px;text-align:right}.req-progress-label{font-size:.68rem;font-weight:700;margin-bottom:5px}.req-progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden}.req-progress span{display:block;height:100%;background:var(--success)}.req-order-body{overflow-x:auto}.req-items{width:100%;min-width:820px;border-collapse:collapse;margin:0}.req-items th{padding:10px 14px;font-size:.65rem;text-transform:uppercase}.req-items td{padding:11px 14px}.req-item-name{font-weight:700}.req-item-sub{display:block;color:#94a3b8;font-size:.67rem;margin-top:3px}.req-status{display:inline-flex;padding:5px 8px;border-radius:99px;font-size:.62rem;font-weight:800;text-transform:uppercase}.req-status.pending{background:#fef3c7;color:#92400e}.req-status.done{background:#dcfce7;color:#166534}.req-status.shortage{background:#fee2e2;color:#991b1b}.req-order-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;background:#fafafa;border-top:1px solid var(--border)}.req-empty{padding:35px;text-align:center;color:#64748b;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc}@media(max-width:850px){.req-summary{grid-template-columns:repeat(2,1fr)}.req-toolbar{grid-template-columns:1fr 1fr}.req-order-head{flex-direction:column}.req-progress-wrap{width:100%;text-align:left}}@media(max-width:520px){.req-summary,.req-toolbar{grid-template-columns:1fr}}
 
     @media print { body * { visibility: hidden; } #qrModal, #qrModal * { visibility: visible; } #qrModal { position: absolute; left: 0; top: 0; background: white; } }
   </style>
@@ -137,13 +138,8 @@
       </div>
     </div>
 
-    <!-- TAB 2: REQUISIÇÕES (INTEGRADO) -->
-    <div id="tab-requisicoes" class="tab-content hidden">
-      <div class="card">
-        <h3><i class="fas fa-check-square"></i> Requisições do Dia - Marque os Itens Separados</h3>
-        <div id="listaRequisicoesDia"></div>
-      </div>
-    </div>
+    <!-- TAB 2: REQUISIÇÕES DETALHADAS -->
+    <div id="tab-requisicoes" class="tab-content hidden"><div class="req-dashboard"><div class="req-summary"><div class="req-stat"><div class="req-stat-icon" style="background:#dbeafe;color:#1d4ed8"><i class="fas fa-clipboard-list"></i></div><div><span class="req-stat-label">Requisições</span><strong class="req-stat-value" id="reqTotalPedidos">0</strong></div></div><div class="req-stat"><div class="req-stat-icon" style="background:#fef3c7;color:#b45309"><i class="fas fa-hourglass-half"></i></div><div><span class="req-stat-label">Pendentes</span><strong class="req-stat-value" id="reqTotalPendentes">0</strong></div></div><div class="req-stat"><div class="req-stat-icon" style="background:#dcfce7;color:#15803d"><i class="fas fa-check-double"></i></div><div><span class="req-stat-label">Separados</span><strong class="req-stat-value" id="reqTotalSeparados">0</strong></div></div><div class="req-stat"><div class="req-stat-icon" style="background:#fee2e2;color:#b91c1c"><i class="fas fa-triangle-exclamation"></i></div><div><span class="req-stat-label">Com falta</span><strong class="req-stat-value" id="reqTotalFaltas">0</strong></div></div></div><div class="card" style="margin-bottom:0;padding:16px"><div class="req-toolbar"><input type="date" id="reqFiltroData"><select id="reqFiltroTurno"><option value="">Todos os turnos</option><option>CAFÉ</option><option>ALMOÇO</option><option>JANTA</option></select><select id="reqFiltroStatus"><option value="">Todos os status</option><option>Pendente</option><option>Concluído</option></select><input type="search" id="reqBusca" placeholder="Buscar produto ou receita..."></div></div><div id="listaRequisicoesDia" class="req-list"></div></div></div>
 
     <!-- TAB 3: CADASTRO (ORIGINAL) -->
     <div id="tab-cadastro" class="tab-content hidden">
@@ -350,7 +346,7 @@
     function fecharModalBaixa() { document.getElementById('modalBaixa').classList.add('hidden'); document.getElementById('baixaQtdInput').value = ''; }
 
     function renderEstoque() {
-      db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+      db.collection('estoque').orderBy('nome').onSnapshot(snap => { window.estoqueCache=snap.docs.map(d=>({id:d.id,...d.data()}));
         const tbody = document.querySelector('#tabelaEstoque tbody');
         const select = document.getElementById('saidaProdSelect');
         const entSelect = document.getElementById('entProdSelect');
@@ -475,19 +471,18 @@
 
     // ===== INTEGRAÇÃO NUTRIÇÃO =====
     function monitorarRequisicoes() {
-      db.collection('requisicoes').where('status', '==', 'Pendente').onSnapshot(snap => {
-        const div = document.getElementById('listaRequisicoesDia');
-        div.innerHTML = '';
-        const grupos = {};
-        snap.forEach(doc => { const r = doc.data(); const key = `${r.data} - ${r.turno}`; if(!grupos[key]) grupos[key] = []; grupos[key].push({id: doc.id, ...r}); });
-        for(const key in grupos) {
-          const turnoClass = key.includes('CAFÉ') ? 'header-cafe' : (key.includes('ALMOÇO') ? 'header-almoco' : 'header-janta');
-          let html = `<div class="req-group"><div class="req-header ${turnoClass}"><span>${key}</span></div>`;
-          grupos[key].forEach(r => { html += `<div class="req-item"><div class="checkbox-item" onclick="darBaixaRequisicao('${r.id}', '${r.item}', ${r.quantidade})"><i class="fas fa-check"></i></div><div style="flex:1;"><strong>${r.item}</strong> - ${r.quantidade}</div></div>`; });
-          div.innerHTML += html + '</div>';
-        }
-      });
+      db.collection('requisicoes').orderBy('data','desc').onSnapshot(snap => { window.requisicoesEstoque = snap.docs.map(d => ({id:d.id,...d.data()})); renderRequisicoesEstoque(); });
+      ['reqFiltroData','reqFiltroTurno','reqFiltroStatus','reqBusca'].forEach(id => document.getElementById(id)?.addEventListener(id==='reqBusca'?'input':'change', renderRequisicoesEstoque));
     }
+    function renderRequisicoesEstoque() {
+      const data=document.getElementById('reqFiltroData')?.value||'', turno=document.getElementById('reqFiltroTurno')?.value||'', status=document.getElementById('reqFiltroStatus')?.value||'', busca=(document.getElementById('reqBusca')?.value||'').toLowerCase();
+      const rows=(window.requisicoesEstoque||[]).filter(r=>(!data||r.data===data)&&(!turno||r.turno===turno)&&(!status||r.status===status)&&(!busca||`${r.item} ${r.detalhe||''}`.toLowerCase().includes(busca)));
+      const p=rows.filter(r=>r.status!=='Concluído'), c=rows.filter(r=>r.status==='Concluído'), f=p.filter(r=>{const s=(window.estoqueCache||[]).find(x=>x.nome?.toLowerCase()===r.item?.toLowerCase());return s&&Number(s.quantidade)<Number(r.quantidade)});
+      document.getElementById('reqTotalPedidos').innerText=new Set(rows.map(r=>`${r.data}|${r.turno}|${r.detalhe||''}`)).size;document.getElementById('reqTotalPendentes').innerText=p.length;document.getElementById('reqTotalSeparados').innerText=c.length;document.getElementById('reqTotalFaltas').innerText=f.length;
+      const grupos={}; rows.forEach(r=>{const k=`${r.data}|${r.turno}|${r.detalhe||'Requisição geral'}`;(grupos[k]??={data:r.data,turno:r.turno,detalhe:r.detalhe||'Requisição geral',itens:[]}).itens.push(r)});
+      document.getElementById('listaRequisicoesDia').innerHTML=Object.values(grupos).map(g=>{const done=g.itens.filter(r=>r.status==='Concluído').length, pct=Math.round(done/g.itens.length*100);return `<section class="req-order"><header class="req-order-head"><div><div class="req-order-title"><i class="fas fa-utensils" style="color:var(--accent)"></i><h4>${g.turno} — ${new Date(g.data+'T12:00:00').toLocaleDateString('pt-BR')}</h4></div><div class="req-order-meta">${g.detalhe} · ${g.itens.length} item(ns)</div></div><div class="req-progress-wrap"><div class="req-progress-label">${done} de ${g.itens.length} separados (${pct}%)</div><div class="req-progress"><span style="width:${pct}%"></span></div></div></header><div class="req-order-body"><table class="req-items"><thead><tr><th>Produto</th><th>Solicitado</th><th>Estoque atual</th><th>Situação</th><th>Ação</th></tr></thead><tbody>${g.itens.map(r=>{const s=(window.estoqueCache||[]).find(x=>x.nome?.toLowerCase()===r.item?.toLowerCase()), saldo=s?Number(s.quantidade):null, falta=saldo!==null&&saldo<Number(r.quantidade);return `<tr><td><span class="req-item-name">${r.item}</span><span class="req-item-sub">${r.unidade||''}</span></td><td>${r.quantidade}</td><td class="${falta?'req-stock-low':'req-stock-ok'}">${saldo===null?'Não localizado':saldo}</td><td><span class="req-status ${r.status==='Concluído'?'done':falta?'shortage':'pending'}">${r.status==='Concluído'?'Separado':falta?'Estoque insuficiente':'Pendente'}</span></td><td>${r.status==='Concluído'?'<span style="color:#166534;font-size:.7rem">Confirmado</span>':`<button class="btn btn-success" style="padding:7px;font-size:.6rem" onclick="darBaixaRequisicao('${r.id}','${r.item}',${r.quantidade})"><i class="fas fa-check"></i> Separar</button>`}</td></tr>`}).join('')}</tbody></table></div><footer class="req-order-foot">${done<g.itens.length?`<button class="btn btn-primary" onclick="confirmarGrupoRequisicoes(${JSON.stringify(g.itens.filter(r=>r.status!=='Concluído').map(r=>r.id))})">Confirmar pendentes</button>`:''}</footer></section>`}).join('')||'<div class="req-empty">Nenhuma requisição encontrada.</div>';
+    }
+    async function confirmarGrupoRequisicoes(ids){if(!confirm(`Confirmar ${ids.length} item(ns)?`))return;const batch=db.batch();ids.forEach(id=>batch.update(db.collection('requisicoes').doc(id),{status:'Concluído',separadoEm:new Date(),separadoPor:auth.currentUser.email}));await batch.commit();}
 
     async function darBaixaRequisicao(id, item, qtd) {
       const snap = await db.collection('estoque').where('nome', '==', item).get();
