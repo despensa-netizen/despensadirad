@@ -322,10 +322,32 @@
       document.getElementById('dataProg').valueAsDate = new Date();
     }
 
-    async function carregarEstoque() {
-      const snap = await db.collection('estoque').get();
-      produtosCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderSelector();
+    function carregarEstoque() {
+      return db.collection('estoque').orderBy('nome').onSnapshot(snap => {
+        produtosCache = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderProdutosDatalist();
+        renderSelector();
+        if (typeof renderRequisicoes === 'function') renderRequisicoes();
+        if (typeof renderGruposManuais === 'function' && gruposManuais.length) renderGruposManuais();
+      });
+    }
+
+    function renderProdutosDatalist() {
+      let list = document.getElementById('listaProdutosEstoque');
+      if (!list) { list = document.createElement('datalist'); list.id = 'listaProdutosEstoque'; document.body.appendChild(list); }
+      list.innerHTML = produtosCache.map(p => `<option value="${escapeHtml(p.nome)}">${Number(p.quantidade || 0)} ${escapeHtml(p.unidade || '')} disponíveis</option>`).join('');
+    }
+
+    function mostrarEstoqueDigitado(input, gIdx, iIdx) {
+      const nome = String(input.value || '').trim().toLowerCase();
+      gruposManuais[gIdx].itens[iIdx].item = input.value;
+      const produto = produtosCache.find(p => String(p.nome || '').trim().toLowerCase() === nome);
+      const info = input.parentElement.querySelector('.estoque-digitado-info');
+      if (!info) return;
+      if (!produto) { info.innerText = 'Produto não localizado no estoque'; info.style.color = '#b45309'; return; }
+      info.innerText = `Disponível: ${produto.quantidade || 0} ${produto.unidade || ''}${produto.validade ? ` · Validade: ${produto.validade}` : ''}`;
+      info.style.color = Number(produto.quantidade || 0) > 0 ? '#15803d' : '#b91c1c';
+      if (!gruposManuais[gIdx].itens[iIdx].unidade) { gruposManuais[gIdx].itens[iIdx].unidade = produto.unidade || 'kg'; }
     }
 
     function switchTab(e, id) {
@@ -356,7 +378,7 @@
           <div style="padding:10px;">
             ${g.itens.map((it, iIdx) => `
               <div class="manual-item-row">
-                <input type="text" value="${it.item}" placeholder="Insumo" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item = this.value">
+                <div style="flex:2;min-width:220px"><input type="text" value="${it.item}" placeholder="Digite o produto" list="listaProdutosEstoque" oninput="mostrarEstoqueDigitado(this,${gIdx},${iIdx})" onchange="gruposManuais[${gIdx}].itens[${iIdx}].item = this.value"><small class="estoque-digitado-info" style="display:block;font-size:.65rem;color:#64748b;margin-top:3px">Digite ou selecione um produto do estoque</small></div>
                 <input type="text" value="${it.unidade}" placeholder="UND" onchange="gruposManuais[${gIdx}].itens[${iIdx}].unidade = this.value">
                 <input type="number" value="${it.quantidade}" placeholder="QTD" onchange="gruposManuais[${gIdx}].itens[${iIdx}].quantidade = parseFloat(this.value)">
                 <button onclick="gruposManuais[${gIdx}].itens.splice(${iIdx},1); renderGruposManuais()" class="btn btn-danger">X</button>
@@ -625,13 +647,15 @@
           const itens=Object.values(consolidado); const done=itens.filter(r=>r.status==='Concluído').length; const pct=Math.round(done/itens.length*100);
           return `<div class="req-prep-panel active" data-card="${cardIndex}" data-prep="${pIndex}"><div class="req-prep-title"><i class="fas fa-utensils"></i> ${escapeHtml(prep.split('|||')[1])} · ${escapeHtml(prep.split('|||')[0])} · ${done} de ${itens.length} itens separados</div><div class="req-progress" style="margin:0 16px 8px"><span style="width:${pct}%"></span></div><div class="req-order-body"><table class="req-items"><thead><tr><th>Produto</th><th>Quantidade total</th><th>Estoque atual</th><th>Validade</th><th>Situação</th><th>Ação</th></tr></thead><tbody>${itens.map(r=>{const saldo=obterEstoqueItem(r.item);const produto=produtosCache.find(p=>String(p.nome).trim().toLowerCase()===String(r.item).trim().toLowerCase());const falta=saldo!==null&&saldo<r.quantidade;const st=r.status==='Concluído'?{classe:'done',texto:'Separado'}:falta?{classe:'shortage',texto:'Estoque insuficiente'}:{classe:'pending',texto:'Pendente'};return `<tr><td><span class="req-item-name">${escapeHtml(r.item)}</span><span class="req-item-sub">Consolidado neste preparo</span></td><td><strong>${r.quantidade}</strong> ${escapeHtml(r.unidade)}</td><td class="${falta?'req-stock-low':'req-stock-ok'}">${saldo===null?'Não localizado':saldo}</td><td>${escapeHtml(produto?.validade||'—')}</td><td><span class="req-status ${st.classe}">${st.texto}</span></td><td>${r.status==='Concluído'?'<span style="color:#166534;font-size:.7rem">Confirmado</span>':`<button class="btn btn-success" style="padding:7px;font-size:.62rem" onclick="confirmarGrupoReq(${JSON.stringify(r.ids)})"><i class="fas fa-check"></i> Separar</button>`}</td></tr>`}).join('')}</tbody></table></div></div>`;
         }).join('');
-        const result=`<section class="req-order"><header class="req-order-head"><div><div class="req-order-title"><i class="fas fa-calendar-day" style="color:var(--accent)"></i><h4>Requisições de ${dateText}</h4></div><div class="req-order-meta">Os preparos e turnos estão organizados dentro desta data.</div></div></header>${panels}</section>`; cardIndex+=1; return result;
+        const result=`<section class="req-order"><header class="req-order-head"><div><div class="req-order-title"><i class="fas fa-calendar-day" style="color:var(--accent)"></i><h4>Requisições de ${dateText}</h4><button class="btn btn-danger" style="margin-left:auto;padding:7px 10px;font-size:.62rem" onclick="excluirRequisicaoData('${dia.data || ''}')"><i class="fas fa-trash"></i> Excluir requisição</button></div><div class="req-order-meta">Os preparos e turnos estão organizados dentro desta data.</div></div></header>${panels}</section>`; cardIndex+=1; return result;
       }).join('');
       consolidarRefeicoesVisually('listaRequisicoes');
       aplicarAbasPorData('listaRequisicoes');
     }
 
     function selecionarPreparo(card, prep){ document.querySelectorAll(`.req-prep-panel[data-card="${card}"]`).forEach(p=>p.classList.toggle('active',p.dataset.prep==prep)); const tabs=document.querySelectorAll(`.req-order:nth-child(${Number(card)+1}) .req-prep-tab`); tabs.forEach((t,i)=>t.classList.toggle('active',i===Number(prep))); }
+
+    async function excluirRequisicaoData(data) { if(!data) return alert('Data da requisição não identificada.'); if(!confirm(`Excluir todas as requisições do dia ${data}? Esta ação não altera o estoque, apenas remove a solicitação.`)) return; const snap=await db.collection('requisicoes').where('data','==',data).get(); const batch=db.batch(); snap.docs.forEach(doc=>batch.delete(doc.ref)); await batch.commit(); alert('Requisição excluída com sucesso.'); }
 
     async function confirmarSeparacaoReq(id) {
       if(!confirm('Confirmar a separação deste item? A baixa física do estoque deve ser realizada pelo módulo de Estoque.')) return;
