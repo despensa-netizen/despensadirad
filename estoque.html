@@ -87,7 +87,7 @@
     .req-date-tab{background:#fff;border:1px solid var(--border);color:#475569;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:800;font-size:.7rem}.req-date-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
     .req-order.req-date-hidden{display:none}
 
-    .produto-sugestoes{position:relative;z-index:20;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:var(--shadow);margin-top:-6px}.produto-sugestao{padding:9px 11px;cursor:pointer;border-bottom:1px solid #f1f5f9;font-size:.78rem}.produto-sugestao:hover{background:#eff6ff}.produto-sugestao small{display:block;color:#64748b;font-size:.65rem;margin-top:2px}
+    .produto-sugestoes{position:relative;z-index:20;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:var(--shadow);margin-top:-6px}.produto-sugestao{display:block;width:100%;box-sizing:border-box;text-align:left;padding:9px 11px;cursor:pointer;border:0;border-bottom:1px solid #f1f5f9;background:#fff;font-size:.78rem}.produto-sugestao:hover,.produto-sugestao:focus{background:#eff6ff;outline:none}.produto-sugestao small{display:block;color:#64748b;font-size:.65rem;margin-top:2px}
     .req-meal-block{margin:14px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.req-meal-header{padding:13px 16px;background:#e8f0ff;color:var(--primary);font-size:.86rem;font-weight:800;text-transform:uppercase;border-bottom:1px solid var(--border)}.req-meal-table{width:100%;border-collapse:collapse;margin:0;min-width:900px}.req-meal-table th{padding:10px 14px;background:#f8fafc;font-size:.65rem;text-transform:uppercase}.req-meal-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.78rem}.req-meal-table tr:last-child td{border-bottom:0}    .req-prep-cell{font-weight:700;color:#475569;min-width:190px;background:#fbfdff}.req-adjust-input{width:82px!important;margin:0!important;padding:7px!important;text-align:center}.req-real-output{font-weight:800;color:var(--primary);white-space:nowrap}
 
 
@@ -427,12 +427,17 @@
     function filtrarProdutosEntrada(termo='') {
       const box=document.getElementById('entSugestoesProduto'); if(!box) return;
       const busca=String(termo||'').trim().toLowerCase(); const produtos=(window.estoqueCache||[]).filter(p=>!busca||String(p.nome||'').toLowerCase().includes(busca)).slice(0,30);
-      box.innerHTML=produtos.length?produtos.map(p=>`<div class="produto-sugestao" onclick="selecionarProdutoEntrada('${p.id}',${JSON.stringify(p.nome)})"><strong>${p.nome}</strong><small>Disponível: ${p.quantidade||0} ${p.unidade||''}${p.lote?' · Lote: '+p.lote:''}${p.validade?' · Validade: '+p.validade:''}</small></div>`).join(''):'<div class="produto-sugestao">Nenhum produto encontrado.</div>';
+      box.innerHTML=produtos.length?produtos.map(p=>`<button type="button" class="produto-sugestao" data-produto-id="${p.id}" data-produto-nome="${String(p.nome||'').replace(/"/g,'&quot;')}"><strong>${p.nome}</strong><small>Disponível: ${p.quantidade||0} ${p.unidade||''}${p.lote?' · Lote: '+p.lote:''}${p.validade?' · Validade: '+p.validade:''}</small></button>`).join(''):'<div class="produto-sugestao">Nenhum produto encontrado.</div>';
+      box.querySelectorAll('button.produto-sugestao').forEach(btn=>btn.addEventListener('click',()=>selecionarProdutoEntrada(btn.dataset.produtoId,btn.dataset.produtoNome)));
     }
     function selecionarProdutoEntrada(id,nome){
-      const select=document.getElementById('entProdSelect'); select.value=id;
+      const select=document.getElementById('entProdSelect');
+      const option=[...select.options].find(o=>o.value===String(id));
+      if(!option){ const novo=document.createElement('option'); novo.value=id; novo.textContent=nome; select.appendChild(novo); }
+      select.value=String(id);
       document.getElementById('entBuscaProduto').value=nome;
       document.getElementById('entSugestoesProduto').innerHTML='';
+      document.getElementById('entBuscaProduto').dispatchEvent(new Event('change',{bubbles:true}));
     }
 
     document.getElementById('formSaidaManual').onsubmit = async (e) => {
