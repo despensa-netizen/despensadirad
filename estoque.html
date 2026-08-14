@@ -206,6 +206,9 @@
           
           <label>Fornecedor:</label>
           <input type="text" id="entFornecedor" placeholder="Nome da Empresa/Distribuidora" required>
+
+          <label>Lote do Produto:</label>
+          <input type="text" id="entLote" placeholder="Informe o lote" required>
           
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div><label>Quantidade:</label><input type="number" id="entQtd" step="0.01" required></div>
@@ -413,7 +416,7 @@
         tbody.innerHTML = snap.docs.map(doc => {
           const m = doc.data();
           const data = m.data?.toDate().toLocaleString('pt-BR') || '---';
-          return `<tr><td>${data}</td><td><span class="badge ${m.tipo === 'saida' ? 'badge-saida' : 'badge-entrada'}">${m.tipo}</span></td><td>${m.item}</td><td>${m.novaQtd - m.qtdAnterior}</td><td>${m.marca || '-'}</td><td>${m.fornecedor || '-'}</td><td>${m.usuario}</td></tr>`;
+          return `<tr><td>${data}</td><td><span class="badge ${m.tipo === 'saida' ? 'badge-saida' : 'badge-entrada'}">${m.tipo}</span></td><td>${m.item}</td><td>${m.novaQtd - m.qtdAnterior}</td><td>${m.marca || '-'}</td><td>${m.lote || '-'}</td><td>${m.fornecedor || '-'}</td><td>${m.usuario}</td></tr>`;
         }).join('');
       });
     }
@@ -436,11 +439,13 @@
       const qtd = parseFloat(document.getElementById('entQtd').value);
       const marca = document.getElementById('entMarca').value;
       const forn = document.getElementById('entFornecedor').value;
+      const lote = document.getElementById('entLote').value.trim();
+      if(!lote) return alert('Informe o lote do produto.');
       const doc = await db.collection('estoque').doc(id).get();
       const p = doc.data();
       const novaQtd = p.quantidade + qtd;
-      await db.collection('estoque').doc(id).update({ quantidade: novaQtd, validade: document.getElementById('entVal').value, marca: marca });
-      await db.collection('movimentacoes').add({ tipo: 'entrada', item: p.nome, qtdAnterior: p.quantidade, novaQtd: novaQtd, marca: marca, fornecedor: forn, usuario: auth.currentUser.email, data: new Date() });
+      await db.collection('estoque').doc(id).update({ quantidade: novaQtd, validade: document.getElementById('entVal').value, marca: marca, lote: lote });
+      await db.collection('movimentacoes').add({ tipo: 'entrada', item: p.nome, qtdAnterior: p.quantidade, novaQtd: novaQtd, marca: marca, lote: lote, fornecedor: forn, usuario: auth.currentUser.email, data: new Date() });
       alert("Entrada registrada!"); e.target.reset();
     };
 
