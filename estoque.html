@@ -322,6 +322,7 @@
     let scannerGlobal;
     let graficoConsumoInstance = null;
     let lotesCache = [];
+    let lotesCarregados = false;
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
@@ -331,7 +332,6 @@
 
     async function initApp() {
       try { await garantirLotesMigrados(); } catch (erro) { console.error('Migração de lotes não concluída:', erro); }
-      await carregarLotes();
       renderEstoque();
       monitorarRequisicoes();
       carregarHistorico();
@@ -342,14 +342,26 @@
 
     // ===== CONTROLE DE LOTES E PRIORIDADE POR VALIDADE =====
     async function garantirLotesMigrados() {
-      const snap = await db.collection('estoque').get();
-      for (const doc of snap.docs) {
+      const [estoqueSnap, lotesSnap] = await Promise.all([db.collection('estoque').get(), db.collection('lotes').get()]);
+      const produtosComLote = new Set(lotesSnap.docs.map(d => String(d.data().produtoId)));
+      const batch = db.batch();
+      const lotesIniciais = lotesSnap.docs.map(d => ({id:d.id, ...d.data()}));
+      let totalNovos = 0;
+      estoqueSnap.docs.forEach(doc => {
         const p = doc.data();
-        const existentes = await db.collection('lotes').where('produtoId', '==', doc.id).limit(1).get();
-        if (existentes.empty && Number(p.quantidade || 0) > 0) {
-          await db.collection('lotes').add({produtoId: doc.id, produtoNome: p.nome, lote: p.lote || 'LOTE-LEGADO', validade: p.validade || '', quantidade: Number(p.quantidade || 0), marca: p.marca || '', criadoEm: new Date(), migrado: true});
+        if (!produtosComLote.has(String(doc.id)) && Number(p.quantidade || 0) > 0) {
+          const ref = db.collection('lotes').doc();
+          const novoLote = {produtoId: doc.id, produtoNome: p.nome, lote: p.lote || 'LOTE-LEGADO', validade: p.validade || '', quantidade: Number(p.quantidade || 0), marca: p.marca || '', criadoEm: new Date(), migrado: true};
+          batch.set(ref, novoLote);
+          lotesIniciais.push({id:ref.id, ...novoLote});
+          totalNovos++;
         }
-      }
+      });
+      if (totalNovos) await batch.commit();
+      lotesCache = lotesIniciais;
+      window.lotesCache = lotesCache;
+      lotesCarregados = true;
+      renderTabelaLotes();
     }
 
     function dataValidade(valor) {
@@ -362,12 +374,31 @@
       return lotesCache.filter(l => l.produtoId === String(produtoId) && Number(l.quantidade || 0) > 0).sort((a,b) => dataValidade(a.validade) - dataValidade(b.validade));
     }
 
-    async function carregarLotes() {
+    function renderTabelaLotes() {
+      const tbody = document.querySelector('#tabelaLotesDisponiveis tbody');
+      if (tbody) tbody.innerHTML = lotesCache.filter(l => Number(l.quantidade || 0) > 0).sort((a,b) => dataValidade(a.validade) - dataValidade(b.validade)).map(l => `<tr><td>${l.produtoNome || '-'}</td><td>${l.lote || '-'}</td><td>${l.validade || 'Sem validade'}</td><td>${Number(l.quantidade || 0).toFixed(2)}</td></tr>`).join('');
+    }
+
+    async function carregarLotes(force=false) {
+      if (lotesCarregados && !force) { renderTabelaLotes(); return lotesCache; }
       const snap = await db.collection('lotes').get();
       lotesCache = snap.docs.map(d => ({id:d.id, ...d.data()}));
       window.lotesCache = lotesCache;
-      const tbody = document.querySelector('#tabelaLotesDisponiveis tbody');
-      if (tbody) tbody.innerHTML = lotesCache.filter(l => Number(l.quantidade || 0) > 0).sort((a,b) => dataValidade(a.validade) - dataValidade(b.validade)).map(l => `<tr><td>${l.produtoNome || '-'}</td><td>${l.lote || '-'}</td><td>${l.validade || 'Sem validade'}</td><td>${Number(l.quantidade || 0).toFixed(2)}</td></tr>`).join('');
+      lotesCarregados = true;
+      renderTabelaLotes();
+      return lotesCache;
+    }
+
+    function atualizarCacheLote(id, campos) {
+      const lote = lotesCache.find(l => l.id === id);
+      if (lote) Object.assign(lote, campos);
+      renderTabelaLotes();
+    }
+
+    function adicionarCacheLote(id, dados) {
+      lotesCache.push({id, ...dados});
+      lotesCarregados = true;
+      renderTabelaLotes();
     }
 
     async function baixarPorLotes(produtoId, quantidade, motivo) {
@@ -381,7 +412,9 @@
       let lotes = lotesSnap.docs.map(d => ({id:d.id, ...d.data()})).filter(l => Number(l.quantidade || 0) > 0).sort((a,b) => dataValidade(a.validade) - dataValidade(b.validade));
       let totalLotes = lotes.reduce((s,l) => s + Number(l.quantidade || 0), 0);
       if (totalLotes + 1e-9 < saldoProduto) {
-        await db.collection('lotes').add({produtoId:String(produtoId), produtoNome:p.nome, lote:p.lote || 'LOTE-SINCRONIZADO', validade:p.validade || '', quantidade:saldoProduto - totalLotes, marca:p.marca || '', criadoEm:new Date(), sincronizado:true});
+        const syncData = {produtoId:String(produtoId), produtoNome:p.nome, lote:p.lote || 'LOTE-SINCRONIZADO', validade:p.validade || '', quantidade:saldoProduto - totalLotes, marca:p.marca || '', criadoEm:new Date(), sincronizado:true};
+        const syncRef = await db.collection('lotes').add(syncData);
+        adicionarCacheLote(syncRef.id, syncData);
         lotesSnap = await db.collection('lotes').where('produtoId', '==', String(produtoId)).get();
         lotes = lotesSnap.docs.map(d => ({id:d.id, ...d.data()})).filter(l => Number(l.quantidade || 0) > 0).sort((a,b) => dataValidade(a.validade) - dataValidade(b.validade));
       }
@@ -394,6 +427,7 @@
         const baixa = Math.min(restante, saldoLote);
         if (baixa <= 0) continue;
         await db.collection('lotes').doc(lote.id).update({quantidade:saldoLote - baixa});
+        atualizarCacheLote(lote.id, {quantidade:saldoLote - baixa});
         consumidos.push({lote:lote.lote || 'Sem lote', validade:lote.validade || '', quantidade:baixa});
         restante -= baixa;
       }
@@ -401,7 +435,7 @@
       const novoSaldoProduto = saldoProduto - solicitada;
       await db.collection('estoque').doc(produtoId).update({quantidade:novoSaldoProduto});
       await db.collection('movimentacoes').add({tipo:'saida', item:p.nome, qtdAnterior:saldoProduto, novaQtd:novoSaldoProduto, usuario:auth.currentUser.email, data:new Date(), motivo:motivo || 'Saída', lotes:consumidos, lote:consumidos.map(x => x.lote).join(', '), validade:consumidos.map(x => x.validade).filter(Boolean).join(', ')});
-      await carregarLotes();
+      renderTabelaLotes();
       return consumidos;
     }
 
@@ -444,7 +478,7 @@
       try {
         const consumidos = await baixarPorLotes(id, qtd, 'Scanner');
         alert(`Baixa registrada priorizando validade. Lote(s): ${consumidos.map(x => x.lote).join(', ')}`);
-        fecharModalBaixa(); fecharScanner(); renderEstoque();
+        fecharModalBaixa(); fecharScanner();
       } catch (erro) { alert(erro.message); }
     }
 
@@ -464,7 +498,6 @@
           entSelect.innerHTML += `<option value="${doc.id}">${p.nome}</option>`;
         });
         renderInventario(snap);
-        carregarLotes();
         const buscaSaida = document.getElementById('saidaBuscaProduto');
         if (buscaSaida && document.activeElement === buscaSaida) filtrarProdutosSaida(buscaSaida.value);
       });
@@ -499,7 +532,7 @@
       }
       await db.collection('estoque').doc(id).update({ quantidade: real });
       await db.collection('movimentacoes').add({ tipo: 'ajuste', item: p.nome, qtdAnterior: p.quantidade, novaQtd: real, lote: diferenca > 0 ? 'INVENTARIO-AJUSTE' : 'Ajuste de lotes', usuario: auth.currentUser.email, data: new Date() });
-      await carregarLotes();
+      await carregarLotes(true);
       alert("Ajustado!");
     }
 
@@ -588,9 +621,10 @@
       const validade = document.getElementById('entVal').value;
       const novaQtd = Number(p.quantidade || 0) + qtd;
       await db.collection('estoque').doc(id).update({ quantidade: novaQtd, validade: validade, marca: marca });
-      await db.collection('lotes').add({produtoId:id, produtoNome:p.nome, lote:lote, validade:validade, quantidade:qtd, marca:marca, criadoEm:new Date()});
+      const loteData = {produtoId:id, produtoNome:p.nome, lote:lote, validade:validade, quantidade:qtd, marca:marca, criadoEm:new Date()};
+      const loteRef = await db.collection('lotes').add(loteData);
+      adicionarCacheLote(loteRef.id, loteData);
       await db.collection('movimentacoes').add({ tipo: 'entrada', item: p.nome, qtdAnterior: p.quantidade, novaQtd: novaQtd, marca: marca, lote: lote, validade: validade, fornecedor: forn, usuario: auth.currentUser.email, data: new Date() });
-      await carregarLotes();
       alert("Entrada registrada no lote!"); e.target.reset();
     };
 
