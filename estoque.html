@@ -13,6 +13,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
@@ -87,7 +88,7 @@
     .req-date-tab{background:#fff;border:1px solid var(--border);color:#475569;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:800;font-size:.7rem}.req-date-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
     .req-order.req-date-hidden{display:none}
 
-    .produto-sugestoes{position:relative;z-index:20;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:var(--shadow);margin-top:-6px}.produto-sugestao{display:block;width:100%;box-sizing:border-box;text-align:left;padding:9px 11px;cursor:pointer;border:0;border-bottom:1px solid #f1f5f9;background:#fff;font-size:.78rem}.produto-sugestao:hover,.produto-sugestao:focus{background:#eff6ff;outline:none}.produto-sugestao small{display:block;color:#64748b;font-size:.65rem;margin-top:2px}
+    .produto-sugestoes{position:relative;z-index:20;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:var(--shadow);margin-top:-6px}.produto-sugestao{display:block;width:100%;box-sizing:border-box;text-align:left;padding:9px 11px;cursor:pointer;border:0;border-bottom:1px solid #f1f5f9;background:#fff;font-size:.78rem}.produto-sugestao:hover,.produto-sugestao:focus{background:#eff6ff;outline:none}.produto-sugestao small{display:block;color:#64748b;font-size:.65rem;margin-top:2px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.saida-produto-selecionado{min-height:18px;margin:-4px 0 8px;color:#475569;font-size:.7rem;font-weight:700}.grafico-consumo-wrap{position:relative;height:380px;margin:18px 0 24px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff}.grafico-consumo-vazio{display:flex;height:100%;align-items:center;justify-content:center;color:#64748b;font-size:.85rem;text-align:center}
     .req-meal-block{margin:14px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.req-meal-header{padding:13px 16px;background:#e8f0ff;color:var(--primary);font-size:.86rem;font-weight:800;text-transform:uppercase;border-bottom:1px solid var(--border)}.req-meal-table{width:100%;border-collapse:collapse;margin:0;min-width:900px}.req-meal-table th{padding:10px 14px;background:#f8fafc;font-size:.65rem;text-transform:uppercase}.req-meal-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.78rem}.req-meal-table tr:last-child td{border-bottom:0}    .req-prep-cell{font-weight:700;color:#475569;min-width:190px;background:#fbfdff}.req-adjust-input{width:82px!important;margin:0!important;padding:7px!important;text-align:center}.req-real-output{font-weight:800;color:var(--primary);white-space:nowrap}
 
 
@@ -131,8 +132,12 @@
             <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
             <h3><i class="fas fa-hand-holding"></i> Saída Manual</h3>
             <form id="formSaidaManual">
-              <select id="saidaProdSelect" required></select>
-              <input type="number" id="saidaQtd" placeholder="Qtd" step="0.01" required>
+              <label for="saidaBuscaProduto" class="sr-only">Pesquisar produto para saída</label>
+              <input type="search" id="saidaBuscaProduto" placeholder="Pesquisar produto..." autocomplete="off" oninput="filtrarProdutosSaida(this.value)" onfocus="filtrarProdutosSaida(this.value)" aria-label="Pesquisar produto para saída">
+              <div id="saidaSugestoesProduto" class="produto-sugestoes" role="listbox"></div>
+              <select id="saidaProdSelect" required aria-label="Produto selecionado" style="display:none"></select>
+              <div id="saidaProdutoSelecionado" class="saida-produto-selecionado" aria-live="polite">Selecione um produto pesquisando acima.</div>
+              <input type="number" id="saidaQtd" placeholder="Qtd" step="0.01" min="0.01" required>
               <input type="text" id="saidaMotivo" placeholder="Motivo (Ex: Uso Cozinha)">
               <button type="submit" class="btn btn-warning" style="width:100%">Confirmar Baixa</button>
             </form>
@@ -254,8 +259,9 @@
     <div id="tab-planejamento" class="tab-content hidden">
       <div class="card">
         <h3><i class="fas fa-chart-bar"></i> Previsão de Compra (30d)</h3>
+        <div class="grafico-consumo-wrap"><canvas id="graficoConsumo" aria-label="Gráfico de colunas com estoque atual, consumo médio diário e dias de cobertura" role="img"></canvas></div>
         <table id="tabelaConsumo">
-          <thead><tr><th>Produto</th><th>Total Saídas</th><th>Média Diária</th><th>Sugestão Compra</th></tr></thead>
+          <thead><tr><th>Produto</th><th>Estoque Atual</th><th>Saídas (30d)</th><th>Média Diária</th><th>Dias de Cobertura</th><th>Sugestão Compra (30d)</th></tr></thead>
           <tbody id="corpoConsumo"></tbody>
         </table>
       </div>
@@ -303,6 +309,7 @@
     const auth = firebase.auth();
 
     let scannerGlobal;
+    let graficoConsumoInstance = null;
 
     auth.onAuthStateChanged(user => {
       if (!user) { window.location.href = 'index.html'; return; }
@@ -379,6 +386,8 @@
           entSelect.innerHTML += `<option value="${doc.id}">${p.nome}</option>`;
         });
         renderInventario(snap);
+        const buscaSaida = document.getElementById('saidaBuscaProduto');
+        if (buscaSaida && document.activeElement === buscaSaida) filtrarProdutosSaida(buscaSaida.value);
       });
     }
 
@@ -440,16 +449,39 @@
       document.getElementById('entBuscaProduto').dispatchEvent(new Event('change',{bubbles:true}));
     }
 
+    function filtrarProdutosSaida(termo='') {
+      const box = document.getElementById('saidaSugestoesProduto');
+      if (!box) return;
+      const busca = String(termo || '').trim().toLowerCase();
+      const produtos = (window.estoqueCache || []).filter(p => !busca || String(p.nome || '').toLowerCase().includes(busca)).slice(0, 30);
+      box.innerHTML = produtos.length ? produtos.map(p => `<button type="button" class="produto-sugestao" data-produto-id="${p.id}" data-produto-nome="${String(p.nome || '').replace(/"/g, '&quot;')}"><strong>${p.nome}</strong><small>Disponível: ${Number(p.quantidade || 0).toFixed(2)} ${p.unidade || ''}${p.validade ? ' · Validade: ' + p.validade : ''}</small></button>`).join('') : '<div class="produto-sugestao">Nenhum produto encontrado.</div>';
+      box.querySelectorAll('button.produto-sugestao').forEach(btn => btn.addEventListener('click', () => selecionarProdutoSaida(btn.dataset.produtoId, btn.dataset.produtoNome)));
+    }
+
+    function selecionarProdutoSaida(id, nome) {
+      const select = document.getElementById('saidaProdSelect');
+      select.value = String(id);
+      document.getElementById('saidaBuscaProduto').value = nome;
+      document.getElementById('saidaSugestoesProduto').innerHTML = '';
+      const p = (window.estoqueCache || []).find(item => item.id === String(id));
+      document.getElementById('saidaProdutoSelecionado').textContent = p ? `Selecionado: ${p.nome} — saldo ${Number(p.quantidade || 0).toFixed(2)} ${p.unidade || ''}` : `Selecionado: ${nome}`;
+    }
+
     document.getElementById('formSaidaManual').onsubmit = async (e) => {
       e.preventDefault();
       const id = document.getElementById('saidaProdSelect').value;
       const qtd = parseFloat(document.getElementById('saidaQtd').value);
+      if (!id) return alert('Pesquise e selecione um produto.');
+      if (!Number.isFinite(qtd) || qtd <= 0) return alert('Informe uma quantidade maior que zero.');
       const doc = await db.collection('estoque').doc(id).get();
+      if (!doc.exists) return alert('Produto não encontrado.');
       const p = doc.data();
-      const novaQtd = p.quantidade - qtd;
+      if (qtd > Number(p.quantidade || 0)) return alert(`Quantidade indisponível. Saldo atual: ${p.quantidade} ${p.unidade || ''}.`);
+      const novaQtd = Number(p.quantidade || 0) - qtd;
       await db.collection('estoque').doc(id).update({ quantidade: novaQtd });
       await db.collection('movimentacoes').add({ tipo: 'saida', item: p.nome, qtdAnterior: p.quantidade, novaQtd: novaQtd, motivo: document.getElementById('saidaMotivo').value, usuario: auth.currentUser.email, data: new Date() });
       alert("Saída registrada!"); e.target.reset();
+      document.getElementById('saidaProdutoSelecionado').textContent = 'Selecione um produto pesquisando acima.';
     };
 
     document.getElementById('formEntrada').onsubmit = async (e) => {
@@ -501,10 +533,57 @@
     }
 
     async function calcularPlanejamento() {
-      const snap = await db.collection('movimentacoes').where('tipo', '==', 'saida').get();
+      const [estoqueSnap, saidasSnap] = await Promise.all([
+        db.collection('estoque').orderBy('nome').get(),
+        db.collection('movimentacoes').where('tipo', '==', 'saida').get()
+      ]);
+      const agora = Date.now();
+      const inicio = agora - (30 * 24 * 60 * 60 * 1000);
       const resumo = {};
-      snap.forEach(doc => { const m = doc.data(); resumo[m.item] = (resumo[m.item] || 0) + (m.qtdAnterior - m.novaQtd); });
-      document.getElementById('corpoConsumo').innerHTML = Object.entries(resumo).map(([item, total]) => `<tr><td>${item}</td><td>${total.toFixed(2)}</td><td>${(total/30).toFixed(2)}</td><td>${(total*1.2).toFixed(2)}</td></tr>`).join('');
+      saidasSnap.forEach(doc => {
+        const m = doc.data();
+        const dataMov = m.data?.toDate ? m.data.toDate().getTime() : new Date(m.data || 0).getTime();
+        if (!dataMov || dataMov < inicio) return;
+        const consumo = Math.max(0, Number(m.qtdAnterior || 0) - Number(m.novaQtd || 0));
+        resumo[m.item] = (resumo[m.item] || 0) + consumo;
+      });
+      const dadosGrafico = [];
+      document.getElementById('corpoConsumo').innerHTML = estoqueSnap.docs.map(doc => {
+        const p = doc.data();
+        const estoqueAtual = Math.max(0, Number(p.quantidade || 0));
+        const total = Number(resumo[p.nome] || 0);
+        const mediaDiaria = total / 30;
+        const dias = mediaDiaria > 0 ? estoqueAtual / mediaDiaria : null;
+        const compra = Math.max(0, (mediaDiaria * 30) - estoqueAtual);
+        const diasTexto = dias === null ? 'Sem histórico' : (dias >= 999 ? '999+' : dias.toFixed(1));
+        dadosGrafico.push({nome: p.nome, estoque: estoqueAtual, consumo: mediaDiaria, cobertura: dias === null ? 0 : Math.min(dias, 999)});
+        return `<tr><td>${p.nome}</td><td>${estoqueAtual.toFixed(2)} ${p.unidade || ''}</td><td>${total.toFixed(2)}</td><td>${mediaDiaria.toFixed(2)}</td><td><strong>${diasTexto}</strong></td><td>${compra.toFixed(2)}</td></tr>`;
+      }).join('');
+      renderGraficoConsumo(dadosGrafico);
+    }
+
+    function renderGraficoConsumo(dados) {
+      const canvas = document.getElementById('graficoConsumo');
+      if (!canvas || typeof Chart === 'undefined') return;
+      if (graficoConsumoInstance) graficoConsumoInstance.destroy();
+      graficoConsumoInstance = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: dados.map(d => d.nome),
+          datasets: [
+            {label: 'Estoque atual', data: dados.map(d => d.estoque), backgroundColor: '#2563eb', borderRadius: 5},
+            {label: 'Consumo médio diário', data: dados.map(d => d.consumo), backgroundColor: '#f59e0b', borderRadius: 5},
+            {label: 'Dias de cobertura', data: dados.map(d => d.cobertura), backgroundColor: '#16a34a', borderRadius: 5}
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {mode: 'index', intersect: false},
+          plugins: {legend: {position: 'top'}, tooltip: {callbacks: {label: ctx => `${ctx.dataset.label}: ${Number(ctx.raw).toFixed(2)}`}}},
+          scales: {x: {ticks: {autoSkip: false, maxRotation: 55, minRotation: 25}}, y: {beginAtZero: true, title: {display: true, text: 'Quantidade / dias'}}}
+        }
+      });
     }
 
     function aplicarAbasPorData(containerId){
