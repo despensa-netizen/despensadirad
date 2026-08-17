@@ -153,11 +153,6 @@
               <thead><tr><th>Produto</th><th>Saldo</th><th>Local</th><th>Cat.</th><th>Validade</th><th>QR</th></tr></thead>
               <tbody></tbody>
             </table>
-            <h3 style="margin-top:20px"><i class="fas fa-layer-group"></i> Lotes disponíveis por validade</h3>
-            <table id="tabelaLotesDisponiveis">
-              <thead><tr><th>Produto</th><th>Lote</th><th>Validade</th><th>Saldo</th></tr></thead>
-              <tbody></tbody>
-            </table>
           </div>
         </section>
       </div>
@@ -375,8 +370,7 @@
     }
 
     function renderTabelaLotes() {
-      const tbody = document.querySelector('#tabelaLotesDisponiveis tbody');
-      if (tbody) tbody.innerHTML = lotesCache.filter(l => Number(l.quantidade || 0) > 0).sort((a,b) => dataValidade(a.validade) - dataValidade(b.validade)).map(l => `<tr><td>${l.produtoNome || '-'}</td><td>${l.lote || '-'}</td><td>${l.validade || 'Sem validade'}</td><td>${Number(l.quantidade || 0).toFixed(2)}</td></tr>`).join('');
+      // Os lotes permanecem no cache para priorização interna; a tabela foi removida da interface.
     }
 
     async function carregarLotes(force=false) {
