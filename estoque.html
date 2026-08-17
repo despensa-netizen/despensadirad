@@ -88,7 +88,7 @@
     .req-date-tab{background:#fff;border:1px solid var(--border);color:#475569;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:800;font-size:.7rem}.req-date-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
     .req-order.req-date-hidden{display:none}
 
-    .produto-sugestoes{position:relative;z-index:20;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:var(--shadow);margin-top:-6px}.produto-sugestao{display:block;width:100%;box-sizing:border-box;text-align:left;padding:9px 11px;cursor:pointer;border:0;border-bottom:1px solid #f1f5f9;background:#fff;font-size:.78rem}.produto-sugestao:hover,.produto-sugestao:focus{background:#eff6ff;outline:none}.produto-sugestao small{display:block;color:#64748b;font-size:.65rem;margin-top:2px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.saida-produto-selecionado{min-height:18px;margin:-4px 0 8px;color:#475569;font-size:.7rem;font-weight:700}.grafico-consumo-wrap{position:relative;height:380px;margin:18px 0 24px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff}.grafico-consumo-vazio{display:flex;height:100%;align-items:center;justify-content:center;color:#64748b;font-size:.85rem;text-align:center}
+    .produto-sugestoes{position:relative;z-index:20;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:var(--shadow);margin-top:-6px}.produto-sugestao{display:block;width:100%;box-sizing:border-box;text-align:left;padding:9px 11px;cursor:pointer;border:0;border-bottom:1px solid #f1f5f9;background:#fff;font-size:.78rem}.produto-sugestao:hover,.produto-sugestao:focus{background:#eff6ff;outline:none}.produto-sugestao small{display:block;color:#64748b;font-size:.65rem;margin-top:2px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.saida-produto-selecionado{min-height:18px;margin:-4px 0 8px;color:#475569;font-size:.7rem;font-weight:700}.grafico-consumo-wrap{position:relative;height:320px;margin:18px 0 24px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff}.grafico-consumo-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:15px 0}.grafico-consumo-card{padding:14px;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:var(--shadow)}.grafico-consumo-card small{display:block;color:#64748b;font-size:.65rem;font-weight:800;text-transform:uppercase}.grafico-consumo-card strong{display:block;margin-top:6px;font-size:1.35rem;color:var(--primary)}.grafico-consumo-card span{display:block;margin-top:4px;color:#64748b;font-size:.68rem}@media(max-width:850px){.grafico-consumo-resumo{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.grafico-consumo-resumo{grid-template-columns:1fr}}
     .req-meal-block{margin:14px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.req-meal-header{padding:13px 16px;background:#e8f0ff;color:var(--primary);font-size:.86rem;font-weight:800;text-transform:uppercase;border-bottom:1px solid var(--border)}.req-meal-table{width:100%;border-collapse:collapse;margin:0;min-width:900px}.req-meal-table th{padding:10px 14px;background:#f8fafc;font-size:.65rem;text-transform:uppercase}.req-meal-table td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.78rem}.req-meal-table tr:last-child td{border-bottom:0}    .req-prep-cell{font-weight:700;color:#475569;min-width:190px;background:#fbfdff}.req-adjust-input{width:82px!important;margin:0!important;padding:7px!important;text-align:center}.req-real-output{font-weight:800;color:var(--primary);white-space:nowrap}
 
 
@@ -258,8 +258,14 @@
     <!-- TAB 7: PLANEJAMENTO (ORIGINAL) -->
     <div id="tab-planejamento" class="tab-content hidden">
       <div class="card">
-        <h3><i class="fas fa-chart-bar"></i> Previsão de Compra (30d)</h3>
-        <div class="grafico-consumo-wrap"><canvas id="graficoConsumo" aria-label="Gráfico de colunas com estoque atual, consumo médio diário e dias de cobertura" role="img"></canvas></div>
+        <h3><i class="fas fa-chart-bar"></i> Sobrevivência Geral do Estoque</h3>
+        <div class="grafico-consumo-resumo">
+          <div class="grafico-consumo-card"><small>Situação geral</small><strong id="resumoSituacaoEstoque">Calculando...</strong><span id="resumoSituacaoDetalhe">Aguarde a leitura do consumo.</span></div>
+          <div class="grafico-consumo-card"><small>Cobertura mediana</small><strong id="resumoCoberturaEstoque">—</strong><span>dias estimados</span></div>
+          <div class="grafico-consumo-card"><small>Atende até 7 dias</small><strong id="resumoAte7Dias">—</strong><span>produtos com histórico</span></div>
+          <div class="grafico-consumo-card"><small>Atende o mês</small><strong id="resumoAte30Dias">—</strong><span>produtos com 30 dias ou mais</span></div>
+        </div>
+        <div class="grafico-consumo-wrap"><canvas id="graficoConsumo" aria-label="Gráfico resumido da sobrevivência geral do estoque por faixa de cobertura" role="img"></canvas></div>
         <table id="tabelaConsumo">
           <thead><tr><th>Produto</th><th>Estoque Atual</th><th>Saídas (30d)</th><th>Média Diária</th><th>Dias de Cobertura</th><th>Sugestão Compra (30d)</th></tr></thead>
           <tbody id="corpoConsumo"></tbody>
@@ -548,6 +554,8 @@
         resumo[m.item] = (resumo[m.item] || 0) + consumo;
       });
       const dadosGrafico = [];
+      const faixas = {critico: 0, semana: 0, mes: 0, acimaMes: 0, semHistorico: 0};
+      const coberturas = [];
       document.getElementById('corpoConsumo').innerHTML = estoqueSnap.docs.map(doc => {
         const p = doc.data();
         const estoqueAtual = Math.max(0, Number(p.quantidade || 0));
@@ -556,33 +564,32 @@
         const dias = mediaDiaria > 0 ? estoqueAtual / mediaDiaria : null;
         const compra = Math.max(0, (mediaDiaria * 30) - estoqueAtual);
         const diasTexto = dias === null ? 'Sem histórico' : (dias >= 999 ? '999+' : dias.toFixed(1));
+        if (dias === null) faixas.semHistorico++;
+        else { coberturas.push(dias); if (dias < 3) faixas.critico++; else if (dias < 7) faixas.semana++; else if (dias < 30) faixas.mes++; else faixas.acimaMes++; }
         dadosGrafico.push({nome: p.nome, estoque: estoqueAtual, consumo: mediaDiaria, cobertura: dias === null ? 0 : Math.min(dias, 999)});
         return `<tr><td>${p.nome}</td><td>${estoqueAtual.toFixed(2)} ${p.unidade || ''}</td><td>${total.toFixed(2)}</td><td>${mediaDiaria.toFixed(2)}</td><td><strong>${diasTexto}</strong></td><td>${compra.toFixed(2)}</td></tr>`;
       }).join('');
-      renderGraficoConsumo(dadosGrafico);
+      const ordenadas = coberturas.slice().sort((a,b) => a-b);
+      const mediana = ordenadas.length ? (ordenadas.length % 2 ? ordenadas[(ordenadas.length-1)/2] : (ordenadas[ordenadas.length/2-1] + ordenadas[ordenadas.length/2]) / 2) : null;
+      const comHistorico = coberturas.length;
+      const situacao = faixas.critico > 0 ? 'Atenção' : (faixas.semana > 0 ? 'Estável' : 'Bom');
+      const detalhe = faixas.critico > 0 ? `${faixas.critico} produto(s) abaixo de 3 dias.` : (faixas.semana > 0 ? `${faixas.semana} produto(s) abaixo de 7 dias.` : 'Sem produtos em nível crítico.');
+      document.getElementById('resumoSituacaoEstoque').textContent = situacao;
+      document.getElementById('resumoSituacaoDetalhe').textContent = comHistorico ? detalhe : 'Ainda não há histórico de consumo.';
+      document.getElementById('resumoCoberturaEstoque').textContent = mediana === null ? '—' : `${mediana.toFixed(1)}`;
+      document.getElementById('resumoAte7Dias').textContent = `${faixas.critico + faixas.semana}`;
+      document.getElementById('resumoAte30Dias').textContent = `${faixas.acimaMes}`;
+      renderGraficoConsumo(faixas);
     }
 
-    function renderGraficoConsumo(dados) {
+    function renderGraficoConsumo(faixas) {
       const canvas = document.getElementById('graficoConsumo');
       if (!canvas || typeof Chart === 'undefined') return;
       if (graficoConsumoInstance) graficoConsumoInstance.destroy();
       graficoConsumoInstance = new Chart(canvas, {
         type: 'bar',
-        data: {
-          labels: dados.map(d => d.nome),
-          datasets: [
-            {label: 'Estoque atual', data: dados.map(d => d.estoque), backgroundColor: '#2563eb', borderRadius: 5},
-            {label: 'Consumo médio diário', data: dados.map(d => d.consumo), backgroundColor: '#f59e0b', borderRadius: 5},
-            {label: 'Dias de cobertura', data: dados.map(d => d.cobertura), backgroundColor: '#16a34a', borderRadius: 5}
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: {mode: 'index', intersect: false},
-          plugins: {legend: {position: 'top'}, tooltip: {callbacks: {label: ctx => `${ctx.dataset.label}: ${Number(ctx.raw).toFixed(2)}`}}},
-          scales: {x: {ticks: {autoSkip: false, maxRotation: 55, minRotation: 25}}, y: {beginAtZero: true, title: {display: true, text: 'Quantidade / dias'}}}
-        }
+        data: {labels: ['Crítico (<3 dias)', 'Até 7 dias', 'Até 30 dias', 'Acima de 30 dias', 'Sem histórico'], datasets: [{label: 'Quantidade de produtos', data: [faixas.critico, faixas.semana, faixas.mes, faixas.acimaMes, faixas.semHistorico], backgroundColor: ['#dc2626', '#f59e0b', '#2563eb', '#16a34a', '#94a3b8'], borderRadius: 7, barThickness: 52}]},
+        options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}, tooltip: {callbacks: {label: ctx => `${ctx.raw} produto(s)`}}}, scales: {x: {grid: {display: false}}, y: {beginAtZero: true, ticks: {precision: 0}, title: {display: true, text: 'Quantidade de produtos'}}}}
       });
     }
 
